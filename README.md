@@ -1,4 +1,4 @@
-# ระบบจัดการฌาปนกิจสงเคราะห์ครู
+# cremation
 # Cremation Welfare Management System for Teachers
 
 ระบบบริหารจัดการสมาชิกฌาปนกิจสงเคราะห์สำหรับครูและบุคลากรทางการศึกษา  
