@@ -1,0 +1,72 @@
+# .cursorrules
+
+# 1. General behavior
+- Always read `context.md`, `plan.md`, and `tasks.md` before starting major changes.
+- Keep all changes consistent with the multi-school, multi-member-type, multi-year architecture.
+- Organize code in separate folders: `BackEnd` (NestJS API) and `FrontEnd` (Next.js).
+- Prefer incremental, small, focused commits.
+- When adding features:
+  1) Update `plan.md` if project scope expands.
+  2) Add/update tasks in `tasks.md`.
+  3) Update `prisma/schema.prisma` (in `BackEnd`) first for schema changes.
+  4) Run `npx prisma format` on schema changes.
+  5) Update `prisma/seed.ts` in sync with schema.
+  6) Update `README.md` for setup changes.
+
+# 2. Tech stack rules
+
+## Backend (`BackEnd`)
+- Use NestJS (in `BackEnd`) with modules: Auth, Users, Schools, Members, MemberTypes, Groups, Contributions, DeathClaims, Finance, Accounting, Bank, Reports.
+- Use Prisma as ORM with MySQL provider.
+- Use DTOs + class-validator for all request bodies.
+- Use RESTful routes under `/api/*` (e.g. `/api/schools`, `/api/members`, etc).
+- Implement soft-delete where appropriate using `deletedAt`.
+- Every DB query must be filtered by `schoolId` or relevant association.
+- Implement RBAC: ADMIN, FINANCE, ACCOUNTING, GROUP_LEADER, VIEWER.
+- Dates are stored in the database as standard ISO format, always using ค.ศ. (Gregorian/AD).
+
+## Frontend (`FrontEnd`)
+- Use Next.js App Router (v15.5.6) with TypeScript in the `FrontEnd` folder.
+- Use TailwindCSS and a simple layout:
+  - Left sidebar menu (ตามหัวข้อเมนู 1–8)
+  - Top bar with school selector + user info.
+- Integrate React Query (or SWR) for data fetching.
+- Use `react-toastify` for notifications.
+- All pages must consider `schoolId` and `year` as filters.
+- All UI date pickers and date displays must show dates as Thai calendar (ปี พ.ศ.) but send/store data as ค.ศ. (AD) to the backend/database.
+- UI labels are Thai, component/variable names in English.
+
+# 3. Database rules (Prisma)
+- All models include:
+  - `id` (cuid)
+  - `createdAt` and `updatedAt` timestamps
+- Multi-tenant:
+  - Use `schoolId` where data belongs to a school.
+  - Only global association-level tables (e.g., MemberType) omit `schoolId`.
+- Use enums for status fields (e.g., MemberStatus, ReceiptType, VoucherType).
+
+# 4. Security & validation
+- Use JWT-based authentication.
+- Hash passwords with bcrypt.
+- Never expose sensitive fields (e.g., hashedPassword) in API responses.
+- All inputs validated via DTOs and validation pipes.
+
+# 5. Coding style
+- Enable TypeScript strict mode.
+- Use async/await, avoid raw Promise chains.
+- Prefer dependency injection (NestJS standard).
+- Separate modules by domain.
+
+# 6. Testing & quality
+- For core modules (Members, Contributions, DeathClaims), add basic e2e/integration tests where practical.
+- Use meaningful, realistic Thai names and school data in seeds/test data.
+
+# 7. Non-functional requirements
+- Ensure financial calculations are correct for:
+  - Monthly welfare rate per member.
+  - Death benefit calculation (ตามแบบฟอร์มระบบเก่า).
+- Reports must be exportable as CSV/Excel-ready JSON from the API.
+
+# 8. How to treat instructions
+- If any instruction here conflicts with `context.md`, prefer `context.md`.
+- If any instruction conflicts with explicit user messages in the future, follow user messages instead.

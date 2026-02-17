@@ -1,0 +1,56 @@
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
+import { SchoolsService } from './schools.service';
+import { CreateSchoolDto } from './dto/create-school.dto';
+import { UpdateSchoolDto } from './dto/update-school.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { Role } from '@prisma/client';
+
+@Controller('schools')
+@UseGuards(JwtAuthGuard)
+export class SchoolsController {
+  constructor(private readonly schoolsService: SchoolsService) {}
+
+  @Post()
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
+  create(@Body() createSchoolDto: CreateSchoolDto) {
+    return this.schoolsService.create(createSchoolDto);
+  }
+
+  @Get()
+  findAll(@Query('includeInactive') includeInactive?: string) {
+    return this.schoolsService.findAll(includeInactive === 'true');
+  }
+
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.schoolsService.findById(id);
+  }
+
+  @Patch(':id')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
+  update(@Param('id') id: string, @Body() updateSchoolDto: UpdateSchoolDto) {
+    return this.schoolsService.update(id, updateSchoolDto);
+  }
+
+  @Delete(':id')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
+  remove(@Param('id') id: string) {
+    return this.schoolsService.remove(id);
+  }
+}
+

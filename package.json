@@ -1,0 +1,43 @@
+{
+  "name": "cremation-welfare-system",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Multi-tenant Cremation Welfare Management System for Teacher Associations",
+  "scripts": {
+    "dev": "pnpm -r run dev",
+    "dev:api": "pnpm --filter @cremation/api run start:dev",
+    "dev:web": "pnpm --filter @cremation/web run dev",
+    "build": "pnpm -r run build",
+    "build:api": "pnpm --filter @cremation/api run build",
+    "build:web": "pnpm --filter @cremation/web run build",
+    "db:migrate": "pnpm --filter @cremation/api run db:migrate",
+    "db:seed": "pnpm --filter @cremation/api run db:seed",
+    "db:generate": "pnpm --filter @cremation/api run db:generate",
+    "db:studio": "pnpm --filter @cremation/api run db:studio",
+    "lint": "pnpm -r run lint",
+    "clean": "pnpm -r exec rm -rf node_modules dist .next"
+  },
+  "keywords": [
+    "cremation",
+    "welfare",
+    "teacher",
+    "association",
+    "nestjs",
+    "nextjs"
+  ],
+  "author": "",
+  "license": "ISC",
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.25",
+    "prisma": "^7.0.1"
+  },
+  "dependencies": {
+    "@prisma/client": "^7.0.1",
+    "react-is": "^18.2.0",
+    "recharts": "^2.15.0"
+  }
+}

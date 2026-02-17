@@ -1,0 +1,308 @@
+// prisma/schema.prisma
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  ADMIN
+  FINANCE
+  ACCOUNTING
+  GROUP_LEADER
+  VIEWER
+}
+
+enum MemberStatus {
+  ACTIVE
+  RESIGNED
+  DECEASED
+  ARREARS
+  SUSPENDED
+}
+
+enum ReceiptType {
+  MEMBER_CONTRIBUTION
+  MEMBERSHIP_FEE
+  BOOK_FEE
+  ANNUAL_FEE
+  ADVANCE_WELFARE
+  OTHER
+}
+
+enum PaymentType {
+  DEATH_BENEFIT
+  OPERATING_EXPENSE
+  BANK_FEE
+  OTHER
+}
+
+enum AccountType {
+  ASSET
+  LIABILITY
+  EQUITY
+  INCOME
+  EXPENSE
+}
+
+model User {
+  id           String   @id @default(cuid())
+  username     String   @unique
+  passwordHash String
+  role         Role
+  fullName     String
+  signature    String?  @db.Text // ลายเซ็นอิเล็กทรอนิกส์ (base64 image)
+  school       School?  @relation(fields: [schoolId], references: [id])
+  schoolId     String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model School {
+  id                  String              @id @default(cuid())
+  code                String              @unique
+  name                String
+  district            String?
+  province            String?
+  isActive            Boolean             @default(true)
+  members             Member[]
+  associationMembers  AssociationMember[]
+  groups              Group[]
+  users               User[]
+  contributions       MemberContribution[]
+  deathClaims         DeathClaim[]
+  receipts            Receipt[]
+  payments            PaymentVoucher[]
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+}
+
+model MemberType {
+  id                  String             @id @default(cuid())
+  code                String             @unique
+  name                String
+  description         String?
+  active              Boolean            @default(true)
+  members             Member[]
+  associationMembers  AssociationMember[]
+}
+
+model Group {
+  id        String   @id @default(cuid())
+  school    School   @relation(fields: [schoolId], references: [id])
+  schoolId  String
+  code      String
+  name      String
+  leader    Member?  @relation("GroupLeader", fields: [leaderId], references: [id])
+  leaderId  String?
+  members   Member[]
+}
+
+model Member {
+  id                 String            @id @default(cuid())
+  memberNo           String            // running number for association
+  school             School            @relation(fields: [schoolId], references: [id])
+  schoolId           String
+  memberType         MemberType        @relation(fields: [memberTypeId], references: [id])
+  memberTypeId       String
+  group              Group?            @relation(fields: [groupId], references: [id])
+  groupId            String?
+  firstName          String
+  lastName           String
+  idCardNo           String?
+  birthDate          DateTime?
+  address            String?
+  phone              String?
+  joinDate           DateTime
+  resignDate         DateTime?
+  deathDate          DateTime?
+  status             MemberStatus      @default(ACTIVE)
+  salaryDeduction    Boolean           @default(false) // หักผ่านเงินเดือนจากสำนักงานเขตพื้นที่
+  associationProfile AssociationMember? // ทะเบียนสมาคมผู้ประกอบวิชาชีพ
+  beneficiaries      Beneficiary[]
+  contributions      MemberContribution[]
+  deathClaims        DeathClaim[]
+  leadedGroups       Group[]           @relation("GroupLeader")
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+}
+
+// สมาคมผู้ประกอบวิชาชีพผู้บริหาร ครู และบุคลากรทางการศึกษา อำเภอแม่ฟ้าหลวง
+// ทุกสมาชิกฌาปนกิจเป็นสมาชิกสมาคมนี้ด้วย (1:1 กับ Member)
+model AssociationMember {
+  id                  String     @id @default(cuid())
+  member              Member     @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  memberId            String     @unique
+  school              School     @relation(fields: [schoolId], references: [id])
+  schoolId            String     // การสังกัดโรงเรียน
+  memberType          MemberType @relation(fields: [memberTypeId], references: [id])
+  memberTypeId        String     // ประเภทสมาชิก
+  associationMemberNo String?    // เลขสมาชิกสมาคม (ถ้าแยกจาก memberNo)
+  position            String?    @db.VarChar(100) // ตำแหน่งในสมาคม
+  associationJoinDate DateTime?  // วันที่เป็นสมาชิกสมาคม
+  notes               String?    @db.Text
+  createdAt           DateTime   @default(now())
+  updatedAt           DateTime   @updatedAt
+}
+
+model Beneficiary {
+  id          String   @id @default(cuid())
+  member      Member   @relation(fields: [memberId], references: [id])
+  memberId    String
+  fullName    String
+  relationship String
+  phone       String?
+  priority    Int      // 1,2,3
+}
+
+model ContributionPeriod {
+  id           String   @id @default(cuid())
+  year         Int
+  month        Int      // 1–12
+  welfareRate  Decimal  @db.Decimal(10,2) // ต่อสมาชิกหนึ่งคน
+  serviceFee   Decimal  @db.Decimal(10,2) // ค่าบริการต่อสมาชิก
+  isClosed     Boolean  @default(false)
+  contributions MemberContribution[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([year, month])
+}
+
+model MemberContribution {
+  id             String            @id @default(cuid())
+  member         Member            @relation(fields: [memberId], references: [id])
+  memberId       String
+  period         ContributionPeriod @relation(fields: [periodId], references: [id])
+  periodId       String
+  school         School            @relation(fields: [schoolId], references: [id])
+  schoolId       String
+  welfareAmount  Decimal           @db.Decimal(10,2)
+  serviceAmount  Decimal           @db.Decimal(10,2)
+  totalAmount    Decimal           @db.Decimal(10,2)
+  paidAmount     Decimal           @db.Decimal(10,2) @default(0)
+  paidDate       DateTime?
+  receipt        Receipt?          @relation(fields: [receiptId], references: [id])
+  receiptId      String?           @unique
+  isArrears      Boolean           @default(false)
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  @@unique([memberId, periodId])
+}
+
+model DeathClaim {
+  id                 String   @id @default(cuid())
+  member             Member   @relation(fields: [memberId], references: [id])
+  memberId           String
+  school             School   @relation(fields: [schoolId], references: [id])
+  schoolId           String
+  claimNo            String   @unique
+  reportedDate       DateTime
+  deathDate          DateTime
+  causeOfDeath       String?
+  mainBeneficiary    String
+  beneficiaryPhone   String?
+  // snapshot values for calculation
+  activeMemberCount  Int
+  welfareRate        Decimal  @db.Decimal(10,2)
+  totalContribution  Decimal  @db.Decimal(12,2)
+  associationSupport Decimal  @db.Decimal(12,2)
+  otherDeductions    Decimal  @db.Decimal(12,2)
+  netToPay           Decimal  @db.Decimal(12,2)
+  payment            DeathBenefitPayment?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+model DeathBenefitPayment {
+  id            String      @id @default(cuid())
+  deathClaim    DeathClaim  @relation(fields: [deathClaimId], references: [id])
+  deathClaimId  String      @unique
+  payDate       DateTime
+  method        String      // cash / bank transfer
+  bankAccount   BankAccount? @relation(fields: [bankAccountId], references: [id])
+  bankAccountId String?
+  amount        Decimal     @db.Decimal(12,2)
+  voucher       PaymentVoucher? @relation(fields: [voucherId], references: [id])
+  voucherId     String?     @unique
+}
+
+// บัญชีธนาคารกลางของกองทุน (ไม่แยกตามโรงเรียน)
+model BankAccount {
+  id            String   @id @default(cuid())
+  bankName      String
+  accountNo     String   @unique
+  accountName   String
+  description   String?  // คำอธิบายบัญชี เช่น "บัญชีหลัก" "บัญชีสำรอง"
+  isActive      Boolean  @default(true)
+  isDefault     Boolean  @default(false) // บัญชีหลักที่ใช้รับ-จ่ายเป็นประจำ
+  receipts      Receipt[]
+  payments      PaymentVoucher[]
+  deathBenefits DeathBenefitPayment[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Account {
+  id        String      @id @default(cuid())
+  code      String      @unique
+  name      String
+  type      AccountType
+  isActive  Boolean     @default(true)
+  entries   LedgerEntry[]
+}
+
+model LedgerEntry {
+  id          String       @id @default(cuid())
+  account     Account      @relation(fields: [accountId], references: [id])
+  accountId   String
+  date        DateTime
+  description String
+  debit       Decimal      @db.Decimal(12,2) @default(0)
+  credit      Decimal      @db.Decimal(12,2) @default(0)
+  receipt     Receipt?     @relation(fields: [receiptId], references: [id])
+  receiptId   String?
+  payment     PaymentVoucher? @relation(fields: [paymentId], references: [id])
+  paymentId   String?
+}
+
+// ใบเสร็จรับเงิน - schoolId optional (ระบุได้ถ้าเป็นเงินจากโรงเรียนใดโรงเรียนหนึ่ง)
+model Receipt {
+  id            String           @id @default(cuid())
+  receiptNo     String           @unique
+  school        School?          @relation(fields: [schoolId], references: [id])
+  schoolId      String?          // optional - ระบุโรงเรียนที่ส่งเงินมา (ถ้ามี)
+  date          DateTime
+  type          ReceiptType
+  description   String?
+  amount        Decimal          @db.Decimal(12,2)
+  bankAccount   BankAccount?     @relation(fields: [bankAccountId], references: [id])
+  bankAccountId String?
+  memberContribution MemberContribution?
+  ledgerEntries LedgerEntry[]
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+}
+
+// ใบสำคัญจ่าย - schoolId optional (ระบุได้ถ้าจ่ายให้โรงเรียนใดโรงเรียนหนึ่ง)
+model PaymentVoucher {
+  id            String       @id @default(cuid())
+  voucherNo     String       @unique
+  school        School?      @relation(fields: [schoolId], references: [id])
+  schoolId      String?      // optional - ระบุโรงเรียนที่เกี่ยวข้อง (ถ้ามี)
+  date          DateTime
+  type          PaymentType
+  description   String?
+  amount        Decimal      @db.Decimal(12,2)
+  bankAccount   BankAccount? @relation(fields: [bankAccountId], references: [id])
+  bankAccountId String?
+  ledgerEntries LedgerEntry[]
+  deathBenefit  DeathBenefitPayment?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+}
+
