@@ -6,7 +6,7 @@ import { motion } from 'framer-motion';
 import { ArrowLeft, Edit, User, Phone, Calendar, MapPin, Building2, Users, Flower2, AlertCircle, BarChart3 } from 'lucide-react';
 import Link from 'next/link';
 import { showSuccess, showError } from '@/lib/toast';
-import { api, type Member } from '@/lib/api';
+import { api, type Member, membershipClassLabels, protectedRelationshipLabels } from '@/lib/api';
 
 const statusConfig = {
   ACTIVE: { label: 'ปกติ', class: 'badge-success' },
@@ -81,7 +81,7 @@ export default function MemberDetailPage() {
           </Link>
           <div>
             <h1 className="text-2xl font-display font-bold text-slate-900">
-              {member.firstName} {member.lastName}
+              {member.associationMember?.firstName} {member.associationMember?.lastName}
             </h1>
             <p className="text-slate-500 mt-1">
               เลขสมาชิก: {member.memberNo}
@@ -101,10 +101,15 @@ export default function MemberDetailPage() {
       </div>
 
       {/* Status Badge */}
-      <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         <span className={statusConfig[member.status].class}>
           {statusConfig[member.status].label}
         </span>
+        {member.membershipClass && (
+          <span className="badge-info">
+            {membershipClassLabels[member.membershipClass]}
+          </span>
+        )}
         {member.status === 'DECEASED' && member.deathDate && (
           <span className="text-sm text-slate-500">
             เสียชีวิตเมื่อ {formatDate(member.deathDate)}
@@ -132,38 +137,38 @@ export default function MemberDetailPage() {
             </div>
             <div className="flex justify-between">
               <span className="text-slate-500">ชื่อ-นามสกุล</span>
-              <span className="font-medium">{member.firstName} {member.lastName}</span>
+              <span className="font-medium">{member.associationMember?.firstName} {member.associationMember?.lastName}</span>
             </div>
-            {member.idCardNo && (
+            {member.associationMember?.idCardNo && (
               <div className="flex justify-between">
                 <span className="text-slate-500">เลขบัตรประชาชน</span>
-                <span className="font-mono text-sm">{member.idCardNo}</span>
+                <span className="font-mono text-sm">{member.associationMember.idCardNo}</span>
               </div>
             )}
-            {member.birthDate && (
+            {member.associationMember?.birthDate && (
               <div className="flex justify-between">
                 <span className="text-slate-500">วันเกิด</span>
-                <span>{formatDate(member.birthDate)}</span>
+                <span>{formatDate(member.associationMember.birthDate)}</span>
               </div>
             )}
-            {member.phone && (
+            {member.associationMember?.phone && (
               <div className="flex justify-between items-center">
                 <span className="text-slate-500 flex items-center gap-1">
                   <Phone size={14} />
                   โทรศัพท์
                 </span>
-                <a href={`tel:${member.phone}`} className="text-primary-600 hover:text-primary-700">
-                  {member.phone}
+                <a href={`tel:${member.associationMember.phone}`} className="text-primary-600 hover:text-primary-700">
+                  {member.associationMember.phone}
                 </a>
               </div>
             )}
-            {member.address && (
+            {member.associationMember?.address && (
               <div className="flex items-start justify-between">
                 <span className="text-slate-500 flex items-center gap-1">
                   <MapPin size={14} />
                   ที่อยู่
                 </span>
-                <span className="text-right max-w-xs">{member.address}</span>
+                <span className="text-right max-w-xs">{member.associationMember.address}</span>
               </div>
             )}
             <div className="flex justify-between">
@@ -189,8 +194,26 @@ export default function MemberDetailPage() {
             </div>
             <div className="flex justify-between">
               <span className="text-slate-500">ประเภทสมาชิก</span>
-              <span>{member.memberType.name}</span>
+              <span>{member.associationMember?.memberType?.name}</span>
             </div>
+            {member.membershipClass && (
+              <div className="flex justify-between">
+                <span className="text-slate-500">ชั้นสมาชิก</span>
+                <span>{membershipClassLabels[member.membershipClass]}</span>
+              </div>
+            )}
+            {member.applicationDeadline && (
+              <div className="flex justify-between">
+                <span className="text-slate-500">กำหนดยื่นใบสมัคร</span>
+                <span>{formatDate(member.applicationDeadline)}</span>
+              </div>
+            )}
+            {member.arrearsNoticeSentAt && (
+              <div className="flex justify-between">
+                <span className="text-slate-500">แจ้งเตือนค้างชำระ</span>
+                <span>{formatDate(member.arrearsNoticeSentAt)}</span>
+              </div>
+            )}
             {member.group && (
               <div className="flex justify-between">
                 <span className="text-slate-500">กลุ่ม</span>
@@ -200,6 +223,35 @@ export default function MemberDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* Protected Persons */}
+      {member.protectedPersons && member.protectedPersons.length > 0 && (
+        <div className="card p-6">
+          <h3 className="font-semibold text-slate-900 mb-4 flex items-center gap-2">
+            <Users className="w-5 h-5 text-primary-500" />
+            ผู้ได้รับการคุ้มครอง ({member.protectedPersons.filter((p) => p.isActive).length} คน)
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {member.protectedPersons.map((person) => (
+              <div
+                key={person.id}
+                className={`p-4 rounded-xl ${person.isActive ? 'bg-slate-50' : 'bg-slate-100 opacity-70'}`}
+              >
+                <p className="font-medium">{person.fullName}</p>
+                <p className="text-sm text-slate-500">
+                  {protectedRelationshipLabels[person.relationship]}
+                  {!person.isActive && ' (สิ้นสุดการคุ้มครอง)'}
+                </p>
+                {person.phone && (
+                  <a href={`tel:${person.phone}`} className="text-sm text-primary-600">
+                    {person.phone}
+                  </a>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Beneficiaries */}
       {member.beneficiaries && member.beneficiaries.length > 0 && (

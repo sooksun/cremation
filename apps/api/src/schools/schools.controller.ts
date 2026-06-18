@@ -30,8 +30,11 @@ export class SchoolsController {
   }
 
   @Get()
-  findAll(@Query('includeInactive') includeInactive?: string) {
-    return this.schoolsService.findAll(includeInactive === 'true');
+  findAll(
+    @Query('includeInactive') includeInactive?: string,
+    @Query('clusterId') clusterId?: string,
+  ) {
+    return this.schoolsService.findAll(includeInactive === 'true', clusterId);
   }
 
   @Get(':id')

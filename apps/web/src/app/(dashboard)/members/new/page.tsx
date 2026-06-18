@@ -7,21 +7,23 @@ import { ArrowLeft, Save, Plus, Trash2 } from 'lucide-react';
 import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import { showSuccess, showError } from '@/lib/toast';
 import Link from 'next/link';
-import { api, type School, type MemberType, type Group } from '@/lib/api';
+import { api, type Group } from '@/lib/api';
 import ThaiDatePicker from '@/components/ThaiDatePicker';
 import dayjs from 'dayjs';
 
-interface MemberForm {
-  memberNo: string;
-  schoolId: string;
-  memberTypeId: string;
-  groupId?: string;
+interface AssociationMemberOption {
+  id: string;
   firstName: string;
   lastName: string;
-  idCardNo?: string;
-  birthDate?: string;
-  address?: string;
-  phone?: string;
+  school: { id: string; name: string };
+  memberType: { id: string; name: string };
+  cremationMember?: { id: string } | null;
+}
+
+interface MemberForm {
+  associationMemberId: string;
+  memberNo?: string;
+  groupId?: string;
   joinDate: string;
   salaryDeduction?: boolean;
   beneficiaries: {
@@ -36,30 +38,24 @@ export default function NewMemberPage() {
 
   const { register, handleSubmit, control, formState: { errors } } = useForm<MemberForm>({
     defaultValues: {
+      associationMemberId: '',
       joinDate: new Date().toISOString().split('T')[0],
       beneficiaries: [],
     },
   });
 
+  const { data: associationMembersRes } = useQuery<{ data: AssociationMemberOption[] }>({
+    queryKey: ['association-members-all'],
+    queryFn: async () => {
+      const res = await api.get('/association-members?limit=500');
+      return res.data;
+    },
+  });
+  const associationMembers = associationMembersRes?.data?.filter((am) => !am.cremationMember) ?? [];
+
   const { fields, append, remove } = useFieldArray({
     control,
     name: 'beneficiaries',
-  });
-
-  const { data: schools } = useQuery<School[]>({
-    queryKey: ['schools'],
-    queryFn: async () => {
-      const response = await api.get('/schools');
-      return response.data;
-    },
-  });
-
-  const { data: memberTypes } = useQuery<MemberType[]>({
-    queryKey: ['member-types'],
-    queryFn: async () => {
-      const response = await api.get('/member-types');
-      return response.data;
-    },
   });
 
   const { data: groups } = useQuery<Group[]>({
@@ -82,14 +78,15 @@ export default function NewMemberPage() {
   });
 
   const onSubmit = (data: MemberForm) => {
-    // Clean up empty optional fields
-    if (!data.groupId) delete data.groupId;
-    if (!data.idCardNo) delete data.idCardNo;
-    if (!data.birthDate) delete data.birthDate;
-    if (!data.address) delete data.address;
-    if (!data.phone) delete data.phone;
-    
-    createMutation.mutate(data);
+    const payload: Record<string, unknown> = {
+      associationMemberId: data.associationMemberId,
+      joinDate: data.joinDate,
+      salaryDeduction: data.salaryDeduction ?? false,
+      beneficiaries: data.beneficiaries,
+    };
+    if (data.memberNo?.trim()) payload.memberNo = data.memberNo;
+    if (data.groupId?.trim()) payload.groupId = data.groupId;
+    createMutation.mutate(payload as any);
   };
 
   return (
@@ -108,7 +105,7 @@ export default function NewMemberPage() {
             เพิ่มสมาชิกใหม่
           </h1>
           <p className="text-slate-500 mt-1">
-            กรอกข้อมูลสมาชิกและผู้รับผลประโยชน์
+            เลือกสมาชิกสมาคมที่ต้องการเข้าร่วมฌาปนกิจ และกรอกข้อมูลการเข้าร่วม
           </p>
         </div>
       </div>
@@ -116,44 +113,36 @@ export default function NewMemberPage() {
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         {/* Basic Info */}
         <div className="card p-6">
-          <h3 className="font-semibold text-slate-900 mb-4">ข้อมูลพื้นฐาน</h3>
+          <h3 className="font-semibold text-slate-900 mb-4">ข้อมูลการเข้าร่วมฌาปนกิจ</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div>
-              <label className="label">เลขทะเบียนสมาชิก *</label>
-              <input
-                {...register('memberNo', { required: 'กรุณากรอกเลขทะเบียน' })}
+            <div className="md:col-span-2">
+              <label className="label">เลือกสมาชิกสมาคม *</label>
+              <select
+                {...register('associationMemberId', { required: 'กรุณาเลือกสมาชิกสมาคม' })}
                 className="input"
-                placeholder="M0001"
+              >
+                <option value="">-- เลือกสมาชิกที่ยังไม่ได้เข้าร่วมฌาปนกิจ --</option>
+                {associationMembers.map((am) => (
+                  <option key={am.id} value={am.id}>
+                    {am.firstName} {am.lastName} ({am.school.name} - {am.memberType.name})
+                  </option>
+                ))}
+              </select>
+              {errors.associationMemberId && (
+                <p className="text-sm text-red-500 mt-1">{errors.associationMemberId.message}</p>
+              )}
+              {associationMembers.length === 0 && (
+                <p className="text-sm text-slate-500 mt-1">ไม่มีสมาชิกสมาคมที่ยังไม่ได้เข้าร่วมฌาปนกิจ หรือให้เพิ่มสมาชิกที่เมนู สมาชิกสมาคม ก่อน</p>
+              )}
+            </div>
+
+            <div>
+              <label className="label">เลขทะเบียนสมาชิกฌาปนกิจ</label>
+              <input
+                {...register('memberNo')}
+                className="input"
+                placeholder="เว้นว่างให้ระบบสร้างอัตโนมัติ"
               />
-              {errors.memberNo && (
-                <p className="text-sm text-red-500 mt-1">{errors.memberNo.message}</p>
-              )}
-            </div>
-
-            <div>
-              <label className="label">โรงเรียน *</label>
-              <select {...register('schoolId', { required: 'กรุณาเลือกโรงเรียน' })} className="input">
-                <option value="">เลือกโรงเรียน</option>
-                {schools?.map((school) => (
-                  <option key={school.id} value={school.id}>{school.name}</option>
-                ))}
-              </select>
-              {errors.schoolId && (
-                <p className="text-sm text-red-500 mt-1">{errors.schoolId.message}</p>
-              )}
-            </div>
-
-            <div>
-              <label className="label">ประเภทสมาชิก *</label>
-              <select {...register('memberTypeId', { required: 'กรุณาเลือกประเภท' })} className="input">
-                <option value="">เลือกประเภท</option>
-                {memberTypes?.map((type) => (
-                  <option key={type.id} value={type.id}>{type.name}</option>
-                ))}
-              </select>
-              {errors.memberTypeId && (
-                <p className="text-sm text-red-500 mt-1">{errors.memberTypeId.message}</p>
-              )}
             </div>
 
             <div>
@@ -167,56 +156,7 @@ export default function NewMemberPage() {
             </div>
 
             <div>
-              <label className="label">ชื่อ *</label>
-              <input
-                {...register('firstName', { required: 'กรุณากรอกชื่อ' })}
-                className="input"
-                placeholder="ชื่อ"
-              />
-              {errors.firstName && (
-                <p className="text-sm text-red-500 mt-1">{errors.firstName.message}</p>
-              )}
-            </div>
-
-            <div>
-              <label className="label">นามสกุล *</label>
-              <input
-                {...register('lastName', { required: 'กรุณากรอกนามสกุล' })}
-                className="input"
-                placeholder="นามสกุล"
-              />
-              {errors.lastName && (
-                <p className="text-sm text-red-500 mt-1">{errors.lastName.message}</p>
-              )}
-            </div>
-
-            <div>
-              <label className="label">เลขบัตรประชาชน</label>
-              <input
-                {...register('idCardNo')}
-                className="input"
-                placeholder="x-xxxx-xxxxx-xx-x"
-              />
-            </div>
-
-            <div>
-              <label className="label">วันเกิด</label>
-              <Controller
-                name="birthDate"
-                control={control}
-                render={({ field }) => (
-                  <ThaiDatePicker
-                    value={field.value ? dayjs(field.value) : null}
-                    onChange={(date) => field.onChange(date ? date.format('YYYY-MM-DD') : '')}
-                    placeholder="เลือกวันเกิด"
-                    style={{ width: '100%' }}
-                  />
-                )}
-              />
-            </div>
-
-            <div>
-              <label className="label">วันที่สมัครสมาชิก *</label>
+              <label className="label">วันที่สมัครเข้าร่วมฌาปนกิจ *</label>
               <Controller
                 name="joinDate"
                 control={control}
@@ -244,28 +184,6 @@ export default function NewMemberPage() {
                 />
                 <span className="label mb-0">หักผ่านเงินเดือนจากสำนักงานเขตพื้นที่</span>
               </label>
-              <p className="text-sm text-slate-500 mt-1 ml-6">
-                สมาชิกส่วนใหญ่จะหักผ่านเงินเดือนจากสำนักงานเขตพื้นที่ (ประมาณ 90%)
-              </p>
-            </div>
-
-            <div>
-              <label className="label">เบอร์โทรศัพท์</label>
-              <input
-                {...register('phone')}
-                className="input"
-                placeholder="08x-xxx-xxxx"
-              />
-            </div>
-
-            <div className="md:col-span-2">
-              <label className="label">ที่อยู่</label>
-              <textarea
-                {...register('address')}
-                className="input"
-                rows={2}
-                placeholder="ที่อยู่"
-              />
             </div>
           </div>
         </div>

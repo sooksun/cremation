@@ -23,7 +23,7 @@ export class MemberTypesService {
     return this.prisma.memberType.findMany({
       where: includeInactive ? undefined : { active: true },
       include: {
-        _count: { select: { members: true } },
+        _count: { select: { associationMembers: true } },
       },
       orderBy: { name: 'asc' },
     });

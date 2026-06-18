@@ -270,12 +270,12 @@ export default function MemberProfilePage() {
               <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
                 <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center">
                   <span className="text-2xl font-bold text-primary-600">
-                    {data.member.firstName.charAt(0)}
+                    {(data.member.firstName || data.member.fullName || ' ').charAt(0)}
                   </span>
                 </div>
                 <div>
                   <p className="font-semibold text-slate-900">{data.member.fullName}</p>
-                  <p className="text-sm text-slate-500">{data.member.memberType.name}</p>
+                  <p className="text-sm text-slate-500">{data.member.memberType?.name}</p>
                 </div>
               </div>
 
@@ -483,7 +483,13 @@ export default function MemberProfilePage() {
                             ? 'ตัวสมาชิก'
                             : claim.deceasedType === 'PARENT'
                             ? 'บิดา/มารดา'
-                            : 'บุตร/ธิดา'}
+                            : claim.deceasedType === 'SPOUSE'
+                            ? 'คู่สมรส'
+                            : claim.deceasedType === 'CHILD'
+                            ? 'บุตร/ธิดา'
+                            : claim.claimType === 'PROTECTED_DEATH'
+                            ? 'ญาติที่คุ้มครอง'
+                            : 'สมาชิก'}
                           {claim.deceasedName && `: ${claim.deceasedName}`}
                         </p>
                       </div>

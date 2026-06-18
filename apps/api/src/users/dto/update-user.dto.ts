@@ -1,4 +1,4 @@
-import { IsString, MinLength, IsEnum, IsOptional, ValidateIf } from 'class-validator';
+import { IsString, MinLength, IsEnum, IsOptional, ValidateIf, IsBoolean } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { Role } from '@prisma/client';
 
@@ -7,7 +7,7 @@ export class UpdateUserDto {
   @Transform(({ value }) => value === '' ? undefined : value)
   @ValidateIf((o) => o.password !== undefined && o.password !== '')
   @IsString()
-  @MinLength(4, { message: 'รหัสผ่านต้องมีอย่างน้อย 4 ตัวอักษร' })
+  @MinLength(8, { message: 'รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร' })
   password?: string;
 
   @IsOptional()
@@ -27,5 +27,15 @@ export class UpdateUserDto {
   @IsOptional()
   @IsString()
   signature?: string;
+
+  @IsOptional()
+  @Transform(({ value }) => value === '' ? undefined : value)
+  @ValidateIf((o) => o.groupId !== undefined && o.groupId !== '')
+  @IsString()
+  groupId?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  mustChangePassword?: boolean;
 }
 

@@ -10,7 +10,7 @@
 
 ## 1. Prisma & Database
 - [x] Implement initial `prisma/schema.prisma` as defined.
-- [ ] Run `npx prisma migrate dev --name init`.
+- [x] Run migrations (init + security + phase_b).
 - [x] Implement `prisma/seed.ts`:
   - Create schools (3).
   - Create member types.
@@ -47,7 +47,7 @@
 - [x] Create DeathClaim from member.
 - [x] Implement benefit calculation service.
 - [x] Record DeathBenefitPayment and link to PaymentVoucher.
-- [ ] Exportable DTO for printable form.
+- [x] Exportable DTO for printable form (`GET /death-claims/:id/print`).
 
 ## 7. Backend – Finance & Accounting
 - [x] Receipt endpoints (with auto ledger creation).
@@ -66,16 +66,16 @@
 - [x] Schools management page.
 - [x] Death claims list with stats.
 - [x] Dashboard with KPIs and charts.
-- [ ] Member create/edit form.
-- [ ] ContributionPeriod list and detail (members & payments).
-- [ ] Arrears report page.
-- [ ] DeathClaim detail with print-friendly view.
+- [x] Member create/edit form.
+- [x] ContributionPeriod list and detail (members & payments).
+- [x] Arrears report page.
+- [x] DeathClaim detail with print-friendly view.
 
 ## 10. Documentation & polish
 - [x] Keep `README.md` updated.
 - [x] Add example environment variables in README.
 - [ ] Add a short "data model overview" diagram in docs if needed.
-- [ ] Basic e2e tests for critical flows.
+- [x] Basic e2e tests for critical flows (`npm run test:e2e`).
 
 ---
 
@@ -97,7 +97,24 @@
 ## Next Priority Tasks
 
 1. [x] Run migration and seed to test the system
-2. [ ] Complete member create/edit form
-3. [ ] Add contribution period management pages
-4. [ ] Add print/export functionality for death claims
-5. [ ] Add more reports (arrears, financial statements)
+2. [x] Complete member create/edit form
+3. [x] Add contribution period management pages
+4. [x] Add print/export functionality for death claims
+5. [x] Add more reports (arrears, financial statements, daily movement)
+
+## Phase A–C (มิ.ย. 2569)
+
+### Phase A — Security Hardening [x]
+- JWT secret validation, httpOnly cookie, school scoping, PII masking, rate limit, audit log
+
+### Phase B — Missing Features [x]
+- Death claim print, CSV import/export, balance sheet & P&L, bank deposit/withdraw, period close guard, death benefit calculator, daily report
+
+### Phase C — Quality & Stability [x]
+- Unit tests (auth, death calc, contributions), E2E critical flow, remove console.log, error boundary, access-denied page, VIEWER read-only guard
+
+### Phase D — Production Ready [x]
+- Dockerfile.api, Dockerfile.web, docker-compose.prod.yml (ports 9930/9931)
+- backup/backup.sh + backup service ใน compose
+- deploy/npm-proxy-host.md, .env.production.example
+- .github/workflows/ci.yml, Prisma binaryTargets

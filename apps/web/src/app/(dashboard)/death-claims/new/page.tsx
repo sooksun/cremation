@@ -12,18 +12,31 @@ import { api, type School, type Member } from '@/lib/api';
 import { useAuthStore } from '@/store/auth';
 import ThaiDatePicker from '@/components/ThaiDatePicker';
 
-// ประเภทผู้เสียชีวิต
+type DeathClaimType = 'MEMBER_DEATH' | 'PROTECTED_DEATH';
+
 enum DeceasedType {
-  MEMBER = 'MEMBER',   // ตัวสมาชิกเอง - จ่าย 100%
-  PARENT = 'PARENT',   // บิดา/มารดา - จ่าย 50%
-  CHILD = 'CHILD',     // บุตร/ธิดา - จ่าย 50%
+  MEMBER = 'MEMBER',
+  PARENT = 'PARENT',
+  CHILD = 'CHILD',
+  SPOUSE = 'SPOUSE',
 }
 
 const deceasedTypeLabels: Record<DeceasedType, string> = {
-  [DeceasedType.MEMBER]: 'ตัวสมาชิกเอง (จ่าย 100%)',
-  [DeceasedType.PARENT]: 'บิดา/มารดา (จ่าย 50%)',
-  [DeceasedType.CHILD]: 'บุตร/ธิดา (จ่าย 50%)',
+  [DeceasedType.MEMBER]: 'ตัวสมาชิกเอง (เก็บ 100 บาท/คน)',
+  [DeceasedType.PARENT]: 'บิดา/มารดาที่คุ้มครอง (เก็บ 50 บาท/คน)',
+  [DeceasedType.CHILD]: 'บุตร/ธิดาที่คุ้มครอง (เก็บ 50 บาท/คน)',
+  [DeceasedType.SPOUSE]: 'คู่สมรสที่คุ้มครอง (เก็บ 50 บาท/คน)',
 };
+
+const deceasedTypeToRelationship: Partial<Record<DeceasedType, string>> = {
+  [DeceasedType.PARENT]: 'PARENT',
+  [DeceasedType.CHILD]: 'CHILD',
+  [DeceasedType.SPOUSE]: 'SPOUSE',
+};
+
+function toClaimType(deceasedType: DeceasedType): DeathClaimType {
+  return deceasedType === DeceasedType.MEMBER ? 'MEMBER_DEATH' : 'PROTECTED_DEATH';
+}
 
 interface DeathClaimForm {
   memberId: string;
@@ -33,6 +46,7 @@ interface DeathClaimForm {
   causeOfDeath?: string;
   deceasedType: DeceasedType;
   deceasedName?: string;
+  protectedPersonId?: string;
   relationshipNote?: string;
   mainBeneficiary: string;
   beneficiaryPhone?: string;
@@ -56,7 +70,9 @@ export default function NewDeathClaimPage() {
   });
 
   const watchSchoolId = watch('schoolId');
+  const watchMemberId = watch('memberId');
   const watchDeceasedType = watch('deceasedType');
+  const watchOtherDeductions = watch('otherDeductions');
 
   const { data: schools } = useQuery<School[]>({
     queryKey: ['schools'],
@@ -82,17 +98,57 @@ export default function NewDeathClaimPage() {
 
   const members = membersData?.data || [];
 
-  // ดึงอัตราเงินช่วยเหลือปัจจุบัน
-  const { data: welfareData } = useQuery<{ welfareAmountPerCase: number }>({
-    queryKey: ['current-welfare-amount'],
+  const { data: memberDetail } = useQuery<Member>({
+    queryKey: ['member', watchMemberId],
     queryFn: async () => {
-      const response = await api.get('/death-claims/current-welfare-amount');
+      const response = await api.get(`/members/${watchMemberId}`);
       return response.data;
     },
+    enabled: !!watchMemberId,
+  });
+
+  const activeProtectedPersons =
+    memberDetail?.protectedPersons?.filter((p) => p.isActive) ?? [];
+  const matchingProtectedPersons =
+    watchDeceasedType === DeceasedType.MEMBER
+      ? []
+      : activeProtectedPersons.filter(
+          (p) => p.relationship === deceasedTypeToRelationship[watchDeceasedType],
+        );
+
+  const { data: calcPreview } = useQuery({
+    queryKey: ['death-calc-preview', watchDeceasedType, watchMemberId, watchOtherDeductions],
+    queryFn: async () => {
+      const params = new URLSearchParams({
+        claimType: toClaimType(watchDeceasedType),
+      });
+      if (watchDeceasedType === DeceasedType.MEMBER && watchMemberId) {
+        params.append('excludeMemberId', watchMemberId);
+      }
+      if (watchOtherDeductions) params.append('otherDeductions', String(watchOtherDeductions));
+      const response = await api.get(`/death-claims/preview-calculation?${params}`);
+      return response.data;
+    },
+    enabled: !!watchMemberId,
   });
 
   const createMutation = useMutation({
-    mutationFn: (data: DeathClaimForm) => api.post('/death-claims', data),
+    mutationFn: (data: DeathClaimForm) =>
+      api.post('/death-claims', {
+        memberId: data.memberId,
+        schoolId: data.schoolId,
+        claimType: toClaimType(data.deceasedType),
+        deceasedType: data.deceasedType,
+        deceasedName: data.deceasedName,
+        protectedPersonId: data.protectedPersonId,
+        relationshipNote: data.relationshipNote,
+        reportedDate: data.reportedDate,
+        deathDate: data.deathDate,
+        causeOfDeath: data.causeOfDeath,
+        mainBeneficiary: data.mainBeneficiary,
+        beneficiaryPhone: data.beneficiaryPhone,
+        otherDeductions: data.otherDeductions || 0,
+      }),
     onSuccess: () => {
       showSuccess('บันทึกการแจ้งเสียชีวิตสำเร็จ');
       router.push('/death-claims');
@@ -105,42 +161,28 @@ export default function NewDeathClaimPage() {
   const handleSelectMember = (member: Member) => {
     setSelectedMember(member);
     setValue('memberId', member.id);
-    // Set main beneficiary from member's first beneficiary if available
-    if ((member as any).beneficiaries?.length > 0) {
-      const firstBeneficiary = (member as any).beneficiaries[0];
+    setValue('protectedPersonId', '');
+    setValue('deceasedName', '');
+    const fullName = `${member.associationMember?.firstName ?? ''} ${member.associationMember?.lastName ?? ''}`.trim();
+    if (watchDeceasedType === DeceasedType.MEMBER && (member as Member & { beneficiaries?: { fullName: string; phone?: string }[] }).beneficiaries?.length) {
+      const firstBeneficiary = (member as Member & { beneficiaries: { fullName: string; phone?: string }[] }).beneficiaries[0];
       setValue('mainBeneficiary', firstBeneficiary.fullName);
-      if (firstBeneficiary.phone) {
-        setValue('beneficiaryPhone', firstBeneficiary.phone);
-      }
+      if (firstBeneficiary.phone) setValue('beneficiaryPhone', firstBeneficiary.phone);
+    } else if (watchDeceasedType !== DeceasedType.MEMBER && fullName) {
+      setValue('mainBeneficiary', fullName);
     }
   };
-
-  // คำนวณยอดเงินที่จะได้รับ
-  const calculateAmount = () => {
-    if (!welfareData?.welfareAmountPerCase) return { baseAmount: 0, percent: 100, calculated: 0 };
-    const baseAmount = welfareData.welfareAmountPerCase;
-    const percent = watchDeceasedType === DeceasedType.MEMBER ? 100 : 50;
-    const calculated = (baseAmount * percent) / 100;
-    return { baseAmount, percent, calculated };
-  };
-
-  const { baseAmount, percent, calculated } = calculateAmount();
 
   const onSubmit = (data: DeathClaimForm) => {
     if (!data.memberId) {
       showError('กรุณาเลือกสมาชิก');
       return;
     }
-    
-    // Clean up empty optional fields
-    const submitData: any = { ...data };
-    if (!submitData.causeOfDeath) delete submitData.causeOfDeath;
-    if (!submitData.deceasedName) delete submitData.deceasedName;
-    if (!submitData.relationshipNote) delete submitData.relationshipNote;
-    if (!submitData.beneficiaryPhone) delete submitData.beneficiaryPhone;
-    if (!submitData.otherDeductions) submitData.otherDeductions = 0;
-
-    createMutation.mutate(submitData);
+    if (data.deceasedType !== DeceasedType.MEMBER && !data.protectedPersonId && !data.deceasedName?.trim()) {
+      showError('กรุณาเลือกหรือกรอกชื่อผู้เสียชีวิตที่คุ้มครอง');
+      return;
+    }
+    createMutation.mutate(data);
   };
 
   const formatCurrency = (amount: number) => {
@@ -226,10 +268,10 @@ export default function NewDeathClaimPage() {
                 </div>
                 <div>
                   <p className="font-semibold text-slate-900">
-                    {selectedMember.firstName} {selectedMember.lastName}
+                    {selectedMember.associationMember?.firstName} {selectedMember.associationMember?.lastName}
                   </p>
                   <p className="text-sm text-slate-500">
-                    เลขสมาชิก: {selectedMember.memberNo} • {selectedMember.memberType.name}
+                    เลขสมาชิก: {selectedMember.memberNo} • {selectedMember.associationMember?.memberType?.name}
                   </p>
                 </div>
               </div>
@@ -251,10 +293,10 @@ export default function NewDeathClaimPage() {
                   </div>
                   <div>
                     <p className="font-medium text-slate-900">
-                      {member.firstName} {member.lastName}
+                      {member.associationMember?.firstName} {member.associationMember?.lastName}
                     </p>
                     <p className="text-sm text-slate-500">
-                      {member.memberNo} • {member.memberType.name}
+                      {member.memberNo} • {member.associationMember?.memberType?.name}
                     </p>
                   </div>
                 </button>
@@ -275,7 +317,7 @@ export default function NewDeathClaimPage() {
             {/* ประเภทผู้เสียชีวิต */}
             <div className="md:col-span-2">
               <label className="label">ประเภทผู้เสียชีวิต *</label>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
                 {Object.entries(deceasedTypeLabels).map(([value, label]) => (
                   <label
                     key={value}
@@ -305,19 +347,43 @@ export default function NewDeathClaimPage() {
             {/* ชื่อผู้เสียชีวิต - แสดงเฉพาะกรณีบิดา/มารดา หรือ บุตร/ธิดา */}
             {watchDeceasedType !== DeceasedType.MEMBER && (
               <>
-                <div>
-                  <label className="label">ชื่อผู้เสียชีวิต *</label>
-                  <input
-                    {...register('deceasedName', { 
-                      required: 'กรุณากรอกชื่อผู้เสียชีวิต'
-                    })}
-                    className="input"
-                    placeholder="ชื่อ-นามสกุล ผู้เสียชีวิต"
-                  />
-                  {errors.deceasedName && (
-                    <p className="text-sm text-red-500 mt-1">{errors.deceasedName.message}</p>
-                  )}
-                </div>
+                {matchingProtectedPersons.length > 0 ? (
+                  <div className="md:col-span-2">
+                    <label className="label">เลือกผู้เสียชีวิตจากทะเบียนคุ้มครอง *</label>
+                    <select
+                      className="input"
+                      {...register('protectedPersonId', {
+                        onChange: (e) => {
+                          const person = matchingProtectedPersons.find((p) => p.id === e.target.value);
+                          if (person) {
+                            setValue('deceasedName', person.fullName);
+                            const memberName = `${memberDetail?.associationMember?.firstName ?? ''} ${memberDetail?.associationMember?.lastName ?? ''}`.trim();
+                            if (memberName) setValue('mainBeneficiary', memberName);
+                          }
+                        },
+                      })}
+                    >
+                      <option value="">— เลือก —</option>
+                      {matchingProtectedPersons.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.fullName}
+                        </option>
+                      ))}
+                    </select>
+                    <p className="text-xs text-slate-500 mt-1">
+                      จ่ายเงินสงเคราะห์ให้สมาชิกต้นสังกัด ตามระเบียบ ข้อ 20
+                    </p>
+                  </div>
+                ) : (
+                  <div>
+                    <label className="label">ชื่อผู้เสียชีวิต *</label>
+                    <input
+                      {...register('deceasedName')}
+                      className="input"
+                      placeholder="ชื่อ-นามสกุล ผู้เสียชีวิต"
+                    />
+                  </div>
+                )}
 
                 <div>
                   <label className="label">รายละเอียดความสัมพันธ์</label>
@@ -387,30 +453,56 @@ export default function NewDeathClaimPage() {
             <AlertCircle className="w-5 h-5" />
             ยอดเงินช่วยเหลือ (คำนวณอัตโนมัติ)
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="p-4 bg-white rounded-xl">
-              <p className="text-sm text-slate-500">อัตราพื้นฐาน</p>
-              <p className="text-xl font-bold text-slate-900">{formatCurrency(baseAmount)}</p>
-              <p className="text-xs text-slate-400">ตามมติคณะกรรมการ</p>
-            </div>
-            <div className="p-4 bg-white rounded-xl">
-              <p className="text-sm text-slate-500">เปอร์เซ็นต์การจ่าย</p>
-              <p className="text-xl font-bold text-slate-900">{percent}%</p>
-              <p className="text-xs text-slate-400">
-                {watchDeceasedType === DeceasedType.MEMBER ? 'ตัวสมาชิกเอง' : 'บิดา/มารดา/บุตร'}
+          {calcPreview ? (
+            <>
+              <p className="text-sm text-blue-800 mb-3">
+                สมาชิกที่ต้องส่งเงิน {calcPreview.payingMemberCount} คน × อัตรา{' '}
+                {formatCurrency(calcPreview.collectionRate)}/คน (ตามระเบียบ ข้อ 13)
               </p>
-            </div>
-            <div className="p-4 bg-primary-100 rounded-xl">
-              <p className="text-sm text-primary-700">ยอดที่จะได้รับ</p>
-              <p className="text-2xl font-bold text-primary-700">{formatCurrency(calculated)}</p>
-              <p className="text-xs text-primary-600">ก่อนหักรายการอื่นๆ</p>
-            </div>
-          </div>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="p-4 bg-white rounded-xl">
+                  <p className="text-sm text-slate-500">ยอดเก็บรวม</p>
+                  <p className="text-xl font-bold text-slate-900">
+                    {formatCurrency(calcPreview.grossCollected)}
+                  </p>
+                </div>
+                <div className="p-4 bg-white rounded-xl">
+                  <p className="text-sm text-slate-500">เข้ากองทุน (10%)</p>
+                  <p className="text-xl font-bold text-amber-700">
+                    {formatCurrency(calcPreview.fundReserve)}
+                  </p>
+                  <p className="text-xs text-slate-400">ข้อ 16</p>
+                </div>
+                <div className="p-4 bg-white rounded-xl">
+                  <p className="text-sm text-slate-500">จ่ายผู้รับ (90%)</p>
+                  <p className="text-xl font-bold text-slate-900">
+                    {formatCurrency(calcPreview.grossCollected * calcPreview.payoutRatio)}
+                  </p>
+                </div>
+                <div className="p-4 bg-primary-100 rounded-xl">
+                  <p className="text-sm text-primary-700">ยอดสุทธิจ่าย</p>
+                  <p className="text-2xl font-bold text-primary-700">
+                    {formatCurrency(calcPreview.netToPay)}
+                  </p>
+                  <p className="text-xs text-primary-600">หลังหักรายการอื่นๆ</p>
+                </div>
+              </div>
+            </>
+          ) : (
+            <p className="text-sm text-blue-700">เลือกสมาชิกเพื่อดูการคำนวณตามระเบียบ</p>
+          )}
         </div>
 
         {/* Beneficiary Information */}
         <div className="card p-6">
-          <h3 className="font-semibold text-slate-900 mb-4">ผู้รับผลประโยชน์</h3>
+          <h3 className="font-semibold text-slate-900 mb-4">
+            {watchDeceasedType === DeceasedType.MEMBER ? 'ผู้รับผลประโยชน์' : 'ผู้รับเงินสงเคราะห์ (สมาชิกต้นสังกัด)'}
+          </h3>
+          {watchDeceasedType !== DeceasedType.MEMBER && (
+            <p className="text-sm text-slate-500 mb-4">
+              กรณีญาติที่คุ้มครองเสียชีวิต เงินสงเคราะห์จ่ายให้สมาชิกตามระเบียบ ข้อ 20
+            </p>
+          )}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="label">ชื่อผู้รับผลประโยชน์หลัก *</label>
@@ -454,7 +546,7 @@ export default function NewDeathClaimPage() {
               <div className="p-4 bg-emerald-50 rounded-xl w-full border border-emerald-200">
                 <p className="text-sm text-emerald-700">ยอดสุทธิที่จะจ่าย</p>
                 <p className="text-2xl font-bold text-emerald-700">
-                  {formatCurrency(calculated - (watch('otherDeductions') || 0))}
+                  {formatCurrency(calcPreview?.netToPay ?? 0)}
                 </p>
               </div>
             </div>

@@ -1,10 +1,15 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateBankAccountDto, UpdateBankAccountDto } from './dto/bank-account.dto';
+import { CreateBankTransactionDto, UpdateBankTransactionDto } from './dto/bank-transaction.dto';
+import { DocumentNumberService, DocumentType } from '../common/document-number.service';
 
 @Injectable()
 export class BankAccountsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly documentNumberService: DocumentNumberService,
+  ) {}
 
   async create(dto: CreateBankAccountDto) {
     // Check if accountNo already exists
@@ -131,7 +136,7 @@ export class BankAccountsService {
       dateFilter.date = { gte: startDate, lte: endDate };
     }
 
-    const [receipts, payments] = await Promise.all([
+    const [receipts, payments, manualTxns] = await Promise.all([
       this.prisma.receipt.findMany({
         where: { bankAccountId: id, ...dateFilter },
         include: { school: true },
@@ -142,14 +147,18 @@ export class BankAccountsService {
         include: { school: true },
         orderBy: { date: 'asc' },
       }),
+      this.prisma.bankTransaction.findMany({
+        where: { bankAccountId: id, ...(startDate && endDate ? { date: dateFilter.date } : {}) },
+        orderBy: { date: 'asc' },
+      }),
     ]);
 
-    // Combine and sort by date
     const transactions = [
       ...receipts.map((r) => ({
         id: r.id,
         date: r.date,
         type: 'DEPOSIT' as const,
+        source: 'receipt' as const,
         description: r.description || `ใบเสร็จ ${r.receiptNo}`,
         amount: Number(r.amount),
         reference: r.receiptNo,
@@ -159,10 +168,21 @@ export class BankAccountsService {
         id: p.id,
         date: p.date,
         type: 'WITHDRAWAL' as const,
+        source: 'payment' as const,
         description: p.description || `ใบสำคัญจ่าย ${p.voucherNo}`,
         amount: -Number(p.amount),
         reference: p.voucherNo,
         school: p.school?.name || null,
+      })),
+      ...manualTxns.map((t) => ({
+        id: t.id,
+        date: t.date,
+        type: t.type,
+        source: 'manual' as const,
+        description: t.description || `ธุรกรรม ${t.transactionNo}`,
+        amount: t.type === 'DEPOSIT' ? Number(t.amount) : -Number(t.amount),
+        reference: t.transactionNo,
+        school: null,
       })),
     ].sort((a, b) => a.date.getTime() - b.date.getTime());
 
@@ -178,7 +198,7 @@ export class BankAccountsService {
   async getBalance(id: string) {
     await this.findById(id);
 
-    const [receiptsSum, paymentsSum] = await Promise.all([
+    const [receiptsSum, paymentsSum, manualDeposits, manualWithdrawals] = await Promise.all([
       this.prisma.receipt.aggregate({
         where: { bankAccountId: id },
         _sum: { amount: true },
@@ -187,15 +207,79 @@ export class BankAccountsService {
         where: { bankAccountId: id },
         _sum: { amount: true },
       }),
+      this.prisma.bankTransaction.aggregate({
+        where: { bankAccountId: id, type: 'DEPOSIT' },
+        _sum: { amount: true },
+      }),
+      this.prisma.bankTransaction.aggregate({
+        where: { bankAccountId: id, type: 'WITHDRAWAL' },
+        _sum: { amount: true },
+      }),
     ]);
 
-    const totalDeposits = Number(receiptsSum._sum.amount || 0);
-    const totalWithdrawals = Number(paymentsSum._sum.amount || 0);
+    const totalDeposits =
+      Number(receiptsSum._sum.amount || 0) + Number(manualDeposits._sum.amount || 0);
+    const totalWithdrawals =
+      Number(paymentsSum._sum.amount || 0) + Number(manualWithdrawals._sum.amount || 0);
 
     return {
       totalDeposits,
       totalWithdrawals,
       balance: totalDeposits - totalWithdrawals,
     };
+  }
+
+  async listManualTransactions(bankAccountId?: string) {
+    return this.prisma.bankTransaction.findMany({
+      where: bankAccountId ? { bankAccountId } : undefined,
+      include: { bankAccount: true },
+      orderBy: { date: 'desc' },
+    });
+  }
+
+  async createManualTransaction(dto: CreateBankTransactionDto) {
+    await this.findById(dto.bankAccountId);
+    const transactionNo = await this.documentNumberService.generateNumber(
+      DocumentType.BANK_TRANSACTION,
+    );
+
+    return this.prisma.bankTransaction.create({
+      data: {
+        transactionNo,
+        bankAccountId: dto.bankAccountId,
+        date: new Date(dto.date),
+        type: dto.type,
+        amount: dto.amount,
+        description: dto.description,
+      },
+      include: { bankAccount: true },
+    });
+  }
+
+  async updateManualTransaction(id: string, dto: UpdateBankTransactionDto) {
+    const txn = await this.prisma.bankTransaction.findUnique({ where: { id } });
+    if (!txn) {
+      throw new NotFoundException('ไม่พบรายการธุรกรรม');
+    }
+
+    return this.prisma.bankTransaction.update({
+      where: { id },
+      data: {
+        date: dto.date ? new Date(dto.date) : undefined,
+        type: dto.type,
+        amount: dto.amount,
+        description: dto.description,
+      },
+      include: { bankAccount: true },
+    });
+  }
+
+  async removeManualTransaction(id: string) {
+    const txn = await this.prisma.bankTransaction.findUnique({ where: { id } });
+    if (!txn) {
+      throw new NotFoundException('ไม่พบรายการธุรกรรม');
+    }
+    await this.prisma.bankTransaction.delete({ where: { id } });
+    return { message: 'ลบรายการธุรกรรมสำเร็จ' };
   }
 }

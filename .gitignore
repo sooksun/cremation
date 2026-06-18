@@ -11,6 +11,7 @@ out
 .env
 .env.local
 .env.*.local
+.env.production
 
 # IDE
 .idea
@@ -35,4 +36,8 @@ coverage
 # Misc
 *.tsbuildinfo
 .turbo
+
+# DB backups (generated at runtime)
+backup/*.sql
+backup/*.sql.gz
 

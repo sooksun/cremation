@@ -7,9 +7,11 @@ import {
   Param,
   Query,
   UseGuards,
+  Request,
 } from '@nestjs/common';
 import { ContributionsService } from './contributions.service';
 import { CreatePeriodDto, UpdatePeriodDto } from './dto/period.dto';
+import { UpdateContributionSettingsDto } from './dto/contribution-settings.dto';
 import { RecordPaymentDto } from './dto/payment.dto';
 import { BatchPaymentDto } from './dto/batch-payment.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -21,6 +23,18 @@ import { Role } from '@prisma/client';
 @UseGuards(JwtAuthGuard)
 export class ContributionsController {
   constructor(private readonly contributionsService: ContributionsService) {}
+
+  @Get('settings')
+  getSettings() {
+    return this.contributionsService.getSettings();
+  }
+
+  @Patch('settings')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.FINANCE)
+  updateSettings(@Body() dto: UpdateContributionSettingsDto) {
+    return this.contributionsService.updateSettings(dto.serviceFeeEnabled);
+  }
 
   // Period endpoints
   @Post('periods')
@@ -75,15 +89,22 @@ export class ContributionsController {
   @Patch(':id/payment')
   @UseGuards(RolesGuard)
   @Roles(Role.ADMIN, Role.FINANCE, Role.GROUP_LEADER)
-  recordPayment(@Param('id') id: string, @Body() dto: RecordPaymentDto) {
-    return this.contributionsService.recordPayment(id, dto);
+  recordPayment(
+    @Param('id') id: string,
+    @Body() dto: RecordPaymentDto,
+    @Request() req: { user: { id: string; role: Role; schoolId?: string; groupId?: string }; ip?: string },
+  ) {
+    return this.contributionsService.recordPayment(id, dto, req.user, req.ip);
   }
 
   @Post('batch-payment')
   @UseGuards(RolesGuard)
   @Roles(Role.ADMIN, Role.FINANCE, Role.GROUP_LEADER)
-  batchRecordPayments(@Body() dto: BatchPaymentDto) {
-    return this.contributionsService.batchRecordPayments(dto.payments);
+  batchRecordPayments(
+    @Body() dto: BatchPaymentDto,
+    @Request() req: { user: { id: string; role: Role; schoolId?: string; groupId?: string }; ip?: string },
+  ) {
+    return this.contributionsService.batchRecordPayments(dto.payments, req.user, req.ip);
   }
 
   // Arrears endpoints
@@ -97,6 +118,28 @@ export class ContributionsController {
   @Roles(Role.ADMIN, Role.FINANCE)
   markArrears(@Param('id') id: string) {
     return this.contributionsService.markArrearsForPeriod(id);
+  }
+
+  @Post('periods/:id/send-arrears-notice')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.FINANCE)
+  sendArrearsNotice(@Param('id') id: string) {
+    return this.contributionsService.sendArrearsNoticeForPeriod(id);
+  }
+
+  @Get('periods/:id/summary-by-school')
+  getPeriodSummaryBySchool(@Param('id') id: string, @Query('schoolId') schoolId?: string) {
+    return this.contributionsService.getPeriodSummaryBySchool(id, schoolId);
+  }
+
+  @Post('periods/:id/pay-all')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.FINANCE, Role.GROUP_LEADER)
+  payAllInPeriod(
+    @Param('id') id: string,
+    @Request() req: { user: { id: string; role: Role; schoolId?: string; groupId?: string }; ip?: string },
+  ) {
+    return this.contributionsService.payAllContributionsInPeriod(id, req.user, req.ip);
   }
 
   // =============================================

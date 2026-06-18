@@ -5,7 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { Settings, Calculator, Users, AlertTriangle, Edit2, Plus } from 'lucide-react';
 import { useForm } from 'react-hook-form';
-import { api } from '@/lib/api';
+import { api, type ContributionSettings, periodTotalPerPerson } from '@/lib/api';
 import { showSuccess, showError, showConfirm } from '@/lib/toast';
 import { useAuthStore } from '@/store/auth';
 
@@ -42,6 +42,16 @@ export default function WelfareRateSettingsPage() {
     },
   });
 
+  const { data: settings } = useQuery<ContributionSettings>({
+    queryKey: ['contribution-settings'],
+    queryFn: async () => {
+      const response = await api.get('/contributions/settings');
+      return response.data;
+    },
+  });
+
+  const serviceFeeEnabled = settings?.serviceFeeEnabled ?? false;
+
   const updateMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: PeriodForm }) =>
       api.patch(`/contributions/periods/${id}`, data),
@@ -75,7 +85,13 @@ export default function WelfareRateSettingsPage() {
     showConfirm(
       `ยืนยันการแก้ไขอัตราเงินสงเคราะห์สำหรับงวด ${monthNames[editingPeriod.month - 1]} ${editingPeriod.year + 543}?`,
       () => {
-        updateMutation.mutate({ id: editingPeriod.id, data });
+        updateMutation.mutate({
+          id: editingPeriod.id,
+          data: {
+            ...data,
+            serviceFee: serviceFeeEnabled ? data.serviceFee : 0,
+          },
+        });
       }
     );
   };
@@ -114,7 +130,7 @@ export default function WelfareRateSettingsPage() {
         </h3>
         <div className="space-y-2 text-sm text-blue-800">
           <p>ระบบนี้ใช้วิธีการคำนวณเงินสงเคราะห์ศพแบบ <strong>"กองทุนกลาง"</strong> ดังนี้:</p>
-          <p>• อัตราเงินสงเคราะห์และค่าบริการกำหนดแยกตามแต่ละงวด</p>
+          <p>• อัตราเงินสงเคราะห์กำหนดแยกตามแต่ละงวด{serviceFeeEnabled ? ' และค่าบริการ (เมื่อเปิดใช้งาน)' : ''}</p>
           <p>• สามารถแก้ไขอัตราได้เฉพาะงวดที่ยังไม่ปิด</p>
         </div>
       </div>
@@ -143,7 +159,7 @@ export default function WelfareRateSettingsPage() {
                 <tr>
                   <th>งวด</th>
                   <th className="text-right">อัตราเงินสงเคราะห์</th>
-                  <th className="text-right">ค่าบริการ</th>
+                  {serviceFeeEnabled && <th className="text-right">ค่าบริการ</th>}
                   <th className="text-right">รวมต่อคน</th>
                   <th>สถานะ</th>
                   <th className="text-right">จัดการ</th>
@@ -156,9 +172,11 @@ export default function WelfareRateSettingsPage() {
                       {monthNames[period.month - 1]} {period.year + 543}
                     </td>
                     <td className="text-right">{formatCurrency(period.welfareRate)}</td>
-                    <td className="text-right">{formatCurrency(period.serviceFee)}</td>
+                    {serviceFeeEnabled && (
+                      <td className="text-right">{formatCurrency(period.serviceFee)}</td>
+                    )}
                     <td className="text-right font-semibold text-primary-600">
-                      {formatCurrency(period.welfareRate + period.serviceFee)}
+                      {formatCurrency(periodTotalPerPerson(period, serviceFeeEnabled))}
                     </td>
                     <td>
                       {period.isClosed ? (
@@ -197,19 +215,24 @@ export default function WelfareRateSettingsPage() {
           </div>
           <div className="space-y-4">
             <div className="p-4 bg-slate-50 rounded-xl">
-              <p className="text-sm text-slate-600 mb-2">ยอดเงินสงเคราะห์ศพ =</p>
+              <p className="text-sm text-slate-600 mb-2">ยอดเงินสงเคราะห์ศพ (ระเบียบ ข้อ 13–16) =</p>
               <div className="text-lg font-semibold text-slate-900">
-                (จำนวนสมาชิก × อัตราต่อคน) + เงินสมทบสมาคม - หักรายการอื่นๆ
+                (สมาชิกที่ส่ง × 100 หรือ 50 บาท) × 90% − หักอื่นๆ
               </div>
+              <p className="text-xs text-slate-500 mt-2">10% ที่เหลือเข้ากองทุนฌาปนกิจสงเคราะห์</p>
             </div>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between py-2 border-b border-slate-100">
-                <span className="text-slate-600">อัตราเงินสงเคราะห์ต่อคน</span>
-                <span className="font-semibold text-emerald-600">ตามงวด</span>
+                <span className="text-slate-600">อัตราเก็บเมื่อสมาชิกเสียชีวิต</span>
+                <span className="font-semibold text-emerald-600">100 บาท/คน</span>
+              </div>
+              <div className="flex justify-between py-2 border-b border-slate-100">
+                <span className="text-slate-600">อัตราเก็บเมื่อญาติที่คุ้มครองเสียชีวิต</span>
+                <span className="font-semibold text-emerald-600">50 บาท/คน</span>
               </div>
               <div className="flex justify-between py-2 border-b border-slate-100">
                 <span className="text-slate-600">จำนวนสมาชิกใช้คำนวณ</span>
-                <span className="font-semibold">สมาชิก Active ณ ขณะนั้น</span>
+                <span className="font-semibold">ACTIVE (ไม่รวมผู้เสียชีวิต)</span>
               </div>
             </div>
           </div>
@@ -224,23 +247,23 @@ export default function WelfareRateSettingsPage() {
           </div>
           <div className="space-y-3">
             <div className="p-4 bg-purple-50 rounded-xl">
-              <p className="text-sm text-purple-600 mb-2">กรณีมีสมาชิก 50 คน (อัตรา 100 บาท/คน)</p>
+              <p className="text-sm text-purple-600 mb-2">กรณีสมาชิกเสียชีวิต มีผู้ส่งเงิน 50 คน × 100 บาท</p>
               <div className="space-y-1 text-sm">
                 <div className="flex justify-between">
-                  <span>เงินจากสมาชิก</span>
-                  <span>50 × 100 = <strong>5,000 บาท</strong></span>
+                  <span>ยอดเก็บรวม</span>
+                  <span><strong>5,000 บาท</strong></span>
                 </div>
                 <div className="flex justify-between">
-                  <span>เงินสมทบสมาคม</span>
-                  <span>+ <strong>15,000 บาท</strong></span>
+                  <span>เข้ากองทุน 10%</span>
+                  <span><strong>500 บาท</strong></span>
                 </div>
                 <div className="flex justify-between">
-                  <span>หักค่าใช้จ่าย</span>
-                  <span>- <strong>500 บาท</strong></span>
+                  <span>จ่ายผู้รับ 90%</span>
+                  <span><strong>4,500 บาท</strong></span>
                 </div>
                 <div className="flex justify-between pt-2 border-t border-purple-200 mt-2">
                   <span className="font-semibold">ยอดจ่ายสุทธิ</span>
-                  <span className="font-bold text-purple-700">19,500 บาท</span>
+                  <span className="font-bold text-purple-700">4,500 บาท</span>
                 </div>
               </div>
             </div>
@@ -256,7 +279,7 @@ export default function WelfareRateSettingsPage() {
             <h3 className="font-semibold text-amber-900 mb-2">หมายเหตุสำคัญ</h3>
             <ul className="text-sm text-amber-800 space-y-1 list-disc ml-4">
               <li>อัตราเงินสงเคราะห์กำหนดตามมติคณะกรรมการ</li>
-              <li>เงินสมทบจากสมาคมกำหนดตามงบประมาณที่มีอยู่</li>
+              <li>อัตราเก็บเงินสงเคราะห์ศพคงที่ตามระเบียบ (ไม่ใช่อัตรางวดรายเดือน)</li>
               <li>ยอดจ่ายจริงอาจแตกต่างกันในแต่ละรายการตามเงื่อนไข</li>
               <li>การเปลี่ยนแปลงอัตราต้องผ่านมติที่ประชุมคณะกรรมการ</li>
               <li>สามารถแก้ไขอัตราได้เฉพาะงวดที่ยังไม่ปิด</li>
@@ -299,23 +322,25 @@ export default function WelfareRateSettingsPage() {
                 )}
               </div>
 
-              <div>
-                <label className="label">ค่าบริการ (บาท/คน)</label>
-                <input
-                  {...register('serviceFee', { 
-                    required: 'กรุณากรอกค่าบริการ',
-                    valueAsNumber: true,
-                    min: { value: 0, message: 'ต้องมากกว่าหรือเท่ากับ 0' }
-                  })}
-                  type="number"
-                  step="0.01"
-                  className="input"
-                  placeholder="10"
-                />
-                {errors.serviceFee && (
-                  <p className="text-red-500 text-sm mt-1">{errors.serviceFee.message}</p>
-                )}
-              </div>
+              {serviceFeeEnabled && (
+                <div>
+                  <label className="label">ค่าบริการ (บาท/คน)</label>
+                  <input
+                    {...register('serviceFee', { 
+                      required: 'กรุณากรอกค่าบริการ',
+                      valueAsNumber: true,
+                      min: { value: 0, message: 'ต้องมากกว่าหรือเท่ากับ 0' }
+                    })}
+                    type="number"
+                    step="0.01"
+                    className="input"
+                    placeholder="10"
+                  />
+                  {errors.serviceFee && (
+                    <p className="text-red-500 text-sm mt-1">{errors.serviceFee.message}</p>
+                  )}
+                </div>
+              )}
 
               <div className="flex gap-3 pt-4">
                 <button

@@ -1,18 +1,17 @@
 'use client';
 
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
-import { Landmark, TrendingUp, TrendingDown, ArrowUpRight, ArrowDownRight, Calendar, CreditCard } from 'lucide-react';
-import { api, type School } from '@/lib/api';
-import { useAuthStore } from '@/store/auth';
+import { Landmark, TrendingUp, TrendingDown, ArrowUpRight, ArrowDownRight, Calendar, CreditCard, Plus } from 'lucide-react';
+import { api } from '@/lib/api';
+import { showSuccess, showError } from '@/lib/toast';
 
 interface BankAccount {
   id: string;
   bankName: string;
   accountNo: string;
   accountName: string;
-  school: School;
 }
 
 interface Transaction {
@@ -26,16 +25,40 @@ interface Transaction {
 }
 
 export default function BankPage() {
-  const { selectedSchoolId } = useAuthStore();
+  const queryClient = useQueryClient();
   const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
+  const [showForm, setShowForm] = useState(false);
+  const [txnForm, setTxnForm] = useState({
+    date: new Date().toISOString().split('T')[0],
+    type: 'DEPOSIT' as 'DEPOSIT' | 'WITHDRAWAL',
+    amount: '',
+    description: '',
+  });
 
   const { data: bankAccounts, isLoading: loadingAccounts } = useQuery<BankAccount[]>({
-    queryKey: ['bank-accounts', selectedSchoolId],
+    queryKey: ['bank-accounts'],
     queryFn: async () => {
-      const params = selectedSchoolId ? `?schoolId=${selectedSchoolId}` : '';
-      const response = await api.get(`/bank-accounts${params}`);
+      const response = await api.get('/bank-accounts');
       return response.data;
     },
+  });
+
+  const createTxnMutation = useMutation({
+    mutationFn: () =>
+      api.post('/bank-accounts/transactions', {
+        bankAccountId: selectedAccountId,
+        date: txnForm.date,
+        type: txnForm.type,
+        amount: Number(txnForm.amount),
+        description: txnForm.description || undefined,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['bank-transactions', selectedAccountId] });
+      showSuccess('บันทึกธุรกรรมสำเร็จ');
+      setShowForm(false);
+      setTxnForm({ date: new Date().toISOString().split('T')[0], type: 'DEPOSIT', amount: '', description: '' });
+    },
+    onError: (e: any) => showError(e.response?.data?.message || 'บันทึกไม่สำเร็จ'),
   });
 
   const { data: transactions, isLoading: loadingTransactions } = useQuery<Transaction[]>({
@@ -167,7 +190,29 @@ export default function BankPage() {
             </div>
           </div>
 
-          {/* Transactions Table */}
+          <div className="card p-4">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-semibold text-slate-900">บันทึกฝาก/ถอน</h3>
+              <button type="button" onClick={() => setShowForm(!showForm)} className="btn-secondary text-sm">
+                <Plus size={16} />เพิ่มรายการ
+              </button>
+            </div>
+            {showForm && (
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                <input type="date" className="input" value={txnForm.date} onChange={(e) => setTxnForm((f) => ({ ...f, date: e.target.value }))} />
+                <select className="input" value={txnForm.type} onChange={(e) => setTxnForm((f) => ({ ...f, type: e.target.value as 'DEPOSIT' | 'WITHDRAWAL' }))}>
+                  <option value="DEPOSIT">ฝาก</option>
+                  <option value="WITHDRAWAL">ถอน</option>
+                </select>
+                <input type="number" className="input" placeholder="จำนวนเงิน" value={txnForm.amount} onChange={(e) => setTxnForm((f) => ({ ...f, amount: e.target.value }))} />
+                <input type="text" className="input" placeholder="รายละเอียด" value={txnForm.description} onChange={(e) => setTxnForm((f) => ({ ...f, description: e.target.value }))} />
+                <button type="button" onClick={() => createTxnMutation.mutate()} disabled={!txnForm.amount || createTxnMutation.isPending} className="btn-primary md:col-span-4">
+                  บันทึก
+                </button>
+              </div>
+            )}
+          </div>
+
           <div className="card overflow-hidden">
             <div className="px-4 py-3 bg-slate-50 border-b border-slate-200">
               <h3 className="font-semibold text-slate-900">รายการเคลื่อนไหว</h3>

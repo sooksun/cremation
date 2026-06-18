@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import {
@@ -15,8 +15,9 @@ import {
   BarChart3,
 } from 'lucide-react';
 import Link from 'next/link';
-import { api, type Member } from '@/lib/api';
+import { api, type Member, membershipClassLabels } from '@/lib/api';
 import { useAuthStore } from '@/store/auth';
+import { showSuccess, showError } from '@/lib/toast';
 
 const statusConfig = {
   ACTIVE: { label: 'ปกติ', class: 'badge-success' },
@@ -41,14 +42,76 @@ export default function MembersPage() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('');
+  const [classFilter, setClassFilter] = useState<string>('');
+  const [importing, setImporting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleExport = async () => {
+    try {
+      const params = selectedSchoolId ? `?schoolId=${selectedSchoolId}` : '';
+      const response = await api.get(`/members/export/csv${params}`, { responseType: 'blob' });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'members.csv';
+      link.click();
+      window.URL.revokeObjectURL(url);
+      showSuccess('ส่งออก CSV สำเร็จ');
+    } catch {
+      showError('ส่งออกไม่สำเร็จ');
+    }
+  };
+
+  const parseCsvRows = (text: string) => {
+    const lines = text.replace(/^\uFEFF/, '').trim().split(/\r?\n/);
+    const headers = lines[0].split(',').map((h) => h.replace(/^"|"$/g, '').trim());
+    return lines.slice(1).map((line) => {
+      const values = line.match(/("([^"]|"")*"|[^,]*)/g)?.map((v) =>
+        v.replace(/^"|"$/g, '').replace(/""/g, '"').trim(),
+      ) || [];
+      const row: Record<string, string> = {};
+      headers.forEach((h, i) => { row[h] = values[i] || ''; });
+      return row;
+    });
+  };
+
+  const handleImport = async (file: File) => {
+    setImporting(true);
+    try {
+      const text = await file.text();
+      const parsed = parseCsvRows(text);
+      const rows = parsed.map((r) => ({
+        memberNo: r.memberNo,
+        firstName: r.firstName,
+        lastName: r.lastName,
+        schoolCode: r.schoolCode,
+        memberTypeCode: r.memberTypeCode,
+        groupCode: r.groupCode || undefined,
+        status: r.status || undefined,
+        joinDate: r.joinDate || undefined,
+        phone: r.phone || undefined,
+        idCardNo: r.idCardNo || undefined,
+      }));
+      const response = await api.post('/members/import/csv', { rows });
+      const r = response.data;
+      showSuccess(`นำเข้าสำเร็จ: สร้าง ${r.created}, อัปเดต ${r.updated}, ข้าม ${r.skipped}`);
+      if (r.errors?.length) showError(r.errors.slice(0, 3).join('; '));
+    } catch (e: any) {
+      showError(e.response?.data?.message || 'นำเข้าไม่สำเร็จ');
+    } finally {
+      setImporting(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
 
   const { data, isLoading } = useQuery<MemberListResponse>({
-    queryKey: ['members', selectedSchoolId, page, search, statusFilter],
+    queryKey: ['members', selectedSchoolId, page, search, statusFilter, classFilter],
     queryFn: async () => {
       const params = new URLSearchParams();
       if (selectedSchoolId) params.append('schoolId', selectedSchoolId);
       if (search) params.append('search', search);
       if (statusFilter) params.append('status', statusFilter);
+      if (classFilter) params.append('membershipClass', classFilter);
       params.append('page', page.toString());
       params.append('limit', '20');
       const response = await api.get(`/members?${params}`);
@@ -112,9 +175,36 @@ export default function MembersPage() {
             <option value="DECEASED">เสียชีวิต</option>
             <option value="SUSPENDED">พักสมาชิก</option>
           </select>
-          <button className="btn-secondary">
+          <select
+            className="input w-full md:w-48"
+            value={classFilter}
+            onChange={(e) => {
+              setClassFilter(e.target.value);
+              setPage(1);
+            }}
+          >
+            <option value="">ทุกชั้นสมาชิก</option>
+            <option value="ORDINARY">สมาชิกสามัญ</option>
+            <option value="CONTRIBUTORY">สมาชิกสมทบ</option>
+          </select>
+          <button type="button" onClick={handleExport} className="btn-secondary">
             <Download size={20} />
-            ส่งออก
+            ส่งออก CSV
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".csv"
+            className="hidden"
+            onChange={(e) => e.target.files?.[0] && handleImport(e.target.files[0])}
+          />
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={importing}
+            className="btn-secondary"
+          >
+            {importing ? 'กำลังนำเข้า...' : 'นำเข้า CSV'}
           </button>
         </div>
       </div>
@@ -141,6 +231,7 @@ export default function MembersPage() {
                     <th>ชื่อ-นามสกุล</th>
                     <th>โรงเรียน</th>
                     <th>ประเภท</th>
+                    <th>ชั้นสมาชิก</th>
                     <th>กลุ่ม</th>
                     <th>สถานะ</th>
                     <th className="text-right">จัดการ</th>
@@ -155,16 +246,23 @@ export default function MembersPage() {
                       <td>
                         <div>
                           <p className="font-medium text-slate-900">
-                            {member.firstName} {member.lastName}
+                            {member.associationMember?.firstName} {member.associationMember?.lastName}
                           </p>
-                          {member.phone && (
-                            <p className="text-sm text-slate-500">{member.phone}</p>
+                          {(member.associationMember?.phone) && (
+                            <p className="text-sm text-slate-500">{member.associationMember.phone}</p>
                           )}
                         </div>
                       </td>
                       <td className="text-slate-500">{member.school.name}</td>
                       <td>
-                        <span className="badge-neutral">{member.memberType.name}</span>
+                        <span className="badge-neutral">{member.associationMember?.memberType?.name}</span>
+                      </td>
+                      <td>
+                        {member.membershipClass ? (
+                          <span className="badge-info">{membershipClassLabels[member.membershipClass]}</span>
+                        ) : (
+                          '-'
+                        )}
                       </td>
                       <td className="text-slate-500">
                         {member.group?.name || '-'}

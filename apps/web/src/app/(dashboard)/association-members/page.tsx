@@ -15,7 +15,7 @@ import {
   X,
 } from 'lucide-react';
 import Link from 'next/link';
-import { api, type Member } from '@/lib/api';
+import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/auth';
 import { toast } from 'react-toastify';
 
@@ -27,18 +27,26 @@ const statusConfig = {
   SUSPENDED: { label: 'พักสมาชิก', class: 'badge-info' },
 };
 
-interface AssociationMember extends Member {
-  associationProfile?: {
+interface AssociationMemberRow {
+  id: string;
+  firstName: string;
+  lastName: string;
+  associationMemberNo?: string;
+  position?: string;
+  associationJoinDate?: string;
+  notes?: string;
+  phone?: string;
+  school: { id: string; name: string };
+  memberType: { name: string };
+  cremationMember?: {
     id: string;
-    associationMemberNo?: string;
-    position?: string;
-    associationJoinDate?: string;
-    notes?: string;
+    memberNo: string;
+    status: string;
   } | null;
 }
 
 interface AssociationMemberListResponse {
-  data: AssociationMember[];
+  data: AssociationMemberRow[];
   meta: {
     total: number;
     page: number;
@@ -53,7 +61,7 @@ export default function AssociationMembersPage() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('');
-  const [editModal, setEditModal] = useState<AssociationMember | null>(null);
+  const [editModal, setEditModal] = useState<AssociationMemberRow | null>(null);
   const [editForm, setEditForm] = useState({
     associationMemberNo: '',
     position: '',
@@ -77,10 +85,10 @@ export default function AssociationMembersPage() {
 
   const updateMutation = useMutation({
     mutationFn: async ({
-      memberId,
+      associationMemberId,
       data,
     }: {
-      memberId: string;
+      associationMemberId: string;
       data: typeof editForm;
     }) => {
       const payload: Record<string, string> = {};
@@ -88,7 +96,7 @@ export default function AssociationMembersPage() {
       if (data.position !== undefined) payload.position = data.position;
       if (data.associationJoinDate) payload.associationJoinDate = data.associationJoinDate;
       if (data.notes !== undefined) payload.notes = data.notes;
-      const res = await api.patch(`/association-members/${memberId}`, payload);
+      const res = await api.patch(`/association-members/by-id/${associationMemberId}`, payload);
       return res.data;
     },
     onSuccess: () => {
@@ -101,21 +109,21 @@ export default function AssociationMembersPage() {
     },
   });
 
-  const openEditModal = (member: AssociationMember) => {
+  const openEditModal = (member: AssociationMemberRow) => {
     setEditModal(member);
     setEditForm({
-      associationMemberNo: member.associationProfile?.associationMemberNo || '',
-      position: member.associationProfile?.position || '',
-      associationJoinDate: member.associationProfile?.associationJoinDate
-        ? member.associationProfile.associationJoinDate.split('T')[0]
-        : member.joinDate?.split('T')[0] || '',
-      notes: member.associationProfile?.notes || '',
+      associationMemberNo: member.associationMemberNo || '',
+      position: member.position || '',
+      associationJoinDate: member.associationJoinDate
+        ? String(member.associationJoinDate).split('T')[0]
+        : '',
+      notes: member.notes || '',
     });
   };
 
   const handleSubmitEdit = () => {
     if (!editModal) return;
-    updateMutation.mutate({ memberId: editModal.id, data: editForm });
+    updateMutation.mutate({ associationMemberId: editModal.id, data: editForm });
   };
 
   const formatDate = (d?: string) => {
@@ -217,7 +225,7 @@ export default function AssociationMembersPage() {
                   {data?.data.map((member) => (
                     <tr key={member.id}>
                       <td className="font-mono text-sm font-medium">
-                        {member.associationProfile?.associationMemberNo || member.memberNo}
+                        {member.associationMemberNo || member.cremationMember?.memberNo || '-'}
                       </td>
                       <td>
                         <div>
@@ -231,29 +239,37 @@ export default function AssociationMembersPage() {
                       </td>
                       <td className="text-slate-500">{member.school.name}</td>
                       <td className="text-slate-600">
-                        {member.associationProfile?.position || '-'}
+                        {member.position || '-'}
                       </td>
                       <td>
-                        <span className={statusConfig[member.status].class}>
-                          {statusConfig[member.status].label}
-                        </span>
+                        {member.cremationMember ? (
+                          <span className={statusConfig[member.cremationMember.status as keyof typeof statusConfig]?.class || 'badge-neutral'}>
+                            {statusConfig[member.cremationMember.status as keyof typeof statusConfig]?.label || member.cremationMember.status}
+                          </span>
+                        ) : (
+                          <span className="text-slate-400">— ไม่ได้เข้าร่วมฌาปนกิจ</span>
+                        )}
                       </td>
                       <td>
                         <div className="flex justify-end gap-1">
+                          {member.cremationMember && (
                           <Link
-                            href={`/members/${member.id}/profile`}
+                            href={`/members/${member.cremationMember.id}/profile`}
                             className="p-2 rounded-lg hover:bg-slate-100 text-slate-500 hover:text-slate-700"
                             title="ดู Dashboard รายบุคคล"
                           >
                             <BarChart3 size={18} />
                           </Link>
+                          )}
+                          {member.cremationMember && (
                           <Link
-                            href={`/members/${member.id}`}
+                            href={`/members/${member.cremationMember.id}`}
                             className="p-2 rounded-lg hover:bg-slate-100 text-slate-500 hover:text-slate-700"
                             title="ดูรายละเอียด"
                           >
                             <Eye size={18} />
                           </Link>
+                          )}
                           <button
                             onClick={() => openEditModal(member)}
                             className="p-2 rounded-lg hover:bg-slate-100 text-slate-500 hover:text-slate-700"
@@ -319,7 +335,7 @@ export default function AssociationMembersPage() {
               </button>
             </div>
             <p className="text-slate-600 mb-4">
-              {editModal.firstName} {editModal.lastName} ({editModal.memberNo})
+              {editModal.firstName} {editModal.lastName} ({editModal.cremationMember?.memberNo ?? editModal.associationMemberNo ?? '-'})
             </p>
             <div className="space-y-4">
               <div>

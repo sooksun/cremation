@@ -6,6 +6,7 @@ import {
   Param,
   Query,
   UseGuards,
+  Request,
 } from '@nestjs/common';
 import { ReceiptsService } from './receipts.service';
 import { CreateReceiptDto } from './dto/create-receipt.dto';
@@ -22,8 +23,11 @@ export class ReceiptsController {
   @Post()
   @UseGuards(RolesGuard)
   @Roles(Role.ADMIN, Role.FINANCE)
-  create(@Body() dto: CreateReceiptDto) {
-    return this.receiptsService.create(dto);
+  create(
+    @Body() dto: CreateReceiptDto,
+    @Request() req: { user: { id: string; role: Role; schoolId?: string }; ip?: string },
+  ) {
+    return this.receiptsService.create(dto, req.user, req.ip);
   }
 
   @Get()

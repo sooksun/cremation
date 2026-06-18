@@ -41,12 +41,15 @@ Our system brings these ideas to the web, for teachers across multiple schools.
   - Example: REGULAR_TEACHER, RETIRED_TEACHER, STAFF, OTHER.
   - Can affect welfare rate and benefit policies.
 
-- **Member**:
-  - Personal info: name, ID card, birthday, address, phone.
-  - Relation to school: `schoolId`, `employeeCode`.
-  - Group: optional group (similar to "หมู่บ้าน/กลุ่ม" used for collection).
-  - Status: `ACTIVE`, `RESIGNED`, `DECEASED`, `ARREARS`, `SUSPENDED`.
-  - JoinDate, ResignDate, DeathDate (if applicable).
+- **AssociationMember (สมาชิกสมาคม)** — ข้อมูลหลักของบุคคล:
+  - เก็บข้อมูลส่วนตัว: ชื่อ, นามสกุล, บัตรประชาชน, วันเกิด, ที่อยู่, โทร.
+  - สังกัดโรงเรียน (`schoolId`), ประเภทสมาชิก (`memberTypeId`).
+  - บางคนเป็นสมาชิกฌาปนกิจ บางคนไม่เป็น (ความสัมพันธ์ 1:0..1 กับ Member).
+
+- **Member (สมาชิกฌาปนกิจ)** — อ้างอิงจากสมาชิกสมาคม:
+  - ทุกคนในตารางนี้ต้องเป็นสมาชิกสมาคม (`associationMemberId`).
+  - เก็บเฉพาะข้อมูลด้านฌาปนกิจ: เลขสมาชิกฌาปนกิจ, กลุ่ม, วันที่เข้าร่วม/ลาออก/เสียชีวิต, สถานะ, ผู้รับผลประโยชน์ ฯลฯ.
+  - ข้อมูลชื่อ/ประเภทดึงจาก AssociationMember.
 
 - **Beneficiary**:
   - People who will receive benefit when member dies.

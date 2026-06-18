@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { canSelectAllSchools, resolveSelectedSchoolId } from '@/lib/school-scope';
 
 interface User {
   id: string;
@@ -8,14 +9,15 @@ interface User {
   role: string;
   schoolId?: string;
   schoolName?: string;
+  groupId?: string;
+  mustChangePassword?: boolean;
 }
 
 interface AuthState {
-  token: string | null;
   user: User | null;
   selectedSchoolId: string | null;
   selectedYear: number;
-  setAuth: (token: string, user: User) => void;
+  setUser: (user: User) => void;
   logout: () => void;
   setSelectedSchool: (schoolId: string | null) => void;
   setSelectedYear: (year: number) => void;
@@ -23,22 +25,31 @@ interface AuthState {
 
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set) => ({
-      token: null,
+    (set, get) => ({
       user: null,
       selectedSchoolId: null,
       selectedYear: new Date().getFullYear(),
 
-      setAuth: (token, user) => {
-        set({ token, user, selectedSchoolId: user.schoolId || null });
+      setUser: (user) => {
+        set({
+          user,
+          selectedSchoolId: resolveSelectedSchoolId(
+            user.role,
+            user.schoolId,
+            get().selectedSchoolId,
+          ),
+        });
       },
 
       logout: () => {
-        set({ token: null, user: null, selectedSchoolId: null });
+        set({ user: null, selectedSchoolId: null });
       },
 
       setSelectedSchool: (schoolId) => {
-        set({ selectedSchoolId: schoolId });
+        const { user } = get();
+        set({
+          selectedSchoolId: resolveSelectedSchoolId(user?.role, user?.schoolId, schoolId),
+        });
       },
 
       setSelectedYear: (year) => {
@@ -47,7 +58,10 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'cremation-auth',
+      partialize: (state) => ({
+        selectedSchoolId: state.selectedSchoolId,
+        selectedYear: state.selectedYear,
+      }),
     },
   ),
 );
-

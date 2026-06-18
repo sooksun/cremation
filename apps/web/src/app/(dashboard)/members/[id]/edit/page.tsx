@@ -66,14 +66,14 @@ export default function EditMemberPage() {
       reset({
         memberNo: member.memberNo,
         schoolId: member.school.id,
-        memberTypeId: member.memberType.id,
+        memberTypeId: member.associationMember?.memberType?.id || '',
         groupId: member.group?.id || '',
-        firstName: member.firstName,
-        lastName: member.lastName,
-        idCardNo: member.idCardNo || '',
+        firstName: member.associationMember?.firstName || '',
+        lastName: member.associationMember?.lastName || '',
+        idCardNo: member.associationMember?.idCardNo || '',
         birthDate,
-        address: member.address || '',
-        phone: member.phone || '',
+        address: member.associationMember?.address || '',
+        phone: member.associationMember?.phone || '',
         joinDate,
         status: member.status,
         salaryDeduction: (member as any).salaryDeduction || false,
@@ -125,47 +125,29 @@ export default function EditMemberPage() {
     },
   });
 
-  const onSubmit = (data: MemberForm) => {
-    // Build update data - only include changed fields
-    const updateData: Record<string, any> = {
-      memberTypeId: data.memberTypeId,
+  const onSubmit = async (data: MemberForm) => {
+    const memberPayload: Record<string, any> = { status: data.status };
+    if (data.groupId?.trim() !== '') memberPayload.groupId = data.groupId;
+    else memberPayload.groupId = null;
+    if (data.joinDate?.trim() !== '') memberPayload.joinDate = data.joinDate;
+    if (data.status === 'RESIGNED' && member?.resignDate) memberPayload.resignDate = new Date(member.resignDate).toISOString().split('T')[0];
+    if (data.status === 'DECEASED' && member?.deathDate) memberPayload.deathDate = new Date(member.deathDate).toISOString().split('T')[0];
+
+    const associationPayload = {
       firstName: data.firstName,
       lastName: data.lastName,
-      status: data.status,
+      idCardNo: data.idCardNo || undefined,
+      birthDate: data.birthDate || undefined,
+      address: data.address || undefined,
+      phone: data.phone || undefined,
     };
 
-    if (data.groupId && data.groupId.trim() !== '') {
-      updateData.groupId = data.groupId;
-    } else {
-      updateData.groupId = null;
+    try {
+      await api.patch(`/association-members/${memberId}`, associationPayload);
+      updateMutation.mutate(memberPayload);
+    } catch (err: any) {
+      showError(err.response?.data?.message || 'เกิดข้อผิดพลาด');
     }
-
-    if (data.idCardNo && data.idCardNo.trim() !== '') {
-      updateData.idCardNo = data.idCardNo;
-    }
-    if (data.birthDate && data.birthDate.trim() !== '') {
-      updateData.birthDate = data.birthDate;
-    }
-    if (data.address && data.address.trim() !== '') {
-      updateData.address = data.address;
-    }
-    if (data.phone && data.phone.trim() !== '') {
-      updateData.phone = data.phone;
-    }
-    if (data.joinDate && data.joinDate.trim() !== '') {
-      updateData.joinDate = data.joinDate;
-    }
-
-    // Handle status dates
-    if (data.status === 'RESIGNED' && member?.resignDate) {
-      updateData.resignDate = new Date(member.resignDate).toISOString().split('T')[0];
-    }
-    if (data.status === 'DECEASED' && member?.deathDate) {
-      updateData.deathDate = new Date(member.deathDate).toISOString().split('T')[0];
-    }
-
-    console.log('Submitting update data:', updateData);
-    updateMutation.mutate(updateData);
   };
 
   if (loadingMember) {
@@ -203,7 +185,7 @@ export default function EditMemberPage() {
             แก้ไขข้อมูลสมาชิก
           </h1>
           <p className="text-slate-500 mt-1">
-            {member.memberNo} - {member.firstName} {member.lastName}
+            {member.memberNo} - {member.associationMember?.firstName} {member.associationMember?.lastName}
           </p>
         </div>
       </div>

@@ -11,6 +11,7 @@ import {
 } from '@nestjs/common';
 import { BankAccountsService } from './bank-accounts.service';
 import { CreateBankAccountDto, UpdateBankAccountDto } from './dto/bank-account.dto';
+import { CreateBankTransactionDto, UpdateBankTransactionDto } from './dto/bank-transaction.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -39,6 +40,35 @@ export class BankAccountsController {
   @Get('default')
   findDefault() {
     return this.bankAccountsService.findDefault();
+  }
+
+  @Get('transactions')
+  listManualTransactions(@Query('bankAccountId') bankAccountId?: string) {
+    return this.bankAccountsService.listManualTransactions(bankAccountId);
+  }
+
+  @Post('transactions')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.FINANCE)
+  createManualTransaction(@Body() dto: CreateBankTransactionDto) {
+    return this.bankAccountsService.createManualTransaction(dto);
+  }
+
+  @Patch('transactions/:txnId')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.FINANCE)
+  updateManualTransaction(
+    @Param('txnId') txnId: string,
+    @Body() dto: UpdateBankTransactionDto,
+  ) {
+    return this.bankAccountsService.updateManualTransaction(txnId, dto);
+  }
+
+  @Delete('transactions/:txnId')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.FINANCE)
+  removeManualTransaction(@Param('txnId') txnId: string) {
+    return this.bankAccountsService.removeManualTransaction(txnId);
   }
 
   @Get(':id')

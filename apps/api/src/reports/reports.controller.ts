@@ -1,4 +1,4 @@
-import { Controller, Get, Query, Param, UseGuards } from '@nestjs/common';
+import { Controller, Get, Query, Param, UseGuards, Request } from '@nestjs/common';
 import { ReportsService } from './reports.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -32,6 +32,14 @@ export class ReportsController {
     return this.reportsService.getContributionReport(periodId, schoolId);
   }
 
+  @Get('daily-movement')
+  getDailyMovement(
+    @Query('date') date: string,
+    @Query('schoolId') schoolId?: string,
+  ) {
+    return this.reportsService.getDailyMovement(new Date(date), schoolId);
+  }
+
   @Get('financial')
   getFinancialSummary(
     @Query('startDate') startDate: string,
@@ -51,6 +59,25 @@ export class ReportsController {
     @Query('schoolId') schoolId?: string,
   ) {
     return this.reportsService.getDeathBenefitReport(Number(year), schoolId);
+  }
+
+  @Get('death-fund-reserve')
+  getDeathFundReserveReport(
+    @Query('year') year: number,
+    @Query('schoolId') schoolId?: string,
+  ) {
+    return this.reportsService.getDeathFundReserveReport(Number(year), schoolId);
+  }
+
+  @Get('board-monthly')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.FINANCE, Role.ACCOUNTING)
+  getBoardMonthlyReport(
+    @Query('year') year: number,
+    @Query('month') month: number,
+    @Query('schoolId') schoolId?: string,
+  ) {
+    return this.reportsService.getBoardMonthlyReport(Number(year), Number(month), schoolId);
   }
 
   // =============================================
@@ -81,8 +108,11 @@ export class ReportsController {
   // MEMBER PROFILE - สำหรับสมาชิกรายบุคคล
   // =============================================
   @Get('member-profile/:memberId')
-  getMemberProfile(@Param('memberId') memberId: string) {
-    return this.reportsService.getMemberProfile(memberId);
+  getMemberProfile(
+    @Param('memberId') memberId: string,
+    @Request() req: { user: { role: Role } },
+  ) {
+    return this.reportsService.getMemberProfile(memberId, req.user.role);
   }
 }
 

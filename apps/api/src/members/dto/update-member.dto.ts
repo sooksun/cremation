@@ -1,38 +1,11 @@
 import { IsString, IsOptional, IsEnum, IsDateString, IsBoolean } from 'class-validator';
-import { MemberStatus } from '@prisma/client';
+import { MemberStatus, MembershipClass } from '@prisma/client';
 
+// อัปเดตเฉพาะข้อมูลด้านฌาปนกิจ (ข้อมูลบุคคลแก้ที่ association-members)
 export class UpdateMemberDto {
   @IsOptional()
   @IsString()
-  memberTypeId?: string;
-
-  @IsOptional()
-  @IsString()
   groupId?: string;
-
-  @IsOptional()
-  @IsString()
-  firstName?: string;
-
-  @IsOptional()
-  @IsString()
-  lastName?: string;
-
-  @IsOptional()
-  @IsString()
-  idCardNo?: string;
-
-  @IsOptional()
-  @IsDateString()
-  birthDate?: string;
-
-  @IsOptional()
-  @IsString()
-  address?: string;
-
-  @IsOptional()
-  @IsString()
-  phone?: string;
 
   @IsOptional()
   @IsEnum(MemberStatus)
@@ -41,6 +14,10 @@ export class UpdateMemberDto {
   @IsOptional()
   @IsBoolean()
   salaryDeduction?: boolean;
+
+  @IsOptional()
+  @IsEnum(MembershipClass)
+  membershipClass?: MembershipClass;
 
   @IsOptional()
   @IsDateString()
@@ -54,4 +31,3 @@ export class UpdateMemberDto {
   @IsDateString()
   deathDate?: string;
 }
-

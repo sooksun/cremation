@@ -6,6 +6,7 @@ import {
   Param,
   Query,
   UseGuards,
+  Request,
 } from '@nestjs/common';
 import { PaymentsService } from './payments.service';
 import { CreatePaymentDto } from './dto/create-payment.dto';
@@ -22,8 +23,11 @@ export class PaymentsController {
   @Post()
   @UseGuards(RolesGuard)
   @Roles(Role.ADMIN, Role.FINANCE)
-  create(@Body() dto: CreatePaymentDto) {
-    return this.paymentsService.create(dto);
+  create(
+    @Body() dto: CreatePaymentDto,
+    @Request() req: { user: { id: string; role: Role; schoolId?: string }; ip?: string },
+  ) {
+    return this.paymentsService.create(dto, req.user, req.ip);
   }
 
   @Get()

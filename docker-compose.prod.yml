@@ -1,0 +1,57 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    image: cremation-api:latest
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      API_PORT: 4000
+      DATABASE_URL: ${DATABASE_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
+      FRONTEND_URL: ${WEB_ORIGIN}
+      CORS_ORIGINS: ${WEB_ORIGIN}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "9931:4000"
+    networks:
+      - cremation-net
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-}
+    image: cremation-web:latest
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+    ports:
+      - "9930:3000"
+    depends_on:
+      - api
+    networks:
+      - cremation-net
+
+  backup:
+    image: mariadb:11
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      BACKUP_RETAIN_DAYS: ${BACKUP_RETAIN_DAYS:-14}
+    volumes:
+      - ./backup:/backup
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    entrypoint: ["/bin/sh", "-c", "chmod +x /backup/backup.sh && while true; do /backup/backup.sh; sleep 86400; done"]
+    networks:
+      - cremation-net
+
+networks:
+  cremation-net:
+    driver: bridge

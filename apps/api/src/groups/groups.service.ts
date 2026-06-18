@@ -23,7 +23,10 @@ export class GroupsService {
       include: {
         school: true,
         leader: {
-          select: { id: true, firstName: true, lastName: true },
+          select: {
+            id: true,
+            associationMember: { select: { firstName: true, lastName: true } },
+          },
         },
         _count: { select: { members: true } },
       },
@@ -38,7 +41,12 @@ export class GroupsService {
         school: true,
         leader: true,
         members: {
-          select: { id: true, memberNo: true, firstName: true, lastName: true, status: true },
+          select: {
+            id: true,
+            memberNo: true,
+            status: true,
+            associationMember: { select: { firstName: true, lastName: true } },
+          },
         },
       },
     });

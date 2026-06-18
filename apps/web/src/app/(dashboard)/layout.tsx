@@ -26,6 +26,8 @@ import {
 } from 'lucide-react';
 import { useAuthStore } from '@/store/auth';
 import { api, type School } from '@/lib/api';
+import { isPathAllowedForRole } from '@/lib/route-access';
+import { canSelectAllSchools, filterSchoolsForUser } from '@/lib/school-scope';
 
 const menuItems = [
   {
@@ -44,9 +46,9 @@ const menuItems = [
     label: '1. ข้อมูลหลัก',
     icon: BookOpen,
     children: [
-      { label: 'โรงเรียน', href: '/schools' },
+      { label: 'การจัดการโรงเรียน', href: '/schools' },
       { label: 'ประเภทสมาชิก', href: '/member-types' },
-      { label: 'กลุ่ม', href: '/groups' },
+      { label: 'กลุ่มเก็บเงิน', href: '/groups' },
       { label: 'ผังบัญชี', href: '/accounts' },
       { label: 'บัญชีธนาคาร', href: '/bank-accounts' },
     ],
@@ -59,6 +61,8 @@ const menuItems = [
       { label: 'สมาชิกสมาคม', href: '/association-members' },
       { label: 'ธนาคาร', href: '/bank' },
       { label: 'รายงานการเงิน', href: '/reports/finance' },
+      { label: 'งบการเงิน', href: '/reports/financial-statements' },
+      { label: 'รายงานรายวัน', href: '/reports/daily' },
       { label: 'รายงานสมาชิก', href: '/reports' },
     ],
   },
@@ -68,6 +72,7 @@ const menuItems = [
     icon: PiggyBank,
     children: [
       { label: 'ภาพรวมผู้บริหาร', href: '/reports/executive' },
+      { label: 'รายงานคณะกรรมการ', href: '/reports/board-monthly', roles: ['ADMIN', 'FINANCE', 'ACCOUNTING'] },
       { label: 'สมาชิกฌาปนกิจ', href: '/members' },
       { label: 'งวดเงินสงเคราะห์', href: '/contributions/periods' },
       { label: 'ตารางการชำระ', href: '/contributions/matrix' },
@@ -96,16 +101,50 @@ export default function DashboardLayout({
 }) {
   const router = useRouter();
   const pathname = usePathname();
-  const { user, logout, selectedSchoolId, setSelectedSchool, selectedYear, setSelectedYear } = useAuthStore();
+  const { user, setUser, logout, selectedSchoolId, setSelectedSchool, selectedYear, setSelectedYear } = useAuthStore();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [expandedMenus, setExpandedMenus] = useState<string[]>([]);
   const [schools, setSchools] = useState<School[]>([]);
+  const [sessionChecked, setSessionChecked] = useState(false);
 
   useEffect(() => {
-    if (!user) {
-      router.push('/login');
+    const restoreSession = async () => {
+      try {
+        const response = await api.get('/auth/me');
+        setUser(response.data);
+        if (response.data.mustChangePassword && pathname !== '/change-password') {
+          router.push('/change-password');
+        }
+      } catch {
+        logout();
+        router.push('/login');
+      } finally {
+        setSessionChecked(true);
+      }
+    };
+
+    restoreSession();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (sessionChecked && user?.mustChangePassword && pathname !== '/change-password') {
+      router.push('/change-password');
     }
-  }, [user, router]);
+  }, [sessionChecked, user, pathname, router]);
+
+  useEffect(() => {
+    if (sessionChecked && user && !isPathAllowedForRole(pathname, user.role)) {
+      router.replace('/access-denied');
+    }
+  }, [sessionChecked, user, pathname, router]);
+
+  useEffect(() => {
+    if (!user || canSelectAllSchools(user.role)) return;
+    if (user.schoolId && selectedSchoolId !== user.schoolId) {
+      setSelectedSchool(user.schoolId);
+    }
+  }, [user, selectedSchoolId, setSelectedSchool]);
 
   useEffect(() => {
     const fetchSchools = async () => {
@@ -133,18 +172,26 @@ export default function DashboardLayout({
     }
   }, [pathname]);
 
+  const showAllSchoolsOption = canSelectAllSchools(user?.role);
+  const visibleSchools = filterSchoolsForUser(schools, user?.role, user?.schoolId);
+
   const toggleMenu = (label: string) => {
     setExpandedMenus((prev) =>
       prev.includes(label) ? prev.filter((m) => m !== label) : [...prev, label],
     );
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await api.post('/auth/logout');
+    } catch {
+      // ignore
+    }
     logout();
     router.push('/login');
   };
 
-  if (!user) return null;
+  if (!sessionChecked || !user) return null;
 
   const years = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i);
 
@@ -298,10 +345,11 @@ export default function DashboardLayout({
               <select
                 value={selectedSchoolId || ''}
                 onChange={(e) => setSelectedSchool(e.target.value || null)}
-                className="text-sm border-none bg-transparent focus:ring-0 text-slate-700 font-medium pr-8 cursor-pointer"
+                disabled={!showAllSchoolsOption && visibleSchools.length <= 1}
+                className="text-sm border-none bg-transparent focus:ring-0 text-slate-700 font-medium pr-8 cursor-pointer disabled:cursor-default"
               >
-                <option value="">ทุกโรงเรียน</option>
-                {schools.map((school) => (
+                {showAllSchoolsOption && <option value="">ทุกโรงเรียน</option>}
+                {visibleSchools.map((school) => (
                   <option key={school.id} value={school.id}>
                     {school.name}
                   </option>

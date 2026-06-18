@@ -11,7 +11,10 @@ import { useAuthStore } from '@/store/auth';
 
 interface GroupWithCount extends Group {
   _count?: { members: number };
-  leader?: { id: string; firstName: string; lastName: string };
+  leader?: {
+    id: string;
+    associationMember?: { firstName: string; lastName: string };
+  };
 }
 
 interface GroupForm {
@@ -135,7 +138,7 @@ export default function GroupsPage() {
             กลุ่มเก็บเงิน
           </h1>
           <p className="text-slate-500 mt-1">
-            จัดการกลุ่มสำหรับการเก็บเงินสงเคราะห์รายเดือน
+            กลุ่มย่อยภายในโรงเรียนสำหรับเก็บเงินสงเคราะห์รายเดือน (แยกจากกลุ่มโรงเรียน)
           </p>
         </div>
         <button onClick={() => openModal()} className="btn-primary">
@@ -199,7 +202,7 @@ export default function GroupsPage() {
 
               {group.leader && (
                 <p className="text-sm text-slate-600 mb-3">
-                  หัวหน้ากลุ่ม: {group.leader.firstName} {group.leader.lastName}
+                  หัวหน้ากลุ่ม: {group.leader.associationMember?.firstName} {group.leader.associationMember?.lastName}
                 </p>
               )}
 

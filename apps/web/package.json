@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@pdf-lib/fontkit": "^1.1.1",
     "@tanstack/react-query": "^5.17.0",
     "antd": "^5.22.0",
     "axios": "^1.6.3",
@@ -16,8 +17,11 @@
     "date-fns": "^3.2.0",
     "dayjs": "^1.11.19",
     "framer-motion": "^11.0.0",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^2.5.2",
     "lucide-react": "^0.468.0",
     "next": "15.3.3",
+    "pdf-lib": "^1.17.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-hook-form": "^7.49.2",
@@ -25,15 +29,13 @@
     "react-signature-canvas": "^1.0.6",
     "react-toastify": "^11.0.5",
     "recharts": "^2.15.0",
-    "html2canvas": "^1.4.1",
-    "jspdf": "^2.5.2",
     "zustand": "^4.4.7"
   },
   "devDependencies": {
-    "@types/react-signature-canvas": "^1.0.5",
     "@types/node": "^20.10.5",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "@types/react-signature-canvas": "^1.0.5",
     "autoprefixer": "^10.4.16",
     "eslint": "^8.56.0",
     "eslint-config-next": "15.3.3",

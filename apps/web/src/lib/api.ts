@@ -2,40 +2,41 @@ import axios from 'axios';
 import { useAuthStore } from '@/store/auth';
 
 export const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api',
+  baseURL: process.env.NEXT_PUBLIC_API_URL || '/api',
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true,
 });
 
-// Add auth token to requests
-api.interceptors.request.use((config) => {
-  const token = useAuthStore.getState().token;
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
-
-// Handle 401 errors
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
       useAuthStore.getState().logout();
-      window.location.href = '/login';
+      if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/login')) {
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(error);
   },
 );
 
-// API helper functions
 export const fetcher = async <T>(url: string): Promise<T> => {
   const response = await api.get<T>(url);
   return response.data;
 };
 
-// Types
+export interface SchoolCluster {
+  id: string;
+  code: string;
+  name: string;
+  _count?: {
+    schools: number;
+    members?: number;
+  };
+}
+
 export interface School {
   id: string;
   code: string;
@@ -43,8 +44,11 @@ export interface School {
   district?: string;
   province?: string;
   isActive: boolean;
+  clusterId?: string;
+  cluster?: SchoolCluster;
   _count?: {
-    members: number;
+    associationMembers: number;
+    members?: number;
     groups: number;
   };
 }
@@ -52,21 +56,64 @@ export interface School {
 export interface Member {
   id: string;
   memberNo: string;
-  firstName: string;
-  lastName: string;
+  firstName?: string;
+  lastName?: string;
   idCardNo?: string;
   birthDate?: string;
   address?: string;
   phone?: string;
   status: 'ACTIVE' | 'RESIGNED' | 'DECEASED' | 'ARREARS' | 'SUSPENDED';
+  membershipClass?: 'ORDINARY' | 'CONTRIBUTORY';
   joinDate: string;
   resignDate?: string;
   deathDate?: string;
   salaryDeduction?: boolean;
+  applicationSubmittedAt?: string;
+  applicationDeadline?: string;
+  membershipEndReason?: string;
+  arrearsNoticeSentAt?: string;
+  consecutiveArrearsPeriods?: number;
   school: School;
-  memberType: MemberType;
+  memberType?: MemberType;
   group?: Group;
+  associationMember?: {
+    firstName: string;
+    lastName: string;
+    phone?: string;
+    idCardNo?: string;
+    birthDate?: string;
+    address?: string;
+    memberType?: MemberType;
+  };
+  beneficiaries?: Array<{
+    id: string;
+    fullName: string;
+    phone?: string;
+    relationship: string;
+    priority: number;
+  }>;
+  protectedPersons?: Array<{
+    id: string;
+    fullName: string;
+    relationship: 'SPOUSE' | 'PARENT' | 'CHILD';
+    nationalId?: string;
+    phone?: string;
+    isActive: boolean;
+    endedAt?: string;
+    endReason?: string;
+  }>;
 }
+
+export const membershipClassLabels: Record<'ORDINARY' | 'CONTRIBUTORY', string> = {
+  ORDINARY: 'สมาชิกสามัญ',
+  CONTRIBUTORY: 'สมาชิกสมทบ',
+};
+
+export const protectedRelationshipLabels: Record<'SPOUSE' | 'PARENT' | 'CHILD', string> = {
+  SPOUSE: 'คู่สมรส',
+  PARENT: 'บิดา/มารดา',
+  CHILD: 'บุตร/ธิดา',
+};
 
 export interface MemberType {
   id: string;
@@ -94,18 +141,70 @@ export interface ContributionPeriod {
   };
 }
 
+export interface ContributionSettings {
+  serviceFeeEnabled: boolean;
+}
+
+export function periodTotalPerPerson(
+  period: Pick<ContributionPeriod, 'welfareRate' | 'serviceFee'>,
+  serviceFeeEnabled: boolean,
+) {
+  return Number(period.welfareRate) + (serviceFeeEnabled ? Number(period.serviceFee) : 0);
+}
+
+export type DeathClaimStatus =
+  | 'REPORTED'
+  | 'COLLECTING'
+  | 'FUND_COMPLETE'
+  | 'READY_TO_PAY'
+  | 'PAID';
+
+export type DeathCollectionChannel = 'SALARY_DEDUCTION' | 'BANK_TRANSFER';
+
+export interface DocumentChecklistItem {
+  key: string;
+  label: string;
+  required: boolean;
+  checked: boolean;
+  checkedAt?: string;
+}
+
 export interface DeathClaim {
   id: string;
   claimNo: string;
+  claimType?: 'MEMBER_DEATH' | 'PROTECTED_DEATH';
+  deceasedType?: 'MEMBER' | 'PARENT' | 'CHILD' | 'SPOUSE';
+  deceasedName?: string;
   reportedDate: string;
   deathDate: string;
   mainBeneficiary: string;
   netToPay: number;
+  totalContribution?: number;
+  associationSupport?: number;
+  status?: DeathClaimStatus;
+  collectionChannel?: DeathCollectionChannel;
+  notifyAuthorityDeadline?: string | null;
+  collectionDeadline?: string;
+  documentDeadline?: string;
+  paymentDeadline?: string;
+  collectedAmount?: number;
+  collectionCompletedAt?: string | null;
+  documentsComplete?: boolean;
+  documentChecklist?: DocumentChecklistItem[];
+  workflowNotes?: string | null;
+  approvedAt?: string | null;
+  approverName?: string | null;
+  approverSignature?: string | null;
+  approvedBy?: { id: string; fullName: string; role: string };
   member: {
     id: string;
     memberNo: string;
-    firstName: string;
-    lastName: string;
+    firstName?: string;
+    lastName?: string;
+    associationMember?: {
+      firstName: string;
+      lastName: string;
+    };
   };
   school: School;
   payment?: {
@@ -114,6 +213,19 @@ export interface DeathClaim {
     method: string;
   };
 }
+
+export const DEATH_CLAIM_STATUS_LABELS: Record<DeathClaimStatus, string> = {
+  REPORTED: 'แจ้งแล้ว',
+  COLLECTING: 'กำลังเก็บเงิน',
+  FUND_COMPLETE: 'เก็บครบแล้ว',
+  READY_TO_PAY: 'พร้อมจ่าย',
+  PAID: 'จ่ายแล้ว',
+};
+
+export const DEATH_COLLECTION_CHANNEL_LABELS: Record<DeathCollectionChannel, string> = {
+  SALARY_DEDUCTION: 'หักผ่านเงินเดือน (สามัญ)',
+  BANK_TRANSFER: 'โอนเงิน (สมทบ)',
+};
 
 export interface DashboardData {
   members: {
@@ -131,4 +243,3 @@ export interface DashboardData {
     paymentsThisMonth: { count: number; amount: number };
   };
 }
-

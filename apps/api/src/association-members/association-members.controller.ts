@@ -1,26 +1,46 @@
 import {
   Controller,
   Get,
+  Post,
   Patch,
   Body,
   Param,
   Query,
   UseGuards,
+  Request,
 } from '@nestjs/common';
 import { AssociationMembersService, AssociationMemberQueryParams } from './association-members.service';
+import { CreateAssociationMemberDto } from './dto/create-association-member.dto';
 import { UpdateAssociationMemberDto } from './dto/update-association-member.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Role, MemberStatus } from '@prisma/client';
+import {
+  maskAssociationMemberListResponse,
+  maskAssociationMemberRow,
+  maskMemberWithAssociation,
+} from '../common/utils/pii-response.util';
 
 @Controller('association-members')
 @UseGuards(JwtAuthGuard)
 export class AssociationMembersController {
   constructor(private readonly associationMembersService: AssociationMembersService) {}
 
+  @Post()
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.FINANCE)
+  async create(
+    @Body() dto: CreateAssociationMemberDto,
+    @Request() req: { user: { role: Role } },
+  ) {
+    const row = await this.associationMembersService.create(dto);
+    return maskAssociationMemberRow(row, req.user.role);
+  }
+
   @Get()
-  findAll(
+  async findAll(
+    @Request() req: { user: { role: Role } },
     @Query('schoolId') schoolId?: string,
     @Query('status') status?: MemberStatus,
     @Query('search') search?: string,
@@ -34,21 +54,40 @@ export class AssociationMembersController {
       page: page ? Number(page) : undefined,
       limit: limit ? Number(limit) : undefined,
     };
-    return this.associationMembersService.findAll(params);
+    const result = await this.associationMembersService.findAll(params);
+    return maskAssociationMemberListResponse(result, req.user.role);
   }
 
   @Get(':memberId')
-  findOne(@Param('memberId') memberId: string) {
-    return this.associationMembersService.findByMemberId(memberId);
+  async findOne(
+    @Param('memberId') memberId: string,
+    @Request() req: { user: { role: Role } },
+  ) {
+    const member = await this.associationMembersService.findByMemberId(memberId);
+    return maskMemberWithAssociation(member, req.user.role);
+  }
+
+  @Patch('by-id/:id')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.FINANCE)
+  async updateById(
+    @Param('id') associationMemberId: string,
+    @Body() dto: UpdateAssociationMemberDto,
+    @Request() req: { user: { role: Role } },
+  ) {
+    const row = await this.associationMembersService.updateById(associationMemberId, dto);
+    return maskAssociationMemberRow(row, req.user.role);
   }
 
   @Patch(':memberId')
   @UseGuards(RolesGuard)
   @Roles(Role.ADMIN, Role.FINANCE)
-  update(
+  async update(
     @Param('memberId') memberId: string,
     @Body() dto: UpdateAssociationMemberDto,
+    @Request() req: { user: { role: Role } },
   ) {
-    return this.associationMembersService.update(memberId, dto);
+    const member = await this.associationMembersService.update(memberId, dto);
+    return maskMemberWithAssociation(member, req.user.role);
   }
 }

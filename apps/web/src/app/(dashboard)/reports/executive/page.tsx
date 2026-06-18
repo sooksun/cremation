@@ -431,7 +431,7 @@ export default function ExecutiveDashboardPage() {
                   <tr key={payment.id}>
                     <td className="font-mono text-sm">{payment.claimNo}</td>
                     <td>
-                      {payment.member?.firstName || ''} {payment.member?.lastName || ''}
+                      {payment.member?.associationMember?.firstName ?? ''} {payment.member?.associationMember?.lastName ?? ''}
                     </td>
                     <td className="text-slate-500">{payment.school?.name || payment.member?.school?.name || '-'}</td>
                     <td>{formatThaiDateShort(payment.reportedDate)}</td>

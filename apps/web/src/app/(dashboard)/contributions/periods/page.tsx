@@ -7,7 +7,7 @@ import { Plus, Calendar, Lock, Unlock, Play, Eye, X, Users, DollarSign } from 'l
 import { useForm } from 'react-hook-form';
 import { showSuccess, showError, showConfirm } from '@/lib/toast';
 import Link from 'next/link';
-import { api, type ContributionPeriod } from '@/lib/api';
+import { api, type ContributionPeriod, type ContributionSettings, periodTotalPerPerson } from '@/lib/api';
 import { useAuthStore } from '@/store/auth';
 
 interface PeriodForm {
@@ -34,6 +34,28 @@ export default function ContributionPeriodsPage() {
     queryFn: async () => {
       const response = await api.get(`/contributions/periods?year=${selectedYear}`);
       return response.data;
+    },
+  });
+
+  const { data: settings } = useQuery<ContributionSettings>({
+    queryKey: ['contribution-settings'],
+    queryFn: async () => {
+      const response = await api.get('/contributions/settings');
+      return response.data;
+    },
+  });
+
+  const serviceFeeEnabled = settings?.serviceFeeEnabled ?? false;
+
+  const settingsMutation = useMutation({
+    mutationFn: (enabled: boolean) =>
+      api.patch('/contributions/settings', { serviceFeeEnabled: enabled }),
+    onSuccess: (response) => {
+      queryClient.setQueryData(['contribution-settings'], response.data);
+      showSuccess(response.data.serviceFeeEnabled ? 'เปิดใช้งานค่าบริการแล้ว' : 'ปิดค่าบริการแล้ว');
+    },
+    onError: (error: any) => {
+      showError(error.response?.data?.message || 'เกิดข้อผิดพลาด');
     },
   });
 
@@ -76,7 +98,7 @@ export default function ContributionPeriodsPage() {
       year: selectedYear,
       month: new Date().getMonth() + 1,
       welfareRate: 100,
-      serviceFee: 10,
+      serviceFee: serviceFeeEnabled ? 10 : 0,
     });
     setModalOpen(true);
   };
@@ -87,7 +109,10 @@ export default function ContributionPeriodsPage() {
   };
 
   const onSubmit = (data: PeriodForm) => {
-    createMutation.mutate(data);
+    createMutation.mutate({
+      ...data,
+      serviceFee: serviceFeeEnabled ? data.serviceFee : 0,
+    });
   };
 
   const formatCurrency = (amount: number) => {
@@ -118,6 +143,39 @@ export default function ContributionPeriodsPage() {
           <Plus size={20} />
           เพิ่มงวด
         </button>
+      </div>
+
+      <div className="card p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <p className="font-medium text-slate-900">ค่าบริการ</p>
+          <p className="text-sm text-slate-500 mt-0.5">
+            ระบบฌาปนกิจสหกรณ์โดยปกติไม่มีค่าบริการ — เปิดเมื่อต้องการเก็บค่าบริการแยกจากเงินสงเคราะห์
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+          <span className={`text-sm font-medium ${serviceFeeEnabled ? 'text-slate-400' : 'text-slate-700'}`}>
+            ปิด
+          </span>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={serviceFeeEnabled}
+            onClick={() => settingsMutation.mutate(!serviceFeeEnabled)}
+            disabled={settingsMutation.isPending}
+            className={`relative inline-flex h-7 w-12 shrink-0 rounded-full transition-colors ${
+              serviceFeeEnabled ? 'bg-primary-500' : 'bg-slate-300'
+            } ${settingsMutation.isPending ? 'opacity-60' : ''}`}
+          >
+            <span
+              className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform mt-1 ${
+                serviceFeeEnabled ? 'translate-x-6' : 'translate-x-1'
+              }`}
+            />
+          </button>
+          <span className={`text-sm font-medium ${serviceFeeEnabled ? 'text-primary-700' : 'text-slate-400'}`}>
+            เปิด
+          </span>
+        </div>
       </div>
 
       {/* Periods Grid */}
@@ -163,14 +221,16 @@ export default function ContributionPeriodsPage() {
                   <span className="text-slate-500">อัตราสงเคราะห์</span>
                   <span className="font-medium">{formatCurrency(period.welfareRate)}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-500">ค่าบริการ</span>
-                  <span className="font-medium">{formatCurrency(period.serviceFee)}</span>
-                </div>
+                {serviceFeeEnabled && (
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">ค่าบริการ</span>
+                    <span className="font-medium">{formatCurrency(period.serviceFee)}</span>
+                  </div>
+                )}
                 <div className="flex justify-between pt-2 border-t border-slate-100">
                   <span className="text-slate-500">รวม/คน</span>
                   <span className="font-semibold text-primary-600">
-                    {formatCurrency(Number(period.welfareRate) + Number(period.serviceFee))}
+                    {formatCurrency(periodTotalPerPerson(period, serviceFeeEnabled))}
                   </span>
                 </div>
               </div>
@@ -277,15 +337,17 @@ export default function ContributionPeriodsPage() {
                   />
                 </div>
 
-                <div>
-                  <label className="label">ค่าบริการ (บาท/คน)</label>
-                  <input
-                    {...register('serviceFee', { required: true, valueAsNumber: true, min: 0 })}
-                    type="number"
-                    className="input"
-                    placeholder="10"
-                  />
-                </div>
+                {serviceFeeEnabled && (
+                  <div>
+                    <label className="label">ค่าบริการ (บาท/คน)</label>
+                    <input
+                      {...register('serviceFee', { required: true, valueAsNumber: true, min: 0 })}
+                      type="number"
+                      className="input"
+                      placeholder="10"
+                    />
+                  </div>
+                )}
 
                 <div className="flex gap-3 pt-4">
                   <button type="button" onClick={closeModal} className="btn-secondary flex-1">

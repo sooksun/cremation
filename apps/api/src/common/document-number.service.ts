@@ -10,6 +10,7 @@ import { PrismaService } from '../prisma/prisma.service';
  * 3. สมาชิก (Member):               M0001, M0002, M0003...
  * 4. เรียกเก็บรายเดือน (Period):    CP-202412, CP-202501...
  * 5. แจ้งเสียชีวิต (DeathClaim):    DC-2024-0001, DC-2024-0002...
+ * 6. ธุรกรรมธนาคาร (BankTxn):      BT-2024-0001, BT-2024-0002...
  */
 
 export enum DocumentType {
@@ -18,6 +19,7 @@ export enum DocumentType {
   MEMBER = 'MEMBER',
   CONTRIBUTION_PERIOD = 'CONTRIBUTION_PERIOD',
   DEATH_CLAIM = 'DEATH_CLAIM',
+  BANK_TRANSACTION = 'BANK_TRANSACTION',
 }
 
 @Injectable()
@@ -44,6 +46,8 @@ export class DocumentNumberService {
         return this.generateContributionPeriodNumber(yearMonth);
       case DocumentType.DEATH_CLAIM:
         return this.generateDeathClaimNumber(year);
+      case DocumentType.BANK_TRANSACTION:
+        return this.generateBankTransactionNumber(year);
       default:
         throw new Error(`Unknown document type: ${type}`);
     }
@@ -54,22 +58,21 @@ export class DocumentNumberService {
    */
   private async generateReceiptNumber(yearMonth: string): Promise<string> {
     const prefix = `R${yearMonth}-M`;
-    
-    const lastReceipt = await this.prisma.receipt.findFirst({
-      where: {
-        receiptNo: { startsWith: prefix },
-      },
-      orderBy: { receiptNo: 'desc' },
+
+    return this.prisma.$transaction(async (tx) => {
+      const lastReceipt = await tx.receipt.findFirst({
+        where: { receiptNo: { startsWith: prefix } },
+        orderBy: { receiptNo: 'desc' },
+      });
+
+      if (!lastReceipt) {
+        return `${prefix}0001`;
+      }
+
+      const parts = lastReceipt.receiptNo.split('-M');
+      const lastNum = parseInt(parts[1] || '0', 10);
+      return `${prefix}${String(lastNum + 1).padStart(4, '0')}`;
     });
-
-    if (!lastReceipt) {
-      return `${prefix}0001`;
-    }
-
-    // Extract number from R202412-M0001 -> 0001
-    const parts = lastReceipt.receiptNo.split('-M');
-    const lastNum = parseInt(parts[1] || '0', 10);
-    return `${prefix}${String(lastNum + 1).padStart(4, '0')}`;
   }
 
   /**
@@ -143,6 +146,23 @@ export class DocumentNumberService {
 
     // Extract number from DC-2024-0001 -> 0001
     const parts = lastClaim.claimNo.split('-');
+    const lastNum = parseInt(parts[2] || '0', 10);
+    return `${prefix}${String(lastNum + 1).padStart(4, '0')}`;
+  }
+
+  private async generateBankTransactionNumber(year: number): Promise<string> {
+    const prefix = `BT-${year}-`;
+
+    const last = await this.prisma.bankTransaction.findFirst({
+      where: { transactionNo: { startsWith: prefix } },
+      orderBy: { transactionNo: 'desc' },
+    });
+
+    if (!last) {
+      return `${prefix}0001`;
+    }
+
+    const parts = last.transactionNo.split('-');
     const lastNum = parseInt(parts[2] || '0', 10);
     return `${prefix}${String(lastNum + 1).padStart(4, '0')}`;
   }

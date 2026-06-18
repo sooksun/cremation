@@ -16,5 +16,9 @@ export class UpdateSchoolDto {
   @IsOptional()
   @IsBoolean()
   isActive?: boolean;
+
+  @IsOptional()
+  @IsString()
+  clusterId?: string;
 }
 

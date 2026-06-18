@@ -112,5 +112,67 @@ export class AccountsService {
       };
     });
   }
+
+  async getBalanceSheet(asOfDate?: Date) {
+    const endDate = asOfDate || new Date();
+    const accounts = await this.getTrialBalance(undefined, endDate);
+
+    const group = (type: AccountType) =>
+      accounts
+        .filter((a) => a.type === type)
+        .map((a) => ({
+          code: a.code,
+          name: a.name,
+          balance: a.balance,
+        }));
+
+    const assets = group(AccountType.ASSET);
+    const liabilities = group(AccountType.LIABILITY);
+    const equity = group(AccountType.EQUITY);
+
+    const totalAssets = assets.reduce((s, a) => s + a.balance, 0);
+    const totalLiabilities = liabilities.reduce((s, a) => s + a.balance, 0);
+    const totalEquity = equity.reduce((s, a) => s + a.balance, 0);
+
+    return {
+      asOfDate: endDate,
+      assets,
+      liabilities,
+      equity,
+      totals: {
+        assets: totalAssets,
+        liabilities: totalLiabilities,
+        equity: totalEquity,
+        liabilitiesAndEquity: totalLiabilities + totalEquity,
+      },
+    };
+  }
+
+  async getProfitAndLoss(startDate: Date, endDate: Date) {
+    const accounts = await this.getTrialBalance(startDate, endDate);
+
+    const income = accounts
+      .filter((a) => a.type === AccountType.INCOME)
+      .map((a) => ({ code: a.code, name: a.name, amount: a.balance }));
+
+    const expenses = accounts
+      .filter((a) => a.type === AccountType.EXPENSE)
+      .map((a) => ({ code: a.code, name: a.name, amount: a.balance }));
+
+    const totalIncome = income.reduce((s, a) => s + a.amount, 0);
+    const totalExpenses = expenses.reduce((s, a) => s + a.amount, 0);
+
+    return {
+      startDate,
+      endDate,
+      income,
+      expenses,
+      totals: {
+        income: totalIncome,
+        expenses: totalExpenses,
+        netProfit: totalIncome - totalExpenses,
+      },
+    };
+  }
 }
 

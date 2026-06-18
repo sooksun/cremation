@@ -1,4 +1,12 @@
-import { IsString, IsNotEmpty, IsDateString, IsOptional, IsNumber } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsDateString,
+  IsOptional,
+  IsNumber,
+  IsEnum,
+} from 'class-validator';
+import { DeathClaimType, DeceasedType } from '@prisma/client';
 
 export class CreateDeathClaimDto {
   @IsString()
@@ -8,6 +16,26 @@ export class CreateDeathClaimDto {
   @IsString()
   @IsNotEmpty({ message: 'กรุณาเลือกโรงเรียน' })
   schoolId: string;
+
+  @IsOptional()
+  @IsEnum(DeathClaimType, { message: 'ประเภทการเคลมไม่ถูกต้อง' })
+  claimType?: DeathClaimType;
+
+  @IsOptional()
+  @IsEnum(DeceasedType, { message: 'ประเภทผู้เสียชีวิตไม่ถูกต้อง' })
+  deceasedType?: DeceasedType;
+
+  @IsOptional()
+  @IsString()
+  deceasedName?: string;
+
+  @IsOptional()
+  @IsString()
+  relationshipNote?: string;
+
+  @IsOptional()
+  @IsString()
+  protectedPersonId?: string;
 
   @IsDateString()
   @IsNotEmpty({ message: 'กรุณากรอกวันที่รายงาน' })
@@ -31,13 +59,5 @@ export class CreateDeathClaimDto {
 
   @IsOptional()
   @IsNumber()
-  welfareRate?: number; // อัตราต่อคน (default 20)
-
-  @IsOptional()
-  @IsNumber()
-  associationSupport?: number; // เงินสมทบจากสมาคม
-
-  @IsOptional()
-  @IsNumber()
-  otherDeductions?: number; // หักรายการอื่นๆ
+  otherDeductions?: number;
 }

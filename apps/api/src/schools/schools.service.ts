@@ -18,18 +18,23 @@ export class SchoolsService {
 
     return this.prisma.school.create({
       data: createSchoolDto,
+      include: { cluster: true },
     });
   }
 
-  async findAll(includeInactive = false) {
+  async findAll(includeInactive = false, clusterId?: string) {
     return this.prisma.school.findMany({
-      where: includeInactive ? undefined : { isActive: true },
+      where: {
+        ...(includeInactive ? {} : { isActive: true }),
+        ...(clusterId ? { clusterId } : {}),
+      },
       include: {
+        cluster: true,
         _count: {
-          select: { members: true, groups: true },
+          select: { associationMembers: true, groups: true },
         },
       },
-      orderBy: { name: 'asc' },
+      orderBy: [{ cluster: { name: 'asc' } }, { name: 'asc' }],
     });
   }
 
@@ -37,9 +42,10 @@ export class SchoolsService {
     const school = await this.prisma.school.findUnique({
       where: { id },
       include: {
+        cluster: true,
         groups: true,
         _count: {
-          select: { members: true, users: true },
+          select: { associationMembers: true, users: true },
         },
       },
     });
@@ -57,6 +63,7 @@ export class SchoolsService {
     return this.prisma.school.update({
       where: { id },
       data: updateSchoolDto,
+      include: { cluster: true },
     });
   }
 

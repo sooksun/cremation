@@ -2,16 +2,19 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { DocumentNumberService, DocumentType } from '../common/document-number.service';
 import { CreateReceiptDto } from './dto/create-receipt.dto';
-import { ReceiptType } from '@prisma/client';
+import { AuditAction, ReceiptType } from '@prisma/client';
+import { ScopedUser } from '../common/security/school-scope.service';
+import { AuditLogService } from '../common/services/audit-log.service';
 
 @Injectable()
 export class ReceiptsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly documentNumberService: DocumentNumberService,
+    private readonly auditLog: AuditLogService,
   ) {}
 
-  async create(dto: CreateReceiptDto) {
+  async create(dto: CreateReceiptDto, actor?: ScopedUser, ipAddress?: string) {
     const receiptNo = await this.documentNumberService.generateNumber(DocumentType.RECEIPT);
 
     const receipt = await this.prisma.receipt.create({
@@ -27,8 +30,19 @@ export class ReceiptsService {
       include: { school: true, bankAccount: true },
     });
 
-    // Auto create ledger entries
     await this.createLedgerEntries(receipt);
+
+    if (actor) {
+      await this.auditLog.log({
+        userId: actor.id,
+        action: AuditAction.RECEIPT_CREATE,
+        entityType: 'Receipt',
+        entityId: receipt.id,
+        schoolId: receipt.schoolId ?? undefined,
+        metadata: { receiptNo: receipt.receiptNo, amount: Number(receipt.amount) },
+        ipAddress,
+      });
+    }
 
     return receipt;
   }

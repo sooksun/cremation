@@ -2,16 +2,19 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { DocumentNumberService, DocumentType } from '../common/document-number.service';
 import { CreatePaymentDto } from './dto/create-payment.dto';
-import { PaymentType } from '@prisma/client';
+import { AuditAction, PaymentType } from '@prisma/client';
+import { ScopedUser } from '../common/security/school-scope.service';
+import { AuditLogService } from '../common/services/audit-log.service';
 
 @Injectable()
 export class PaymentsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly documentNumberService: DocumentNumberService,
+    private readonly auditLog: AuditLogService,
   ) {}
 
-  async create(dto: CreatePaymentDto) {
+  async create(dto: CreatePaymentDto, actor?: ScopedUser, ipAddress?: string) {
     const voucherNo = await this.documentNumberService.generateNumber(DocumentType.PAYMENT_VOUCHER);
 
     const payment = await this.prisma.paymentVoucher.create({
@@ -27,8 +30,19 @@ export class PaymentsService {
       include: { school: true, bankAccount: true },
     });
 
-    // Auto create ledger entries
     await this.createLedgerEntries(payment);
+
+    if (actor) {
+      await this.auditLog.log({
+        userId: actor.id,
+        action: AuditAction.PAYMENT_VOUCHER_CREATE,
+        entityType: 'PaymentVoucher',
+        entityId: payment.id,
+        schoolId: payment.schoolId ?? undefined,
+        metadata: { voucherNo: payment.voucherNo, amount: Number(payment.amount) },
+        ipAddress,
+      });
+    }
 
     return payment;
   }

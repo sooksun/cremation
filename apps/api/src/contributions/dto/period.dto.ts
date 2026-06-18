@@ -17,10 +17,10 @@ export class CreatePeriodDto {
   @Min(0)
   welfareRate: number;
 
+  @IsOptional()
   @IsNumber()
-  @IsNotEmpty({ message: 'กรุณากรอกค่าบริการ' })
   @Min(0)
-  serviceFee: number;
+  serviceFee?: number;
 }
 
 export class UpdatePeriodDto {

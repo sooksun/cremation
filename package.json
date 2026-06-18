@@ -14,6 +14,9 @@
     "db:seed": "pnpm --filter @cremation/api run db:seed",
     "db:generate": "pnpm --filter @cremation/api run db:generate",
     "db:studio": "pnpm --filter @cremation/api run db:studio",
+    "test": "pnpm --filter @cremation/api run test",
+    "test:e2e": "pnpm --filter @cremation/api run test:e2e",
+    "docker:prod": "docker compose -f docker-compose.prod.yml --env-file .env.production",
     "lint": "pnpm -r run lint",
     "clean": "pnpm -r exec rm -rf node_modules dist .next"
   },
@@ -39,5 +42,17 @@
     "@prisma/client": "^7.0.1",
     "react-is": "^18.2.0",
     "recharts": "^2.15.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@nestjs/core",
+      "@prisma/client",
+      "@prisma/engines",
+      "bcrypt",
+      "core-js",
+      "prisma",
+      "sharp",
+      "unrs-resolver"
+    ]
   }
 }

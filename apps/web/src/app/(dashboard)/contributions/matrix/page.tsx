@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import {
@@ -20,6 +20,7 @@ import {
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/auth';
 import { showSuccess, showError } from '@/lib/toast';
+import { canSelectAllSchools, filterSchoolsForUser } from '@/lib/school-scope';
 
 interface MonthData {
   status: 'paid' | 'unpaid' | 'arrears' | 'none';
@@ -85,9 +86,19 @@ const THAI_MONTHS_FULL = [
 
 export default function ContributionMatrixPage() {
   const queryClient = useQueryClient();
-  const { selectedYear } = useAuthStore();
-  const [selectedSchoolId, setSelectedSchoolId] = useState<string>('');
+  const { selectedYear, user } = useAuthStore();
+  const showAllSchoolsOption = canSelectAllSchools(user?.role);
+  const [selectedSchoolId, setSelectedSchoolId] = useState<string>(
+    showAllSchoolsOption ? '' : user?.schoolId || '',
+  );
   const [search, setSearch] = useState('');
+
+  useEffect(() => {
+    if (!user || showAllSchoolsOption) return;
+    if (user.schoolId) {
+      setSelectedSchoolId(user.schoolId);
+    }
+  }, [user, showAllSchoolsOption]);
   const [viewMode, setViewMode] = useState<'detail' | 'summary'>('detail');
   const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth() + 1);
   const [showUploadModal, setShowUploadModal] = useState(false);
@@ -125,8 +136,8 @@ export default function ContributionMatrixPage() {
     return matrixData.members.filter(
       (row) =>
         row.member.memberNo.toLowerCase().includes(searchLower) ||
-        row.member.firstName.toLowerCase().includes(searchLower) ||
-        row.member.lastName.toLowerCase().includes(searchLower) ||
+        row.member.firstName?.toLowerCase().includes(searchLower) ||
+        row.member.lastName?.toLowerCase().includes(searchLower) ||
         row.member.school.name.toLowerCase().includes(searchLower),
     );
   }, [matrixData?.members, search]);
@@ -570,11 +581,23 @@ export default function ContributionMatrixPage() {
               <Building2 size={18} className="text-slate-400" />
               <select
                 value={selectedSchoolId}
-                onChange={(e) => setSelectedSchoolId(e.target.value)}
-                className="input"
+                onChange={(e) => {
+                  const next = e.target.value;
+                  if (!showAllSchoolsOption && user?.schoolId) {
+                    setSelectedSchoolId(user.schoolId);
+                    return;
+                  }
+                  setSelectedSchoolId(next);
+                }}
+                disabled={!showAllSchoolsOption && !!user?.schoolId}
+                className="input disabled:cursor-default"
               >
-                <option value="">ทุกโรงเรียน ({schools?.reduce((sum, s) => sum + s.memberCount, 0) || 0} คน)</option>
-                {schools?.map((school) => (
+                {showAllSchoolsOption && (
+                  <option value="">
+                    ทุกโรงเรียน ({schools?.reduce((sum, s) => sum + s.memberCount, 0) || 0} คน)
+                  </option>
+                )}
+                {filterSchoolsForUser(schools ?? [], user?.role, user?.schoolId).map((school) => (
                   <option key={school.id} value={school.id}>
                     {school.name} ({school.memberCount} คน)
                   </option>
@@ -762,7 +785,7 @@ export default function ContributionMatrixPage() {
                         {row.member.memberNo}
                       </td>
                       <td className="px-3 py-2 whitespace-nowrap">
-                        {row.member.firstName} {row.member.lastName}
+                        {row.member.firstName ?? ''} {row.member.lastName ?? ''}
                       </td>
                       <td className="px-3 py-2 text-slate-500 text-xs whitespace-nowrap">
                         {row.member.school.code}

@@ -44,6 +44,24 @@ export class AccountsController {
     );
   }
 
+  @Get('reports/balance-sheet')
+  getBalanceSheet(@Query('asOfDate') asOfDate?: string) {
+    return this.accountsService.getBalanceSheet(
+      asOfDate ? new Date(asOfDate) : undefined,
+    );
+  }
+
+  @Get('reports/profit-loss')
+  getProfitAndLoss(
+    @Query('startDate') startDate: string,
+    @Query('endDate') endDate: string,
+  ) {
+    return this.accountsService.getProfitAndLoss(
+      new Date(startDate),
+      new Date(endDate),
+    );
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.accountsService.findById(id);

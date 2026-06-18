@@ -1,12 +1,13 @@
 'use client';
 
+import { useMemo } from 'react';
 import { useParams } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Calendar, Users, DollarSign, CheckCircle, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Calendar, Users, DollarSign, CheckCircle, AlertCircle, Building2, Banknote } from 'lucide-react';
 import Link from 'next/link';
 import { showSuccess, showError, showConfirm } from '@/lib/toast';
-import { api } from '@/lib/api';
+import { api, type ContributionSettings, periodTotalPerPerson } from '@/lib/api';
 
 interface Contribution {
   id: string;
@@ -19,12 +20,57 @@ interface Contribution {
   member: {
     id: string;
     memberNo: string;
-    firstName: string;
-    lastName: string;
+    firstName?: string;
+    lastName?: string;
     phone?: string;
     group?: { name: string };
+    associationMember?: {
+      firstName: string;
+      lastName: string;
+      phone?: string;
+    };
   };
-  school: { name: string };
+  school: { id: string; name: string; code?: string };
+}
+
+interface SchoolSummaryRow {
+  schoolId: string;
+  schoolName: string;
+  schoolCode: string;
+  totalMembers: number;
+  paidMembers: number;
+  unpaidMembers: number;
+  totalAmount: number;
+  paidAmount: number;
+}
+
+interface SchoolSummaryResponse {
+  schools: SchoolSummaryRow[];
+  totals: {
+    totalMembers: number;
+    paidMembers: number;
+    unpaidMembers: number;
+    totalAmount: number;
+    paidAmount: number;
+  };
+}
+
+interface PayAllResponse {
+  message: string;
+  batch: {
+    total: number;
+    success: number;
+    failed: number;
+    results?: Array<{ success: boolean; error?: string }>;
+  };
+  newlyPaidBySchool: Array<{
+    schoolId: string;
+    schoolName: string;
+    schoolCode: string;
+    paidCount: number;
+    paidAmount: number;
+  }>;
+  periodSummaryBySchool: SchoolSummaryResponse;
 }
 
 interface Period {
@@ -79,6 +125,82 @@ export default function PeriodDetailPage() {
     },
   });
 
+  const { data: settings } = useQuery<ContributionSettings>({
+    queryKey: ['contribution-settings'],
+    queryFn: async () => {
+      const response = await api.get('/contributions/settings');
+      return response.data;
+    },
+  });
+
+  const serviceFeeEnabled = settings?.serviceFeeEnabled ?? false;
+
+  const { data: schoolSummary } = useQuery<SchoolSummaryResponse>({
+    queryKey: ['period-school-summary', periodId],
+    queryFn: async () => {
+      const response = await api.get(`/contributions/periods/${periodId}/summary-by-school`);
+      return response.data;
+    },
+    enabled: !!periodId,
+  });
+
+  const unpaidCount = useMemo(
+    () => contributions?.filter((c) => Number(c.paidAmount) === 0).length ?? 0,
+    [contributions],
+  );
+
+  const memberName = (contrib: Contribution) => {
+    const first = contrib.member.firstName ?? contrib.member.associationMember?.firstName ?? '';
+    const last = contrib.member.lastName ?? contrib.member.associationMember?.lastName ?? '';
+    return `${first} ${last}`.trim() || '-';
+  };
+
+  const payAllMutation = useMutation({
+    mutationFn: () =>
+      api.post<PayAllResponse>(`/contributions/periods/${periodId}/pay-all`, undefined, {
+        timeout: 300000,
+      }),
+    onSuccess: (res) => {
+      queryClient.invalidateQueries({ queryKey: ['period-contributions', periodId] });
+      queryClient.invalidateQueries({ queryKey: ['period-summary', periodId] });
+      queryClient.invalidateQueries({ queryKey: ['period-school-summary', periodId] });
+      const { batch, newlyPaidBySchool } = res.data;
+      const schoolLines = newlyPaidBySchool
+        .map((s) => `${s.schoolName} ${s.paidCount} คน`)
+        .join(', ');
+
+      if (batch.failed > 0) {
+        const sampleError = res.data.batch.results?.find((r) => !r.success)?.error;
+        showError(
+          `บันทึกสำเร็จ ${batch.success} รายการ ล้มเหลว ${batch.failed} รายการ${
+            sampleError ? ` — ${sampleError}` : ''
+          }`,
+        );
+        return;
+      }
+
+      showSuccess(
+        `${res.data.message}${schoolLines ? ` (${schoolLines})` : ''}`,
+      );
+    },
+    onError: (error: any) => {
+      showError(error.response?.data?.message || 'เกิดข้อผิดพลาด');
+    },
+  });
+
+  const arrearsNoticeMutation = useMutation({
+    mutationFn: () => api.post(`/contributions/periods/${periodId}/send-arrears-notice`),
+    onSuccess: (res) => {
+      queryClient.invalidateQueries({ queryKey: ['period-contributions', periodId] });
+      queryClient.invalidateQueries({ queryKey: ['period-summary', periodId] });
+      queryClient.invalidateQueries({ queryKey: ['period-school-summary', periodId] });
+      showSuccess(res.data.message || 'แจ้งเตือนค้างชำระสำเร็จ');
+    },
+    onError: (error: any) => {
+      showError(error.response?.data?.message || 'เกิดข้อผิดพลาด');
+    },
+  });
+
   const paymentMutation = useMutation({
     mutationFn: ({ id, amount }: { id: string; amount: number }) =>
       api.patch(`/contributions/${id}/payment`, {
@@ -86,8 +208,9 @@ export default function PeriodDetailPage() {
         paidDate: new Date().toISOString(),
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['period-contributions'] });
-      queryClient.invalidateQueries({ queryKey: ['period-summary'] });
+      queryClient.invalidateQueries({ queryKey: ['period-contributions', periodId] });
+      queryClient.invalidateQueries({ queryKey: ['period-summary', periodId] });
+      queryClient.invalidateQueries({ queryKey: ['period-school-summary', periodId] });
       showSuccess('บันทึกการชำระเงินสำเร็จ');
     },
     onError: (error: any) => {
@@ -114,8 +237,19 @@ export default function PeriodDetailPage() {
 
   const handlePayment = (contribution: Contribution) => {
     showConfirm(
-      `ยืนยันการรับชำระเงิน ${formatCurrency(contribution.totalAmount)} จาก ${contribution.member.firstName} ${contribution.member.lastName}?`,
+      `ยืนยันการรับชำระเงิน ${formatCurrency(contribution.totalAmount)} จาก ${memberName(contribution)}?`,
       () => paymentMutation.mutate({ id: contribution.id, amount: contribution.totalAmount }),
+    );
+  };
+
+  const handlePayAll = () => {
+    if (unpaidCount === 0) {
+      showError('ไม่มีรายการที่ยังไม่ชำระ');
+      return;
+    }
+    showConfirm(
+      `บันทึกการชำระเงินสำหรับสมาชิกที่ยังไม่ชำระทั้งหมด ${unpaidCount} คนในงวดนี้?`,
+      () => payAllMutation.mutate(),
     );
   };
 
@@ -135,7 +269,12 @@ export default function PeriodDetailPage() {
             งวด {period && `${monthNames[period.month - 1]} ${period.year + 543}`}
           </h1>
           <p className="text-slate-500 mt-1">
-            อัตราสงเคราะห์ {formatCurrency(period?.welfareRate || 0)} + ค่าบริการ {formatCurrency(period?.serviceFee || 0)}
+            อัตราสงเคราะห์ {formatCurrency(period?.welfareRate || 0)}
+            {serviceFeeEnabled && period
+              ? ` + ค่าบริการ ${formatCurrency(period.serviceFee)} (รวม ${formatCurrency(periodTotalPerPerson(period, true))}/คน)`
+              : period
+                ? ` (รวม ${formatCurrency(periodTotalPerPerson(period, false))}/คน)`
+                : ''}
           </p>
         </div>
         {period?.isClosed ? (
@@ -165,6 +304,28 @@ export default function PeriodDetailPage() {
             </button>
           </div>
         ) : (
+          <div className="ml-auto flex items-center gap-2">
+          <button
+            onClick={handlePayAll}
+            disabled={payAllMutation.isPending || unpaidCount === 0}
+            className="btn-primary text-sm"
+          >
+            <Banknote size={16} />
+            แจ้งชำระทุกคน
+            {unpaidCount > 0 ? ` (${unpaidCount})` : ''}
+          </button>
+          <button
+            onClick={() => {
+              showConfirm(
+                'แจ้งเตือนสมาชิกสมทบที่ค้างชำระในงวดนี้? ระบบจะทำเครื่องหมายค้างชำระและดำเนินการตามระเบียบ (3 งวดหลังแจ้ง)',
+                () => arrearsNoticeMutation.mutate(),
+              );
+            }}
+            disabled={arrearsNoticeMutation.isPending}
+            className="btn-secondary text-sm"
+          >
+            แจ้งเตือนค้างชำระ
+          </button>
           <button
             onClick={() => {
               showConfirm(
@@ -183,10 +344,11 @@ export default function PeriodDetailPage() {
                 }
               );
             }}
-            className="btn-secondary ml-auto"
+            className="btn-secondary"
           >
             ปิดงวด
           </button>
+          </div>
         )}
       </div>
 
@@ -222,6 +384,56 @@ export default function PeriodDetailPage() {
         </div>
       </div>
 
+      {schoolSummary && schoolSummary.schools.length > 0 && (
+        <div className="card overflow-hidden">
+          <div className="p-4 border-b border-slate-100 flex items-center gap-2">
+            <Building2 size={18} className="text-primary-500" />
+            <div>
+              <h2 className="font-semibold text-slate-900">สรุปการชำระแยกรายโรงเรียน</h2>
+              <p className="text-sm text-slate-500">
+                ชำระแล้ว {schoolSummary.totals.paidMembers} คน จาก {schoolSummary.totals.totalMembers} คน
+                {' '}({formatCurrency(schoolSummary.totals.paidAmount)})
+              </p>
+            </div>
+          </div>
+          <div className="table-container border-0">
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>โรงเรียน</th>
+                  <th className="text-center">ทั้งหมด</th>
+                  <th className="text-center">ชำระแล้ว</th>
+                  <th className="text-center">ยังไม่ชำระ</th>
+                  <th className="text-right">ยอดเก็บได้</th>
+                </tr>
+              </thead>
+              <tbody>
+                {schoolSummary.schools.map((row) => (
+                  <tr key={row.schoolId}>
+                    <td className="font-medium">{row.schoolName}</td>
+                    <td className="text-center">{row.totalMembers}</td>
+                    <td className="text-center text-emerald-600 font-medium">{row.paidMembers}</td>
+                    <td className="text-center text-amber-600">{row.unpaidMembers}</td>
+                    <td className="text-right font-medium">{formatCurrency(row.paidAmount)}</td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot>
+                <tr className="bg-slate-50 font-semibold">
+                  <td>รวมทั้งหมด</td>
+                  <td className="text-center">{schoolSummary.totals.totalMembers}</td>
+                  <td className="text-center text-emerald-700">{schoolSummary.totals.paidMembers}</td>
+                  <td className="text-center text-amber-700">{schoolSummary.totals.unpaidMembers}</td>
+                  <td className="text-right text-primary-700">
+                    {formatCurrency(schoolSummary.totals.paidAmount)}
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      )}
+
       {/* Contributions Table */}
       <div className="card overflow-hidden">
         {isLoading ? (
@@ -241,6 +453,7 @@ export default function PeriodDetailPage() {
                 <tr>
                   <th>เลขสมาชิก</th>
                   <th>ชื่อ-นามสกุล</th>
+                  <th>โรงเรียน</th>
                   <th>กลุ่ม</th>
                   <th className="text-right">ยอดที่ต้องชำระ</th>
                   <th className="text-right">ชำระแล้ว</th>
@@ -253,9 +466,8 @@ export default function PeriodDetailPage() {
                 {contributions?.map((contrib) => (
                   <tr key={contrib.id}>
                     <td className="font-mono text-sm">{contrib.member.memberNo}</td>
-                    <td className="font-medium">
-                      {contrib.member.firstName} {contrib.member.lastName}
-                    </td>
+                    <td className="font-medium">{memberName(contrib)}</td>
+                    <td className="text-slate-500">{contrib.school.name}</td>
                     <td className="text-slate-500">{contrib.member.group?.name || '-'}</td>
                     <td className="text-right">{formatCurrency(contrib.totalAmount)}</td>
                     <td className="text-right font-medium text-emerald-600">

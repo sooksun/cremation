@@ -10,7 +10,7 @@ export class CreateUserDto {
 
   @IsString()
   @IsNotEmpty({ message: 'กรุณากรอกรหัสผ่าน' })
-  @MinLength(4, { message: 'รหัสผ่านต้องมีอย่างน้อย 4 ตัวอักษร' })
+  @MinLength(8, { message: 'รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร' })
   password: string;
 
   @IsString()
@@ -25,5 +25,11 @@ export class CreateUserDto {
   @ValidateIf((o) => o.schoolId !== undefined && o.schoolId !== '')
   @IsString()
   schoolId?: string;
+
+  @IsOptional()
+  @Transform(({ value }) => value === '' ? undefined : value)
+  @ValidateIf((o) => o.groupId !== undefined && o.groupId !== '')
+  @IsString()
+  groupId?: string;
 }
 

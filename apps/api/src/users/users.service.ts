@@ -26,6 +26,8 @@ export class UsersService {
         fullName: createUserDto.fullName,
         role: createUserDto.role,
         schoolId: createUserDto.schoolId,
+        groupId: createUserDto.groupId,
+        mustChangePassword: true,
       },
       include: {
         school: true,
@@ -86,6 +88,12 @@ export class UsersService {
 
     if (updateUserDto.password) {
       data.passwordHash = await bcrypt.hash(updateUserDto.password, 10);
+    }
+    if (updateUserDto.groupId !== undefined) {
+      data.groupId = updateUserDto.groupId;
+    }
+    if (updateUserDto.mustChangePassword !== undefined) {
+      data.mustChangePassword = updateUserDto.mustChangePassword;
     }
 
     const updated = await this.prisma.user.update({

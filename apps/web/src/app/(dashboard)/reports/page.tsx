@@ -341,7 +341,7 @@ export default function ReportsPage() {
                           <tr key={claim.id}>
                             <td className="font-mono text-sm">{claim.claimNo}</td>
                             <td className="font-medium">
-                              {claim.member.firstName} {claim.member.lastName}
+                              {claim.member.associationMember?.firstName} {claim.member.associationMember?.lastName}
                             </td>
                             <td className="text-slate-500">{claim.school.name}</td>
                             <td>{formatDate(claim.deathDate)}</td>

@@ -1,36 +1,48 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
+import { config as loadEnv } from 'dotenv';
+import { resolve } from 'path';
+import cookieParser from 'cookie-parser';
+import helmet from 'helmet';
 import { AppModule } from './app.module';
+import { validateEnv } from './config/env.validation';
+
+loadEnv({ path: resolve(process.cwd(), '../../.env') });
+loadEnv({ path: resolve(process.cwd(), '.env') });
 
 async function bootstrap() {
+  validateEnv();
+
   const app = await NestFactory.create(AppModule);
 
-  // Enable CORS for frontend
-  // Support multiple origins via CORS_ORIGINS (comma-separated) or single FRONTEND_URL
+  app.use(helmet());
+  app.use(cookieParser());
+
   const corsOrigins = process.env.CORS_ORIGINS
     ? process.env.CORS_ORIGINS.split(',').map((origin) => origin.trim())
     : process.env.FRONTEND_URL
       ? [process.env.FRONTEND_URL]
       : ['http://localhost:3000'];
 
+  const isProduction = process.env.NODE_ENV === 'production';
+
   app.enableCors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (like mobile apps or curl requests)
       if (!origin) {
+        if (isProduction) {
+          return callback(new Error('Not allowed by CORS'));
+        }
         return callback(null, true);
       }
 
-      // Check if origin is in allowed list
       if (corsOrigins.includes(origin)) {
         return callback(null, true);
       }
 
-      // In development, allow all origins (optional - remove in production)
-      if (process.env.NODE_ENV === 'development' && process.env.ALLOW_ALL_ORIGINS === 'true') {
+      if (!isProduction && process.env.ALLOW_ALL_ORIGINS === 'true') {
         return callback(null, true);
       }
 
-      // Reject origin
       callback(new Error('Not allowed by CORS'));
     },
     credentials: true,
@@ -38,10 +50,8 @@ async function bootstrap() {
     allowedHeaders: ['Content-Type', 'Authorization'],
   });
 
-  // Global prefix for all routes
   app.setGlobalPrefix('api');
 
-  // Global validation pipe
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -55,13 +65,6 @@ async function bootstrap() {
 
   const port = process.env.API_PORT || 3001;
   await app.listen(port);
-
-  console.log(`🚀 API server running on http://localhost:${port}/api`);
-  console.log(`📡 CORS enabled for origins: ${corsOrigins.join(', ')}`);
-  if (process.env.NODE_ENV === 'development' && process.env.ALLOW_ALL_ORIGINS === 'true') {
-    console.log(`⚠️  WARNING: ALLOW_ALL_ORIGINS is enabled - allowing all origins in development`);
-  }
 }
 
 bootstrap();
-

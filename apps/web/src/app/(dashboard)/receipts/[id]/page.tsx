@@ -28,8 +28,10 @@ interface ReceiptDetail {
   memberContribution?: {
     member: {
       memberNo: string;
-      firstName: string;
-      lastName: string;
+      associationMember?: {
+        firstName: string;
+        lastName: string;
+      };
       school: {
         name: string;
       };
@@ -133,7 +135,7 @@ export default function ReceiptDetailPage() {
     date: receipt.date,
     memberNo: receipt.memberContribution?.member?.memberNo,
     memberName: receipt.memberContribution?.member 
-      ? `${receipt.memberContribution.member.firstName} ${receipt.memberContribution.member.lastName}`
+      ? `${receipt.memberContribution.member.associationMember?.firstName ?? ''} ${receipt.memberContribution.member.associationMember?.lastName ?? ''}`
       : undefined,
     school: receipt.memberContribution?.member?.school?.name || receipt.school?.name || '-',
     description: receipt.description || '',

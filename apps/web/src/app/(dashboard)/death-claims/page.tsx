@@ -13,9 +13,11 @@ import {
   DollarSign,
   CheckCircle,
   Clock,
+  AlertTriangle,
 } from 'lucide-react';
 import Link from 'next/link';
-import { api, type DeathClaim } from '@/lib/api';
+import { api, DEATH_CLAIM_STATUS_LABELS, type DeathClaim } from '@/lib/api';
+import { isDeadlineOverdue, statusBadgeClass } from '@/lib/death-claim-workflow';
 import { useAuthStore } from '@/store/auth';
 import { formatThaiDateShort } from '@/components/ThaiDatePicker';
 
@@ -55,8 +57,8 @@ export default function DeathClaimsPage() {
 
   const filteredClaims = claims?.filter(
     (claim) =>
-      claim.member.firstName.toLowerCase().includes(search.toLowerCase()) ||
-      claim.member.lastName.toLowerCase().includes(search.toLowerCase()) ||
+      claim.member.associationMember?.firstName?.toLowerCase().includes(search.toLowerCase()) ||
+      claim.member.associationMember?.lastName?.toLowerCase().includes(search.toLowerCase()) ||
       claim.claimNo.toLowerCase().includes(search.toLowerCase()),
   );
 
@@ -175,19 +177,32 @@ export default function DeathClaimsPage() {
                     <Flower2 className="w-6 h-6 text-rose-600" />
                   </div>
                   <div>
-                    <div className="flex items-center gap-3 mb-1">
+                    <div className="flex items-center gap-3 mb-1 flex-wrap">
                       <span className="font-mono text-sm text-slate-500">
                         {claim.claimNo}
                       </span>
-                      {claim.payment ? (
-                        <span className="badge-success">จ่ายแล้ว</span>
-                      ) : (
-                        <span className="badge-warning">รอจ่าย</span>
-                      )}
+                      <span className={statusBadgeClass(claim.status, !!claim.payment)}>
+                        {claim.payment || claim.status === 'PAID'
+                          ? 'จ่ายแล้ว'
+                          : DEATH_CLAIM_STATUS_LABELS[claim.status || 'REPORTED']}
+                      </span>
+                      {!claim.payment &&
+                        (isDeadlineOverdue(claim.collectionDeadline, Number(claim.collectedAmount) >= Number(claim.totalContribution ?? 0)) ||
+                          isDeadlineOverdue(claim.documentDeadline, claim.documentsComplete)) && (
+                          <span className="badge-danger flex items-center gap-1 text-xs">
+                            <AlertTriangle size={12} />
+                            เลยกำหนด
+                          </span>
+                        )}
                     </div>
                     <h3 className="font-semibold text-slate-900">
-                      {claim.member.firstName} {claim.member.lastName}
+                      {claim.member.associationMember?.firstName} {claim.member.associationMember?.lastName}
                     </h3>
+                    {claim.claimType === 'PROTECTED_DEATH' && (
+                      <p className="text-sm text-rose-700 mt-0.5">
+                        ญาติที่คุ้มครอง: {claim.deceasedName || '—'}
+                      </p>
+                    )}
                     <div className="flex items-center gap-4 mt-2 text-sm text-slate-500">
                       <span className="flex items-center gap-1">
                         <Calendar size={14} />

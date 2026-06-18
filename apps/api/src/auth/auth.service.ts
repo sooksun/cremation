@@ -1,8 +1,13 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { UsersService } from '../users/users.service';
 import { LoginDto } from './dto/login.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
 
 export interface JwtPayload {
   sub: string;
@@ -11,16 +16,19 @@ export interface JwtPayload {
   schoolId?: string;
 }
 
+export interface AuthUser {
+  id: string;
+  username: string;
+  fullName: string;
+  role: string;
+  schoolId?: string;
+  schoolName?: string;
+  groupId?: string;
+  mustChangePassword: boolean;
+}
+
 export interface AuthResponse {
-  accessToken: string;
-  user: {
-    id: string;
-    username: string;
-    fullName: string;
-    role: string;
-    schoolId?: string;
-    schoolName?: string;
-  };
+  user: AuthUser;
 }
 
 @Injectable()
@@ -30,7 +38,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async login(loginDto: LoginDto): Promise<AuthResponse> {
+  async login(loginDto: LoginDto): Promise<{ accessToken: string; user: AuthUser }> {
     const { username, password } = loginDto;
 
     const user = await this.usersService.findByUsername(username);
@@ -54,15 +62,24 @@ export class AuthService {
 
     return {
       accessToken,
-      user: {
-        id: user.id,
-        username: user.username,
-        fullName: user.fullName,
-        role: user.role,
-        schoolId: user.schoolId || undefined,
-        schoolName: user.school?.name,
-      },
+      user: this.toAuthUser(user),
     };
+  }
+
+  async changePassword(userId: string, dto: ChangePasswordDto): Promise<AuthUser> {
+    const user = await this.usersService.findById(userId);
+
+    const isCurrentValid = await bcrypt.compare(dto.currentPassword, user.passwordHash);
+    if (!isCurrentValid) {
+      throw new BadRequestException('รหัสผ่านปัจจุบันไม่ถูกต้อง');
+    }
+
+    const updated = await this.usersService.update(userId, {
+      password: dto.newPassword,
+      mustChangePassword: false,
+    });
+
+    return this.toAuthUser(updated);
   }
 
   async validateUser(payload: JwtPayload) {
@@ -72,5 +89,26 @@ export class AuthService {
     }
     return user;
   }
-}
 
+  toAuthUser(user: {
+    id: string;
+    username: string;
+    fullName: string;
+    role: string;
+    schoolId?: string | null;
+    groupId?: string | null;
+    mustChangePassword?: boolean;
+    school?: { name: string } | null;
+  }): AuthUser {
+    return {
+      id: user.id,
+      username: user.username,
+      fullName: user.fullName,
+      role: user.role,
+      schoolId: user.schoolId || undefined,
+      schoolName: user.school?.name,
+      groupId: user.groupId || undefined,
+      mustChangePassword: user.mustChangePassword ?? false,
+    };
+  }
+}

@@ -9,7 +9,7 @@ import {
   IsBoolean,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { MemberStatus } from '@prisma/client';
+import { MemberStatus, MembershipClass, ProtectedRelationship } from '@prisma/client';
 
 class BeneficiaryInput {
   @IsString()
@@ -28,48 +28,38 @@ class BeneficiaryInput {
   priority?: number;
 }
 
+class ProtectedPersonInput {
+  @IsString()
+  @IsNotEmpty()
+  fullName: string;
+
+  @IsEnum(ProtectedRelationship)
+  relationship: ProtectedRelationship;
+
+  @IsOptional()
+  @IsString()
+  nationalId?: string;
+
+  @IsOptional()
+  @IsString()
+  phone?: string;
+}
+
+// สร้างสมาชิกฌาปนกิจ จากสมาชิกสมาคม (ต้องมี associationMemberId)
 export class CreateMemberDto {
   @IsString()
-  @IsNotEmpty({ message: 'กรุณากรอกเลขทะเบียนสมาชิก' })
-  memberNo: string;
+  @IsNotEmpty({ message: 'กรุณาเลือกสมาชิกสมาคม' })
+  associationMemberId: string;
 
+  @IsOptional()
   @IsString()
-  @IsNotEmpty({ message: 'กรุณาเลือกโรงเรียน' })
-  schoolId: string;
-
-  @IsString()
-  @IsNotEmpty({ message: 'กรุณาเลือกประเภทสมาชิก' })
-  memberTypeId: string;
+  memberNo?: string;
 
   @IsOptional()
   @IsString()
   groupId?: string;
 
-  @IsString()
-  @IsNotEmpty({ message: 'กรุณากรอกชื่อ' })
-  firstName: string;
-
-  @IsString()
-  @IsNotEmpty({ message: 'กรุณากรอกนามสกุล' })
-  lastName: string;
-
-  @IsOptional()
-  @IsString()
-  idCardNo?: string;
-
-  @IsOptional()
-  @IsDateString()
-  birthDate?: string;
-
-  @IsOptional()
-  @IsString()
-  address?: string;
-
-  @IsOptional()
-  @IsString()
-  phone?: string;
-
-  @IsDateString({}, { message: 'กรุณากรอกวันที่สมัครสมาชิก' })
+  @IsDateString({}, { message: 'กรุณากรอกวันที่สมัครเข้าร่วมฌาปนกิจ' })
   joinDate: string;
 
   @IsOptional()
@@ -81,9 +71,22 @@ export class CreateMemberDto {
   salaryDeduction?: boolean;
 
   @IsOptional()
+  @IsEnum(MembershipClass)
+  membershipClass?: MembershipClass;
+
+  @IsOptional()
+  @IsDateString()
+  applicationSubmittedAt?: string;
+
+  @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => BeneficiaryInput)
   beneficiaries?: BeneficiaryInput[];
-}
 
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => ProtectedPersonInput)
+  protectedPersons?: ProtectedPersonInput[];
+}
