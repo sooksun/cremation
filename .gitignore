@@ -41,3 +41,16 @@ coverage
 backup/*.sql
 backup/*.sql.gz
 
+# === Generated / test data (NEVER commit) ===
+# Large data exports accidentally placed in public/ (public is served without auth)
+apps/web/public/evaluations*.sql
+apps/web/public/generated_video.mp4
+
+# Test artifacts, temporary logs, dev outputs
+apps/web/test-output/
+terminals/
+output/
+
+# MCP server tool definitions (loaded dynamically per session)
+mcps/
+
