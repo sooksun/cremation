@@ -139,14 +139,20 @@ export class MembershipRulesService {
     });
   }
 
-  async processArrearsAfterNotice(periodId: string) {
+  async processArrearsAfterNotice(periodId: string, schoolId?: string) {
     const period = await this.prisma.contributionPeriod.findUnique({
       where: { id: periodId },
     });
     if (!period) return { noticeSent: 0, terminated: 0 };
 
     const arrearsContributions = await this.prisma.memberContribution.findMany({
-      where: { periodId, isArrears: true, paidAmount: 0 },
+      where: {
+        periodId,
+        isArrears: true,
+        paidAmount: 0,
+        arrearsNoticeSentAt: null,
+        ...(schoolId ? { schoolId } : {}),
+      },
       include: {
         member: {
           include: { associationMember: { include: { memberType: true } } },
@@ -165,7 +171,15 @@ export class MembershipRulesService {
         continue;
       }
 
-      if (!member.arrearsNoticeSentAt) {
+      await this.prisma.memberContribution.update({
+        where: { id: contribution.id },
+        data: { arrearsNoticeSentAt: now },
+      });
+
+      const isFirstNotice = !member.arrearsNoticeSentAt;
+      const nextCount = isFirstNotice ? 1 : member.consecutiveArrearsPeriods + 1;
+
+      if (isFirstNotice) {
         await this.prisma.member.update({
           where: { id: member.id },
           data: {
@@ -178,7 +192,6 @@ export class MembershipRulesService {
         continue;
       }
 
-      const nextCount = member.consecutiveArrearsPeriods + 1;
       if (nextCount >= ARREARS_TERMINATION_PERIODS) {
         await this.prisma.member.update({
           where: { id: member.id },

@@ -14,6 +14,7 @@ export interface JwtPayload {
   username: string;
   role: string;
   schoolId?: string;
+  memberId?: string;
 }
 
 export interface AuthUser {
@@ -24,6 +25,7 @@ export interface AuthUser {
   schoolId?: string;
   schoolName?: string;
   groupId?: string;
+  memberId?: string;
   mustChangePassword: boolean;
 }
 
@@ -56,6 +58,7 @@ export class AuthService {
       username: user.username,
       role: user.role,
       schoolId: user.schoolId || undefined,
+      ...(user.memberId ? { memberId: user.memberId } : {}),
     };
 
     const accessToken = this.jwtService.sign(payload);
@@ -97,6 +100,7 @@ export class AuthService {
     role: string;
     schoolId?: string | null;
     groupId?: string | null;
+    memberId?: string | null;
     mustChangePassword?: boolean;
     school?: { name: string } | null;
   }): AuthUser {
@@ -108,6 +112,7 @@ export class AuthService {
       schoolId: user.schoolId || undefined,
       schoolName: user.school?.name,
       groupId: user.groupId || undefined,
+      memberId: user.memberId || undefined,
       mustChangePassword: user.mustChangePassword ?? false,
     };
   }

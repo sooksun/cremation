@@ -219,32 +219,24 @@ export class DeathClaimsService {
     if (deceasedType === DeceasedType.MEMBER) {
       throw new BadRequestException('ประเภทผู้เสียชีวิตไม่ถูกต้องสำหรับเคลมญาติที่คุ้มครอง');
     }
-    if (!dto.protectedPersonId && !dto.deceasedName?.trim()) {
-      throw new BadRequestException('กรุณาเลือกหรือระบุผู้เสียชีวิตที่ได้รับการคุ้มครอง');
+    if (!dto.protectedPersonId) {
+      throw new BadRequestException('กรุณาเลือกผู้เสียชีวิตจากรายชื่อผู้ได้รับการคุ้มครอง');
     }
   }
 
   private async resolveProtectedPerson(dto: CreateDeathClaimDto, deceasedType: DeceasedType) {
-    if (dto.protectedPersonId) {
-      const person = await this.prisma.protectedPerson.findFirst({
-        where: { id: dto.protectedPersonId, memberId: dto.memberId, isActive: true },
-      });
-      if (!person) {
-        throw new BadRequestException('ไม่พบผู้ได้รับการคุ้มครองที่ยังมีสิทธิ');
-      }
-      if (!relationshipMatchesDeceasedType(person.relationship, deceasedType)) {
-        throw new BadRequestException('ประเภทผู้เสียชีวิตไม่ตรงกับความสัมพันธ์ที่คุ้มครอง');
-      }
-      return {
-        protectedPersonId: person.id,
-        deceasedName: person.fullName,
-        deceasedType,
-      };
+    const person = await this.prisma.protectedPerson.findFirst({
+      where: { id: dto.protectedPersonId, memberId: dto.memberId, isActive: true },
+    });
+    if (!person) {
+      throw new BadRequestException('ไม่พบผู้ได้รับการคุ้มครองที่ยังมีสิทธิ');
     }
-
+    if (!relationshipMatchesDeceasedType(person.relationship, deceasedType)) {
+      throw new BadRequestException('ประเภทผู้เสียชีวิตไม่ตรงกับความสัมพันธ์ที่คุ้มครอง');
+    }
     return {
-      protectedPersonId: undefined as string | undefined,
-      deceasedName: dto.deceasedName!.trim(),
+      protectedPersonId: person.id,
+      deceasedName: person.fullName,
       deceasedType,
     };
   }

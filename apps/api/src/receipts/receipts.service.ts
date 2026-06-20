@@ -3,7 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { DocumentNumberService, DocumentType } from '../common/document-number.service';
 import { CreateReceiptDto } from './dto/create-receipt.dto';
 import { AuditAction, ReceiptType } from '@prisma/client';
-import { ScopedUser } from '../common/security/school-scope.service';
+import { SchoolScopeService, ScopedUser } from '../common/security/school-scope.service';
 import { AuditLogService } from '../common/services/audit-log.service';
 
 @Injectable()
@@ -12,9 +12,14 @@ export class ReceiptsService {
     private readonly prisma: PrismaService,
     private readonly documentNumberService: DocumentNumberService,
     private readonly auditLog: AuditLogService,
+    private readonly schoolScope: SchoolScopeService,
   ) {}
 
   async create(dto: CreateReceiptDto, actor?: ScopedUser, ipAddress?: string) {
+    if (actor && dto.schoolId) {
+      this.schoolScope.assertSchoolAccess(actor, dto.schoolId);
+    }
+
     const receiptNo = await this.documentNumberService.generateNumber(DocumentType.RECEIPT);
 
     const receipt = await this.prisma.receipt.create({
@@ -62,7 +67,7 @@ export class ReceiptsService {
     });
   }
 
-  async findById(id: string) {
+  async findById(id: string, actor?: ScopedUser) {
     const receipt = await this.prisma.receipt.findUnique({
       where: { id },
       include: {
@@ -75,6 +80,10 @@ export class ReceiptsService {
 
     if (!receipt) {
       throw new NotFoundException('ไม่พบใบเสร็จ');
+    }
+
+    if (actor) {
+      this.schoolScope.assertResourceSchoolAccess(actor, receipt.schoolId);
     }
 
     return receipt;

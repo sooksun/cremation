@@ -39,19 +39,47 @@ export class MembersService {
     private readonly schoolScope: SchoolScopeService,
   ) {}
 
-  async create(dto: CreateMemberDto) {
-    const associationMember = await this.prisma.associationMember.findUnique({
-      where: { id: dto.associationMemberId },
-      include: { school: true, memberType: true },
-    });
-    if (!associationMember) {
-      throw new BadRequestException('ไม่พบสมาชิกสมาคมที่เลือก');
-    }
-    const existing = await this.prisma.member.findUnique({
-      where: { associationMemberId: dto.associationMemberId },
-    });
-    if (existing) {
-      throw new BadRequestException('สมาชิกสมาคมนี้เป็นสมาชิกฌาปนกิจอยู่แล้ว');
+  async create(dto: CreateMemberDto, actor?: ScopedUser) {
+    let associationMember;
+
+    if (dto.associationMemberId) {
+      associationMember = await this.prisma.associationMember.findUnique({
+        where: { id: dto.associationMemberId },
+        include: { school: true, memberType: true },
+      });
+      if (!associationMember) {
+        throw new BadRequestException('ไม่พบสมาชิกสมาคมที่เลือก');
+      }
+      if (actor) {
+        this.schoolScope.assertSchoolAccess(actor, associationMember.schoolId);
+      }
+      const existing = await this.prisma.member.findUnique({
+        where: { associationMemberId: dto.associationMemberId },
+      });
+      if (existing) {
+        throw new BadRequestException('สมาชิกสมาคมนี้เป็นสมาชิกฌาปนกิจอยู่แล้ว');
+      }
+    } else {
+      const schoolId = dto.schoolId!;
+      if (actor) {
+        this.schoolScope.assertSchoolAccess(actor, schoolId);
+      }
+      const joinDate = new Date(dto.joinDate);
+      associationMember = await this.prisma.associationMember.create({
+        data: {
+          schoolId,
+          memberTypeId: dto.memberTypeId!,
+          associationMemberNo: dto.associationMemberNo,
+          firstName: dto.firstName!,
+          lastName: dto.lastName!,
+          idCardNo: dto.idCardNo,
+          birthDate: dto.birthDate ? new Date(dto.birthDate) : undefined,
+          address: dto.address,
+          phone: dto.phone,
+          associationJoinDate: joinDate,
+        },
+        include: { school: true, memberType: true },
+      });
     }
 
     const memberNo =
@@ -71,7 +99,7 @@ export class MembersService {
 
     const member = await this.prisma.member.create({
       data: {
-        associationMemberId: dto.associationMemberId,
+        associationMemberId: associationMember.id,
         memberNo,
         schoolId: associationMember.schoolId,
         groupId: dto.groupId,
@@ -162,6 +190,7 @@ export class MembersService {
     }
 
     if (actor) {
+      this.schoolScope.assertMemberSelfAccess(actor, id);
       this.schoolScope.assertSchoolAccess(actor, member.schoolId);
     }
 
@@ -285,8 +314,14 @@ export class MembersService {
   }
 
   async remove(id: string, actor?: ScopedUser) {
-    await this.findById(id, actor);
-    await this.prisma.member.delete({ where: { id } });
+    const member = await this.findById(id, actor);
+    const associationMemberId = member.associationMemberId;
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.member.delete({ where: { id } });
+      await tx.associationMember.delete({ where: { id: associationMemberId } });
+    });
+
     return { message: 'ลบสมาชิกสำเร็จ' };
   }
 
@@ -341,7 +376,7 @@ export class MembersService {
     return '\uFEFF' + [header, ...rows].join('\n');
   }
 
-  async importCsv(rows: MemberCsvRowDto[]) {
+  async importCsv(rows: MemberCsvRowDto[], actor?: ScopedUser) {
     const results = { created: 0, updated: 0, skipped: 0, errors: [] as string[] };
 
     for (const row of rows) {
@@ -353,6 +388,16 @@ export class MembersService {
           results.errors.push(`${row.memberNo}: ไม่พบโรงเรียน ${row.schoolCode}`);
           results.skipped++;
           continue;
+        }
+
+        if (actor) {
+          try {
+            this.schoolScope.assertSchoolAccess(actor, school.id);
+          } catch {
+            results.errors.push(`${row.memberNo}: ไม่มีสิทธิ์นำเข้าข้อมูลโรงเรียน ${row.schoolCode}`);
+            results.skipped++;
+            continue;
+          }
         }
 
         const memberType = await this.prisma.memberType.findUnique({
@@ -378,6 +423,16 @@ export class MembersService {
         });
 
         if (existing) {
+          if (actor) {
+            try {
+              this.schoolScope.assertSchoolAccess(actor, existing.schoolId);
+            } catch {
+              results.errors.push(`${row.memberNo}: ไม่มีสิทธิ์แก้ไขสมาชิกโรงเรียนอื่น`);
+              results.skipped++;
+              continue;
+            }
+          }
+
           await this.prisma.associationMember.update({
             where: { id: existing.associationMemberId },
             data: {

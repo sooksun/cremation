@@ -17,7 +17,7 @@
     }
   },
   "include": ["src/**/*", "prisma/**/*"],
-  "exclude": ["node_modules", "dist", "test"],
+  "exclude": ["node_modules", "dist", "test", "**/*spec.ts"],
   "ts-node": {
     "require": ["tsconfig-paths/register"],
     "compilerOptions": {

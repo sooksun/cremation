@@ -99,7 +99,18 @@ export class MemberApplicationsService {
       .map((b, i) => ({
         fullName: b.name!.trim(),
         relationship: b.relationship?.trim() || '-',
+        nationalId: b.nationalId,
+        houseNo: b.houseNo,
+        moo: b.moo,
+        road: b.road,
+        soi: b.soi,
+        subdistrict: b.subdistrict,
+        district: b.district,
+        province: b.province,
+        zip: b.zip,
         phone: b.phone,
+        contactPerson: b.contactPerson,
+        contactPhone: b.contactPhone,
         priority: i + 1,
       }));
 

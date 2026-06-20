@@ -53,7 +53,7 @@ export class UsersController {
   }
 
   @Patch(':id/signature')
-  @Roles(Role.ADMIN, Role.FINANCE)
+  @Roles(Role.ADMIN, Role.SCHOOL_ADMIN, Role.FINANCE)
   updateSignature(@Param('id') id: string, @Body() body: { signature: string }) {
     return this.usersService.update(id, { signature: body.signature });
   }

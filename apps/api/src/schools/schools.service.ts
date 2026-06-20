@@ -2,10 +2,18 @@ import { Injectable, ConflictException, NotFoundException } from '@nestjs/common
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateSchoolDto } from './dto/create-school.dto';
 import { UpdateSchoolDto } from './dto/update-school.dto';
+import {
+  buildDefaultSchoolAdminUsername,
+  SchoolAdminsService,
+} from '../school-admins/school-admins.service';
+import { generateTemporaryPassword } from '../common/utils/password.util';
 
 @Injectable()
 export class SchoolsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly schoolAdminsService: SchoolAdminsService,
+  ) {}
 
   async create(createSchoolDto: CreateSchoolDto) {
     const existing = await this.prisma.school.findUnique({
@@ -16,10 +24,24 @@ export class SchoolsService {
       throw new ConflictException('รหัสโรงเรียนนี้ถูกใช้งานแล้ว');
     }
 
-    return this.prisma.school.create({
+    const school = await this.prisma.school.create({
       data: createSchoolDto,
       include: { cluster: true },
     });
+
+    const initialAdminPassword = generateTemporaryPassword();
+    await this.schoolAdminsService.createForSchool(school.id, {
+      username: buildDefaultSchoolAdminUsername(school.code),
+      password: initialAdminPassword,
+      fullName: `ผู้ดูแล ${school.name}`,
+      mustChangePassword: true,
+    });
+
+    return {
+      ...school,
+      initialAdminPassword,
+      initialAdminUsername: buildDefaultSchoolAdminUsername(school.code),
+    };
   }
 
   async findAll(includeInactive = false, clusterId?: string) {

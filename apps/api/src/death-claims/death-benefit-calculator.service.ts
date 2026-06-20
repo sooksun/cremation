@@ -41,7 +41,7 @@ export class DeathBenefitCalculatorService {
 
     const payingMemberCount = await this.prisma.member.count({
       where: {
-        status: MemberStatus.ACTIVE,
+        status: { in: [MemberStatus.ACTIVE, MemberStatus.ARREARS] },
         ...(params.excludeMemberId ? { id: { not: params.excludeMemberId } } : {}),
       },
     });

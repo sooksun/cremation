@@ -18,6 +18,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '@prisma/client';
+import { ScopedUser } from '../common/security/school-scope.service';
 
 @Controller('contributions')
 @UseGuards(JwtAuthGuard)
@@ -31,7 +32,7 @@ export class ContributionsController {
 
   @Patch('settings')
   @UseGuards(RolesGuard)
-  @Roles(Role.ADMIN, Role.FINANCE)
+  @Roles(Role.ADMIN, Role.SCHOOL_ADMIN, Role.FINANCE)
   updateSettings(@Body() dto: UpdateContributionSettingsDto) {
     return this.contributionsService.updateSettings(dto.serviceFeeEnabled);
   }
@@ -39,7 +40,7 @@ export class ContributionsController {
   // Period endpoints
   @Post('periods')
   @UseGuards(RolesGuard)
-  @Roles(Role.ADMIN, Role.FINANCE)
+  @Roles(Role.ADMIN, Role.SCHOOL_ADMIN, Role.FINANCE)
   createPeriod(@Body() dto: CreatePeriodDto) {
     return this.contributionsService.createPeriod(dto);
   }
@@ -56,14 +57,14 @@ export class ContributionsController {
 
   @Patch('periods/:id')
   @UseGuards(RolesGuard)
-  @Roles(Role.ADMIN, Role.FINANCE)
+  @Roles(Role.ADMIN, Role.SCHOOL_ADMIN, Role.FINANCE)
   updatePeriod(@Param('id') id: string, @Body() dto: UpdatePeriodDto) {
     return this.contributionsService.updatePeriod(id, dto);
   }
 
   @Post('periods/:id/close')
   @UseGuards(RolesGuard)
-  @Roles(Role.ADMIN, Role.FINANCE)
+  @Roles(Role.ADMIN, Role.SCHOOL_ADMIN, Role.FINANCE)
   closePeriod(@Param('id') id: string) {
     return this.contributionsService.closePeriod(id);
   }
@@ -76,7 +77,7 @@ export class ContributionsController {
   // Contribution endpoints
   @Post('periods/:id/generate')
   @UseGuards(RolesGuard)
-  @Roles(Role.ADMIN, Role.FINANCE)
+  @Roles(Role.ADMIN, Role.SCHOOL_ADMIN, Role.FINANCE)
   generateContributions(@Param('id') id: string, @Query('schoolId') schoolId?: string) {
     return this.contributionsService.generateContributions(id, schoolId);
   }
@@ -88,7 +89,7 @@ export class ContributionsController {
 
   @Patch(':id/payment')
   @UseGuards(RolesGuard)
-  @Roles(Role.ADMIN, Role.FINANCE, Role.GROUP_LEADER)
+  @Roles(Role.ADMIN, Role.SCHOOL_ADMIN, Role.FINANCE, Role.GROUP_LEADER)
   recordPayment(
     @Param('id') id: string,
     @Body() dto: RecordPaymentDto,
@@ -99,7 +100,7 @@ export class ContributionsController {
 
   @Post('batch-payment')
   @UseGuards(RolesGuard)
-  @Roles(Role.ADMIN, Role.FINANCE, Role.GROUP_LEADER)
+  @Roles(Role.ADMIN, Role.SCHOOL_ADMIN, Role.FINANCE, Role.GROUP_LEADER)
   batchRecordPayments(
     @Body() dto: BatchPaymentDto,
     @Request() req: { user: { id: string; role: Role; schoolId?: string; groupId?: string }; ip?: string },
@@ -109,22 +110,32 @@ export class ContributionsController {
 
   // Arrears endpoints
   @Get('arrears')
-  getArrears(@Query('schoolId') schoolId?: string, @Query('periodId') periodId?: string) {
-    return this.contributionsService.getArrears(schoolId, periodId);
+  getArrears(
+    @Query('schoolId') schoolId?: string,
+    @Query('periodId') periodId?: string,
+    @Request() req?: { user: ScopedUser },
+  ) {
+    return this.contributionsService.getArrears(schoolId, periodId, req?.user);
   }
 
   @Post('periods/:id/mark-arrears')
   @UseGuards(RolesGuard)
-  @Roles(Role.ADMIN, Role.FINANCE)
-  markArrears(@Param('id') id: string) {
-    return this.contributionsService.markArrearsForPeriod(id);
+  @Roles(Role.ADMIN, Role.SCHOOL_ADMIN, Role.FINANCE)
+  markArrears(
+    @Param('id') id: string,
+    @Request() req: { user: ScopedUser },
+  ) {
+    return this.contributionsService.markArrearsForPeriod(id, req.user);
   }
 
   @Post('periods/:id/send-arrears-notice')
   @UseGuards(RolesGuard)
-  @Roles(Role.ADMIN, Role.FINANCE)
-  sendArrearsNotice(@Param('id') id: string) {
-    return this.contributionsService.sendArrearsNoticeForPeriod(id);
+  @Roles(Role.ADMIN, Role.SCHOOL_ADMIN, Role.FINANCE)
+  sendArrearsNotice(
+    @Param('id') id: string,
+    @Request() req: { user: ScopedUser },
+  ) {
+    return this.contributionsService.sendArrearsNoticeForPeriod(id, req.user);
   }
 
   @Get('periods/:id/summary-by-school')
@@ -134,7 +145,7 @@ export class ContributionsController {
 
   @Post('periods/:id/pay-all')
   @UseGuards(RolesGuard)
-  @Roles(Role.ADMIN, Role.FINANCE, Role.GROUP_LEADER)
+  @Roles(Role.ADMIN, Role.SCHOOL_ADMIN, Role.FINANCE, Role.GROUP_LEADER)
   payAllInPeriod(
     @Param('id') id: string,
     @Request() req: { user: { id: string; role: Role; schoolId?: string; groupId?: string }; ip?: string },
@@ -168,7 +179,7 @@ export class ContributionsController {
   // =============================================
   @Get('template')
   @UseGuards(RolesGuard)
-  @Roles(Role.ADMIN, Role.FINANCE)
+  @Roles(Role.ADMIN, Role.SCHOOL_ADMIN, Role.FINANCE)
   async getPaymentTemplate(
     @Query('year') year: number,
     @Query('month') month: number,
@@ -181,20 +192,22 @@ export class ContributionsController {
 
   @Post('upload')
   @UseGuards(RolesGuard)
-  @Roles(Role.ADMIN, Role.FINANCE)
+  @Roles(Role.ADMIN, Role.SCHOOL_ADMIN, Role.FINANCE)
   async uploadPaymentFile(
     @Body() body: { year: number; month: number; data: any[] },
+    @Request() req: { user: ScopedUser },
   ) {
     return this.contributionsService.processPaymentUpload(
       body.year,
       body.month,
       body.data,
+      req.user,
     );
   }
 
   @Post('backfill-receipts')
   @UseGuards(RolesGuard)
-  @Roles(Role.ADMIN, Role.FINANCE)
+  @Roles(Role.ADMIN, Role.SCHOOL_ADMIN, Role.FINANCE)
   async backfillReceipts() {
     return this.contributionsService.backfillReceiptsForPaidContributions();
   }

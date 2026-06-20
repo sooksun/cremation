@@ -10,6 +10,7 @@ import Link from 'next/link';
 import { showSuccess, showError } from '@/lib/toast';
 import { api, type School, type Member } from '@/lib/api';
 import { useAuthStore } from '@/store/auth';
+import { canSelectAllSchools, filterSchoolsForUser } from '@/lib/school-scope';
 import ThaiDatePicker from '@/components/ThaiDatePicker';
 
 type DeathClaimType = 'MEMBER_DEATH' | 'PROTECTED_DEATH';
@@ -55,13 +56,16 @@ interface DeathClaimForm {
 
 export default function NewDeathClaimPage() {
   const router = useRouter();
-  const { selectedSchoolId } = useAuthStore();
+  const { user, selectedSchoolId } = useAuthStore();
+  const defaultSchoolId = canSelectAllSchools(user?.role)
+    ? selectedSchoolId || ''
+    : user?.schoolId || '';
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
 
   const { register, handleSubmit, setValue, watch, control, formState: { errors } } = useForm<DeathClaimForm>({
     defaultValues: {
-      schoolId: selectedSchoolId || '',
+      schoolId: defaultSchoolId,
       reportedDate: new Date().toISOString().split('T')[0],
       deathDate: new Date().toISOString().split('T')[0],
       deceasedType: DeceasedType.MEMBER,
@@ -74,13 +78,14 @@ export default function NewDeathClaimPage() {
   const watchDeceasedType = watch('deceasedType');
   const watchOtherDeductions = watch('otherDeductions');
 
-  const { data: schools } = useQuery<School[]>({
+  const { data: schoolsRaw } = useQuery<School[]>({
     queryKey: ['schools'],
     queryFn: async () => {
       const response = await api.get('/schools');
       return response.data;
     },
   });
+  const schools = filterSchoolsForUser(schoolsRaw ?? [], user?.role, user?.schoolId);
 
   // แก้ไข: API return { data: [...], meta: {...} } ไม่ใช่ array โดยตรง
   const { data: membersData } = useQuery<{ data: Member[]; meta: any }>({
@@ -89,14 +94,15 @@ export default function NewDeathClaimPage() {
       const params = new URLSearchParams();
       if (watchSchoolId) params.append('schoolId', watchSchoolId);
       if (searchTerm) params.append('search', searchTerm);
-      params.append('status', 'ACTIVE');
       const response = await api.get(`/members?${params}`);
       return response.data;
     },
     enabled: !!watchSchoolId,
   });
 
-  const members = membersData?.data || [];
+  const members = (membersData?.data || []).filter(
+    (m) => m.status !== 'DECEASED' && m.status !== 'RESIGNED',
+  );
 
   const { data: memberDetail } = useQuery<Member>({
     queryKey: ['member', watchMemberId],
@@ -178,9 +184,15 @@ export default function NewDeathClaimPage() {
       showError('กรุณาเลือกสมาชิก');
       return;
     }
-    if (data.deceasedType !== DeceasedType.MEMBER && !data.protectedPersonId && !data.deceasedName?.trim()) {
-      showError('กรุณาเลือกหรือกรอกชื่อผู้เสียชีวิตที่คุ้มครอง');
-      return;
+    if (data.deceasedType !== DeceasedType.MEMBER) {
+      if (matchingProtectedPersons.length === 0) {
+        showError('กรุณาลงทะเบียนผู้คุ้มครองในโปรไฟล์สมาชิกก่อนแจ้งเคลม');
+        return;
+      }
+      if (!data.protectedPersonId) {
+        showError('กรุณาเลือกผู้เสียชีวิตจากทะเบียนคุ้มครอง');
+        return;
+      }
     }
     createMutation.mutate(data);
   };
@@ -225,6 +237,7 @@ export default function NewDeathClaimPage() {
               <select
                 {...register('schoolId', { required: 'กรุณาเลือกโรงเรียน' })}
                 className="input"
+                disabled={!canSelectAllSchools(user?.role)}
                 onChange={(e) => {
                   setValue('schoolId', e.target.value);
                   setSelectedMember(null);
@@ -232,7 +245,7 @@ export default function NewDeathClaimPage() {
                 }}
               >
                 <option value="">เลือกโรงเรียน</option>
-                {schools?.map((school) => (
+                {schools.map((school) => (
                   <option key={school.id} value={school.id}>
                     {school.name}
                   </option>
@@ -353,6 +366,7 @@ export default function NewDeathClaimPage() {
                     <select
                       className="input"
                       {...register('protectedPersonId', {
+                        required: 'กรุณาเลือกผู้เสียชีวิตจากทะเบียนคุ้มครอง',
                         onChange: (e) => {
                           const person = matchingProtectedPersons.find((p) => p.id === e.target.value);
                           if (person) {
@@ -375,13 +389,19 @@ export default function NewDeathClaimPage() {
                     </p>
                   </div>
                 ) : (
-                  <div>
-                    <label className="label">ชื่อผู้เสียชีวิต *</label>
-                    <input
-                      {...register('deceasedName')}
-                      className="input"
-                      placeholder="ชื่อ-นามสกุล ผู้เสียชีวิต"
-                    />
+                  <div className="md:col-span-2 p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-900">
+                    <p className="font-medium">ยังไม่มีผู้คุ้มครองประเภทนี้ในระบบ</p>
+                    <p className="text-sm mt-1">
+                      กรุณาเพิ่มข้อมูลผู้คุ้มครองในโปรไฟล์สมาชิกก่อนแจ้งเคลมมรณกรรมบุคคลที่คุ้มครอง
+                    </p>
+                    {watchMemberId && (
+                      <Link
+                        href={`/members/${watchMemberId}/edit`}
+                        className="inline-block text-sm text-primary-700 hover:underline mt-2"
+                      >
+                        ไปแก้ไขโปรไฟล์สมาชิก
+                      </Link>
+                    )}
                   </div>
                 )}
 

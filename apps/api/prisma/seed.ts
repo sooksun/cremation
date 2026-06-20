@@ -152,48 +152,77 @@ async function main() {
 
   console.log('✅ Groups ready');
 
-  // 4) Admin user (password: 1234) - upsert
-  const hashedPassword = await bcrypt.hash('1234', 10);
+  // 4) Users — unique passwords (set SEED_ADMIN_PASSWORD for deterministic admin login in dev)
+  const { generateTemporaryPassword } = await import('../src/common/utils/password.util');
+  const seedPasswords: string[] = [];
+
+  const adminPassword = process.env.SEED_ADMIN_PASSWORD || generateTemporaryPassword();
+  const adminHash = await bcrypt.hash(adminPassword, 10);
+  seedPasswords.push(`admin / ${adminPassword}`);
 
   const admin = await prisma.user.upsert({
     where: { username: 'admin' },
     create: {
       username: 'admin',
-      passwordHash: hashedPassword,
+      passwordHash: adminHash,
       fullName: 'ผู้ดูแลระบบ',
       role: Role.ADMIN,
       mustChangePassword: false,
     },
-    update: { passwordHash: hashedPassword, mustChangePassword: false },
+    update: { passwordHash: adminHash, mustChangePassword: false },
   });
 
-  await prisma.user.upsert({
-    where: { username: 'finance' },
-    create: {
-      username: 'finance',
-      passwordHash: hashedPassword,
-      fullName: 'เจ้าหน้าที่การเงิน',
-      role: Role.FINANCE,
-      schoolId: schoolA.id,
-      mustChangePassword: true,
-    },
-    update: { mustChangePassword: true },
-  });
+  for (const [username, fullName, role, schoolId] of [
+    ['finance', 'เจ้าหน้าที่การเงิน', Role.FINANCE, schoolA.id],
+    ['account', 'เจ้าหน้าที่บัญชี', Role.ACCOUNTING, schoolA.id],
+  ] as const) {
+    const password = generateTemporaryPassword();
+    const passwordHash = await bcrypt.hash(password, 10);
+    seedPasswords.push(`${username} / ${password}`);
+    await prisma.user.upsert({
+      where: { username },
+      create: {
+        username,
+        passwordHash,
+        fullName,
+        role,
+        schoolId,
+        mustChangePassword: true,
+      },
+      update: { passwordHash, mustChangePassword: true },
+    });
+  }
 
-  await prisma.user.upsert({
-    where: { username: 'account' },
-    create: {
-      username: 'account',
-      passwordHash: hashedPassword,
-      fullName: 'เจ้าหน้าที่บัญชี',
-      role: Role.ACCOUNTING,
-      schoolId: schoolA.id,
-      mustChangePassword: true,
-    },
-    update: { mustChangePassword: true },
-  });
+  const seedSchools = [schoolA, schoolB, schoolC];
+  for (const school of seedSchools) {
+    const schoolAdminUsername = `admin-${school.code.toLowerCase()}`;
+    const password = generateTemporaryPassword();
+    const passwordHash = await bcrypt.hash(password, 10);
+    seedPasswords.push(`${schoolAdminUsername} / ${password}`);
+    await prisma.user.upsert({
+      where: { username: schoolAdminUsername },
+      create: {
+        username: schoolAdminUsername,
+        passwordHash,
+        fullName: `ผู้ดูแล ${school.name}`,
+        role: Role.SCHOOL_ADMIN,
+        schoolId: school.id,
+        mustChangePassword: true,
+      },
+      update: {
+        role: Role.SCHOOL_ADMIN,
+        schoolId: school.id,
+        fullName: `ผู้ดูแล ${school.name}`,
+        passwordHash,
+        mustChangePassword: true,
+      },
+    });
+  }
 
-  console.log('✅ Users ready (admin/1234, finance/1234, account/1234)');
+  console.log('✅ Users ready (unique passwords — copy from log below)');
+  for (const line of seedPasswords) {
+    console.log(`   ${line}`);
+  }
 
   // 5) Chart of accounts (minimal) - upsert
   const cash = await prisma.account.upsert({

@@ -37,5 +37,9 @@ export class UpdateUserDto {
   @IsOptional()
   @IsBoolean()
   mustChangePassword?: boolean;
-}
 
+  @IsOptional()
+  @Transform(({ value }) => value === '' ? undefined : value)
+  @IsString()
+  memberId?: string;
+}

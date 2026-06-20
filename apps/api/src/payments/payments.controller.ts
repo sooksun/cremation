@@ -14,6 +14,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Role, PaymentType } from '@prisma/client';
+import { ScopedUser } from '../common/security/school-scope.service';
 
 @Controller('payments')
 @UseGuards(JwtAuthGuard)
@@ -22,7 +23,7 @@ export class PaymentsController {
 
   @Post()
   @UseGuards(RolesGuard)
-  @Roles(Role.ADMIN, Role.FINANCE)
+  @Roles(Role.ADMIN, Role.SCHOOL_ADMIN, Role.FINANCE)
   create(
     @Body() dto: CreatePaymentDto,
     @Request() req: { user: { id: string; role: Role; schoolId?: string }; ip?: string },
@@ -59,8 +60,11 @@ export class PaymentsController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.paymentsService.findById(id);
+  findOne(
+    @Param('id') id: string,
+    @Request() req: { user: ScopedUser },
+  ) {
+    return this.paymentsService.findById(id, req.user);
   }
 }
 

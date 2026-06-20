@@ -11,10 +11,12 @@ generator client {
 
 enum Role {
   ADMIN
+  SCHOOL_ADMIN
   FINANCE
   ACCOUNTING
   GROUP_LEADER
   VIEWER
+  MEMBER
 }
 
 enum AuditAction {
@@ -120,6 +122,8 @@ model User {
   schoolId           String?
   group              Group?     @relation(fields: [groupId], references: [id])
   groupId            String?
+  member             Member?    @relation(fields: [memberId], references: [id], onDelete: SetNull)
+  memberId           String?    @unique
   auditLogs          AuditLog[]
   approvedDeathClaims DeathClaim[] @relation("DeathClaimApprover")
   createdAt          DateTime   @default(now())
@@ -227,6 +231,7 @@ model Member {
   schoolId           String
   group              Group?            @relation(fields: [groupId], references: [id])
   groupId            String?
+  user                User?
   joinDate           DateTime          // วันที่เข้าร่วมฌาปนกิจ
   resignDate         DateTime?
   deathDate          DateTime?
@@ -253,7 +258,18 @@ model Beneficiary {
   memberId    String
   fullName    String
   relationship String
+  nationalId  String?
+  houseNo     String?
+  moo         String?
+  road        String?
+  soi         String?
+  subdistrict String?
+  district    String?
+  province    String?
+  zip         String?
   phone       String?
+  contactPerson String?
+  contactPhone String?
   priority    Int      // 1,2,3
 }
 
@@ -303,9 +319,10 @@ model MemberContribution {
   paidDate       DateTime?
   receipt        Receipt?          @relation(fields: [receiptId], references: [id])
   receiptId      String?           @unique
-  isArrears      Boolean           @default(false)
-  createdAt      DateTime          @default(now())
-  updatedAt      DateTime          @updatedAt
+  isArrears            Boolean           @default(false)
+  arrearsNoticeSentAt  DateTime?
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
 
   @@unique([memberId, periodId])
 }
@@ -468,4 +485,3 @@ model AppSetting {
   value     String
   updatedAt DateTime @updatedAt
 }
-

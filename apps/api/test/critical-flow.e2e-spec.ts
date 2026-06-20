@@ -32,8 +32,10 @@ describe('Critical flow (e2e)', () => {
     },
     associationMember: {
       findUnique: jest.fn(),
+      findFirst: jest.fn(),
       create: jest.fn(),
     },
+    memberType: { findUnique: jest.fn() },
     memberContribution: {
       findUnique: jest.fn(),
       update: jest.fn(),
@@ -49,7 +51,10 @@ describe('Critical flow (e2e)', () => {
       create: jest.fn(),
       findUnique: jest.fn(),
     },
-    school: { findMany: jest.fn().mockResolvedValue([]) },
+    school: {
+      findMany: jest.fn().mockResolvedValue([]),
+      findUnique: jest.fn(),
+    },
     $transaction: jest.fn((ops: unknown[]) => Promise.all(ops as Promise<unknown>[])),
   };
 
@@ -133,6 +138,7 @@ describe('Critical flow (e2e)', () => {
       new ValidationPipe({
         whitelist: true,
         transform: true,
+        forbidNonWhitelisted: true,
         transformOptions: { enableImplicitConversion: true },
       }),
     );
@@ -191,6 +197,52 @@ describe('Critical flow (e2e)', () => {
       .expect(403);
   });
 
+  it('POST /api/member-applications/submit — accepts the registration page payload', async () => {
+    const school = { id: 'school-1', name: 'โรงเรียนแม่ฟ้าหลวง', code: 'MFH' };
+    prismaMock.school.findMany.mockResolvedValue([school]);
+    prismaMock.school.findUnique.mockResolvedValue(school);
+    prismaMock.memberType.findUnique.mockResolvedValue({ id: 'type-1', code: 'REG' });
+    prismaMock.associationMember.findFirst.mockResolvedValue(null);
+    prismaMock.associationMember.create.mockResolvedValue({ id: 'am-1', schoolId: school.id });
+    prismaMock.member.findUnique.mockResolvedValue(null);
+    prismaMock.member.create.mockResolvedValue({
+      id: 'member-1',
+      memberNo: 'M0001',
+      status: 'SUSPENDED',
+      membershipClass: 'ORDINARY',
+      applicationDeadline: new Date('2026-07-20'),
+      school: { name: school.name },
+    });
+
+    await request(app.getHttpServer())
+      .post('/api/member-applications/submit')
+      .send({
+        type: 'ordinary',
+        governmentAgency: school.name,
+        memberNo: 'M0001',
+        fullName: 'สมชาย ใจดี',
+        beneficiaries: [
+          {
+            name: 'สมหญิง ใจดี',
+            relationship: 'คู่สมรส',
+            nationalId: '1234567890123',
+            houseNo: '99/1',
+            moo: '2',
+            road: 'ถนนทดสอบ',
+            soi: 'ซอยทดสอบ',
+            subdistrict: 'แม่ฟ้าหลวง',
+            district: 'แม่ฟ้าหลวง',
+            province: 'เชียงราย',
+            zip: '57110',
+            phone: '0812345678',
+            contactPerson: 'สมชาย ใจดี',
+            contactPhone: '0899999999',
+          },
+        ],
+      })
+      .expect(201);
+  });
+
   it('GET /api/death-claims/preview-calculation — benefit preview per regulation', async () => {
     prismaMock.member.count.mockResolvedValue(50);
 
@@ -222,4 +274,3 @@ describe('Critical flow (e2e)', () => {
       .expect(400);
   });
 });
-

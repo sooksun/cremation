@@ -8,6 +8,7 @@ import {
   Delete,
   Query,
   UseGuards,
+  Request,
 } from '@nestjs/common';
 import { GroupsService } from './groups.service';
 import { CreateGroupDto } from './dto/create-group.dto';
@@ -16,6 +17,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '@prisma/client';
+import { ScopedUser } from '../common/security/school-scope.service';
 
 @Controller('groups')
 @UseGuards(JwtAuthGuard)
@@ -24,9 +26,12 @@ export class GroupsController {
 
   @Post()
   @UseGuards(RolesGuard)
-  @Roles(Role.ADMIN)
-  create(@Body() dto: CreateGroupDto) {
-    return this.groupsService.create(dto);
+  @Roles(Role.ADMIN, Role.SCHOOL_ADMIN)
+  create(
+    @Body() dto: CreateGroupDto,
+    @Request() req: { user: ScopedUser },
+  ) {
+    return this.groupsService.create(dto, req.user);
   }
 
   @Get()
@@ -35,22 +40,31 @@ export class GroupsController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.groupsService.findById(id);
+  findOne(
+    @Param('id') id: string,
+    @Request() req: { user: ScopedUser },
+  ) {
+    return this.groupsService.findById(id, req.user);
   }
 
   @Patch(':id')
   @UseGuards(RolesGuard)
-  @Roles(Role.ADMIN)
-  update(@Param('id') id: string, @Body() dto: UpdateGroupDto) {
-    return this.groupsService.update(id, dto);
+  @Roles(Role.ADMIN, Role.SCHOOL_ADMIN)
+  update(
+    @Param('id') id: string,
+    @Body() dto: UpdateGroupDto,
+    @Request() req: { user: ScopedUser },
+  ) {
+    return this.groupsService.update(id, dto, req.user);
   }
 
   @Delete(':id')
   @UseGuards(RolesGuard)
-  @Roles(Role.ADMIN)
-  remove(@Param('id') id: string) {
-    return this.groupsService.remove(id);
+  @Roles(Role.ADMIN, Role.SCHOOL_ADMIN)
+  remove(
+    @Param('id') id: string,
+    @Request() req: { user: ScopedUser },
+  ) {
+    return this.groupsService.remove(id, req.user);
   }
 }
-

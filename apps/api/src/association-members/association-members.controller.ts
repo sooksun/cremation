@@ -16,6 +16,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Role, MemberStatus } from '@prisma/client';
+import { ScopedUser } from '../common/security/school-scope.service';
 import {
   maskAssociationMemberListResponse,
   maskAssociationMemberRow,
@@ -29,18 +30,18 @@ export class AssociationMembersController {
 
   @Post()
   @UseGuards(RolesGuard)
-  @Roles(Role.ADMIN, Role.FINANCE)
+  @Roles(Role.ADMIN, Role.SCHOOL_ADMIN)
   async create(
     @Body() dto: CreateAssociationMemberDto,
-    @Request() req: { user: { role: Role } },
+    @Request() req: { user: ScopedUser },
   ) {
-    const row = await this.associationMembersService.create(dto);
+    const row = await this.associationMembersService.create(dto, req.user);
     return maskAssociationMemberRow(row, req.user.role);
   }
 
   @Get()
   async findAll(
-    @Request() req: { user: { role: Role } },
+    @Request() req: { user: ScopedUser },
     @Query('schoolId') schoolId?: string,
     @Query('status') status?: MemberStatus,
     @Query('search') search?: string,
@@ -54,40 +55,44 @@ export class AssociationMembersController {
       page: page ? Number(page) : undefined,
       limit: limit ? Number(limit) : undefined,
     };
-    const result = await this.associationMembersService.findAll(params);
+    const result = await this.associationMembersService.findAll(params, req.user);
     return maskAssociationMemberListResponse(result, req.user.role);
   }
 
   @Get(':memberId')
   async findOne(
     @Param('memberId') memberId: string,
-    @Request() req: { user: { role: Role } },
+    @Request() req: { user: ScopedUser },
   ) {
-    const member = await this.associationMembersService.findByMemberId(memberId);
+    const member = await this.associationMembersService.findByMemberId(memberId, req.user);
     return maskMemberWithAssociation(member, req.user.role);
   }
 
   @Patch('by-id/:id')
   @UseGuards(RolesGuard)
-  @Roles(Role.ADMIN, Role.FINANCE)
+  @Roles(Role.ADMIN, Role.SCHOOL_ADMIN, Role.FINANCE)
   async updateById(
     @Param('id') associationMemberId: string,
     @Body() dto: UpdateAssociationMemberDto,
-    @Request() req: { user: { role: Role } },
+    @Request() req: { user: ScopedUser },
   ) {
-    const row = await this.associationMembersService.updateById(associationMemberId, dto);
+    const row = await this.associationMembersService.updateById(
+      associationMemberId,
+      dto,
+      req.user,
+    );
     return maskAssociationMemberRow(row, req.user.role);
   }
 
   @Patch(':memberId')
   @UseGuards(RolesGuard)
-  @Roles(Role.ADMIN, Role.FINANCE)
+  @Roles(Role.ADMIN, Role.SCHOOL_ADMIN, Role.FINANCE)
   async update(
     @Param('memberId') memberId: string,
     @Body() dto: UpdateAssociationMemberDto,
-    @Request() req: { user: { role: Role } },
+    @Request() req: { user: ScopedUser },
   ) {
-    const member = await this.associationMembersService.update(memberId, dto);
+    const member = await this.associationMembersService.update(memberId, dto, req.user);
     return maskMemberWithAssociation(member, req.user.role);
   }
 }

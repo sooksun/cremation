@@ -58,7 +58,9 @@ export default function EditMemberPage() {
   // Load form data when member is fetched
   useEffect(() => {
     if (member) {
-      const birthDate = member.birthDate ? new Date(member.birthDate).toISOString().split('T')[0] : '';
+      const birthDate = member.associationMember?.birthDate
+        ? new Date(member.associationMember.birthDate).toISOString().split('T')[0]
+        : '';
       const joinDate = member.joinDate ? new Date(member.joinDate).toISOString().split('T')[0] : '';
       const resignDate = member.resignDate ? new Date(member.resignDate).toISOString().split('T')[0] : '';
       const deathDate = member.deathDate ? new Date(member.deathDate).toISOString().split('T')[0] : '';
@@ -126,7 +128,10 @@ export default function EditMemberPage() {
   });
 
   const onSubmit = async (data: MemberForm) => {
-    const memberPayload: Record<string, any> = { status: data.status };
+    const memberPayload: Record<string, any> = {
+      status: data.status,
+      salaryDeduction: data.salaryDeduction ?? false,
+    };
     if (data.groupId?.trim() !== '') memberPayload.groupId = data.groupId;
     else memberPayload.groupId = null;
     if (data.joinDate?.trim() !== '') memberPayload.joinDate = data.joinDate;
@@ -136,6 +141,7 @@ export default function EditMemberPage() {
     const associationPayload = {
       firstName: data.firstName,
       lastName: data.lastName,
+      memberTypeId: data.memberTypeId || undefined,
       idCardNo: data.idCardNo || undefined,
       birthDate: data.birthDate || undefined,
       address: data.address || undefined,
@@ -191,21 +197,9 @@ export default function EditMemberPage() {
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        {/* Basic Info */}
         <div className="card p-6">
-          <h3 className="font-semibold text-slate-900 mb-4">ข้อมูลพื้นฐาน</h3>
+          <h3 className="font-semibold text-slate-900 mb-4">ข้อมูลสมาชิกสมาคม</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div>
-              <label className="label">เลขทะเบียนสมาชิก</label>
-              <input
-                {...register('memberNo')}
-                className="input bg-slate-50"
-                disabled
-                readOnly
-              />
-              <p className="text-xs text-slate-400 mt-1">ไม่สามารถแก้ไขได้</p>
-            </div>
-
             <div>
               <label className="label">โรงเรียน</label>
               <input
@@ -228,16 +222,6 @@ export default function EditMemberPage() {
               {errors.memberTypeId && (
                 <p className="text-sm text-red-500 mt-1">{errors.memberTypeId.message}</p>
               )}
-            </div>
-
-            <div>
-              <label className="label">กลุ่ม</label>
-              <select {...register('groupId')} className="input">
-                <option value="">ไม่ระบุกลุ่ม</option>
-                {groups?.filter(g => g.school.id === member.school.id).map((group) => (
-                  <option key={group.id} value={group.id}>{group.name}</option>
-                ))}
-              </select>
             </div>
 
             <div>
@@ -290,7 +274,52 @@ export default function EditMemberPage() {
             </div>
 
             <div>
-              <label className="label">วันที่สมัครสมาชิก</label>
+              <label className="label">เบอร์โทรศัพท์</label>
+              <input
+                {...register('phone')}
+                className="input"
+                placeholder="08x-xxx-xxxx"
+              />
+            </div>
+
+            <div className="md:col-span-2 lg:col-span-3">
+              <label className="label">ที่อยู่</label>
+              <textarea
+                {...register('address')}
+                className="input"
+                rows={2}
+                placeholder="ที่อยู่"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="card p-6">
+          <h3 className="font-semibold text-slate-900 mb-4">ข้อมูลการเข้าร่วมฌาปนกิจ</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div>
+              <label className="label">เลขทะเบียนสมาชิกฌาปนกิจ</label>
+              <input
+                {...register('memberNo')}
+                className="input bg-slate-50"
+                disabled
+                readOnly
+              />
+              <p className="text-xs text-slate-400 mt-1">ไม่สามารถแก้ไขได้</p>
+            </div>
+
+            <div>
+              <label className="label">กลุ่ม</label>
+              <select {...register('groupId')} className="input">
+                <option value="">ไม่ระบุกลุ่ม</option>
+                {groups?.filter(g => g.school.id === member.school.id).map((group) => (
+                  <option key={group.id} value={group.id}>{group.name}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="label">วันที่สมัครเข้าร่วมฌาปนกิจ</label>
               <Controller
                 name="joinDate"
                 control={control}
@@ -305,29 +334,6 @@ export default function EditMemberPage() {
               />
             </div>
 
-            <div className="md:col-span-2">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  {...register('salaryDeduction')}
-                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                />
-                <span className="label mb-0">หักผ่านเงินเดือนจากสำนักงานเขตพื้นที่</span>
-              </label>
-              <p className="text-sm text-slate-500 mt-1 ml-6">
-                สมาชิกส่วนใหญ่จะหักผ่านเงินเดือนจากสำนักงานเขตพื้นที่ (ประมาณ 90%)
-              </p>
-            </div>
-
-            <div>
-              <label className="label">เบอร์โทรศัพท์</label>
-              <input
-                {...register('phone')}
-                className="input"
-                placeholder="08x-xxx-xxxx"
-              />
-            </div>
-
             <div>
               <label className="label">สถานะ</label>
               <select {...register('status')} className="input">
@@ -339,14 +345,15 @@ export default function EditMemberPage() {
               </select>
             </div>
 
-            <div className="md:col-span-2">
-              <label className="label">ที่อยู่</label>
-              <textarea
-                {...register('address')}
-                className="input"
-                rows={2}
-                placeholder="ที่อยู่"
-              />
+            <div className="md:col-span-2 lg:col-span-3">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  {...register('salaryDeduction')}
+                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                />
+                <span className="label mb-0">หักผ่านเงินเดือนจากสำนักงานเขตพื้นที่</span>
+              </label>
             </div>
           </div>
         </div>

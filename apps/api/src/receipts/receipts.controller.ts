@@ -14,6 +14,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Role, ReceiptType } from '@prisma/client';
+import { ScopedUser } from '../common/security/school-scope.service';
 
 @Controller('receipts')
 @UseGuards(JwtAuthGuard)
@@ -22,7 +23,7 @@ export class ReceiptsController {
 
   @Post()
   @UseGuards(RolesGuard)
-  @Roles(Role.ADMIN, Role.FINANCE)
+  @Roles(Role.ADMIN, Role.SCHOOL_ADMIN, Role.FINANCE)
   create(
     @Body() dto: CreateReceiptDto,
     @Request() req: { user: { id: string; role: Role; schoolId?: string }; ip?: string },
@@ -59,8 +60,11 @@ export class ReceiptsController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.receiptsService.findById(id);
+  findOne(
+    @Param('id') id: string,
+    @Request() req: { user: ScopedUser },
+  ) {
+    return this.receiptsService.findById(id, req.user);
   }
 }
 

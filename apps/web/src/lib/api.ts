@@ -12,10 +12,21 @@ export const api = axios.create({
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      useAuthStore.getState().logout();
-      if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/login')) {
-        window.location.href = '/login';
+    if (typeof window !== 'undefined') {
+      const message = error.response?.data?.message as string | undefined;
+      if (
+        error.response?.status === 403 &&
+        message?.includes('เปลี่ยนรหัสผ่าน') &&
+        !window.location.pathname.startsWith('/change-password')
+      ) {
+        window.location.href = '/change-password';
+        return Promise.reject(error);
+      }
+      if (error.response?.status === 401) {
+        useAuthStore.getState().logout();
+        if (!window.location.pathname.startsWith('/login')) {
+          window.location.href = '/login';
+        }
       }
     }
     return Promise.reject(error);
@@ -88,8 +99,19 @@ export interface Member {
   beneficiaries?: Array<{
     id: string;
     fullName: string;
-    phone?: string;
     relationship: string;
+    nationalId?: string;
+    houseNo?: string;
+    moo?: string;
+    road?: string;
+    soi?: string;
+    subdistrict?: string;
+    district?: string;
+    province?: string;
+    zip?: string;
+    phone?: string;
+    contactPerson?: string;
+    contactPhone?: string;
     priority: number;
   }>;
   protectedPersons?: Array<{
@@ -175,12 +197,19 @@ export interface DeathClaim {
   claimType?: 'MEMBER_DEATH' | 'PROTECTED_DEATH';
   deceasedType?: 'MEMBER' | 'PARENT' | 'CHILD' | 'SPOUSE';
   deceasedName?: string;
+  relationshipNote?: string | null;
   reportedDate: string;
   deathDate: string;
+  causeOfDeath?: string | null;
   mainBeneficiary: string;
+  beneficiaryPhone?: string | null;
+  activeMemberCount: number;
+  welfareRate: number;
+  payoutRatio?: number;
+  otherDeductions: number;
   netToPay: number;
-  totalContribution?: number;
-  associationSupport?: number;
+  totalContribution: number;
+  associationSupport: number;
   status?: DeathClaimStatus;
   collectionChannel?: DeathCollectionChannel;
   notifyAuthorityDeadline?: string | null;
@@ -199,11 +228,13 @@ export interface DeathClaim {
   member: {
     id: string;
     memberNo: string;
+    joinDate: string;
     firstName?: string;
     lastName?: string;
     associationMember?: {
       firstName: string;
       lastName: string;
+      memberType?: MemberType;
     };
   };
   school: School;

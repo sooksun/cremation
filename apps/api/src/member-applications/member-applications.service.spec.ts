@@ -77,6 +77,55 @@ describe('MemberApplicationsService.submit', () => {
     expect(result.status).toBe(MemberStatus.SUSPENDED);
   });
 
+  it('persists beneficiary identity, address, and contact fields from the registration form', async () => {
+    const beneficiary = {
+      name: 'สมหญิง ใจดี',
+      relationship: 'คู่สมรส',
+      nationalId: '1234567890123',
+      houseNo: '99/1',
+      moo: '2',
+      road: 'ถนนทดสอบ',
+      soi: 'ซอยทดสอบ',
+      subdistrict: 'แม่ฟ้าหลวง',
+      district: 'แม่ฟ้าหลวง',
+      province: 'เชียงราย',
+      zip: '57110',
+      phone: '0812345678',
+      contactPerson: 'สมชาย ใจดี',
+      contactPhone: '0899999999',
+    };
+
+    await service.submit({ ...baseDto, beneficiaries: [beneficiary] } as never);
+
+    expect(prisma.member.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          beneficiaries: {
+            create: [
+              {
+                fullName: beneficiary.name,
+                relationship: beneficiary.relationship,
+                nationalId: beneficiary.nationalId,
+                houseNo: beneficiary.houseNo,
+                moo: beneficiary.moo,
+                road: beneficiary.road,
+                soi: beneficiary.soi,
+                subdistrict: beneficiary.subdistrict,
+                district: beneficiary.district,
+                province: beneficiary.province,
+                zip: beneficiary.zip,
+                phone: beneficiary.phone,
+                contactPerson: beneficiary.contactPerson,
+                contactPhone: beneficiary.contactPhone,
+                priority: 1,
+              },
+            ],
+          },
+        }),
+      }),
+    );
+  });
+
   it('rejects fuzzy school lookup', async () => {
     await expect(
       service.submit({ ...baseDto, governmentAgency: 'แม่ฟ้าหลวง' } as never),

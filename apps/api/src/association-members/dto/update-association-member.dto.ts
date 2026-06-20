@@ -31,6 +31,10 @@ export class UpdateAssociationMemberDto {
 
   @IsOptional()
   @IsString()
+  memberTypeId?: string;
+
+  @IsOptional()
+  @IsString()
   @MaxLength(50)
   associationMemberNo?: string;
 

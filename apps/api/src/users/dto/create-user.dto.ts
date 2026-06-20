@@ -31,5 +31,10 @@ export class CreateUserDto {
   @ValidateIf((o) => o.groupId !== undefined && o.groupId !== '')
   @IsString()
   groupId?: string;
-}
 
+  @Transform(({ value }) => value === '' ? undefined : value)
+  @ValidateIf((o) => o.role === Role.MEMBER || o.memberId !== undefined)
+  @IsString()
+  @IsNotEmpty({ message: 'กรุณาเลือกสมาชิก' })
+  memberId?: string;
+}

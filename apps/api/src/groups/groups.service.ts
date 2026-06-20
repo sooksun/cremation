@@ -1,13 +1,21 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateGroupDto } from './dto/create-group.dto';
 import { UpdateGroupDto } from './dto/update-group.dto';
+import { SchoolScopeService, ScopedUser } from '../common/security/school-scope.service';
 
 @Injectable()
 export class GroupsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly schoolScope: SchoolScopeService,
+  ) {}
 
-  async create(dto: CreateGroupDto) {
+  async create(dto: CreateGroupDto, actor?: ScopedUser) {
+    if (actor) {
+      this.schoolScope.assertSchoolAccess(actor, dto.schoolId);
+    }
+
     return this.prisma.group.create({
       data: dto,
       include: {
@@ -34,7 +42,7 @@ export class GroupsService {
     });
   }
 
-  async findById(id: string) {
+  async findById(id: string, actor?: ScopedUser) {
     const group = await this.prisma.group.findUnique({
       where: { id },
       include: {
@@ -55,11 +63,15 @@ export class GroupsService {
       throw new NotFoundException('ไม่พบกลุ่ม');
     }
 
+    if (actor) {
+      this.schoolScope.assertSchoolAccess(actor, group.schoolId);
+    }
+
     return group;
   }
 
-  async update(id: string, dto: UpdateGroupDto) {
-    await this.findById(id);
+  async update(id: string, dto: UpdateGroupDto, actor?: ScopedUser) {
+    await this.findById(id, actor);
     return this.prisma.group.update({
       where: { id },
       data: dto,
@@ -67,10 +79,9 @@ export class GroupsService {
     });
   }
 
-  async remove(id: string) {
-    await this.findById(id);
+  async remove(id: string, actor?: ScopedUser) {
+    await this.findById(id, actor);
     await this.prisma.group.delete({ where: { id } });
     return { message: 'ลบกลุ่มสำเร็จ' };
   }
 }
-

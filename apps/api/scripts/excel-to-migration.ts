@@ -7,8 +7,8 @@
  *
  * สร้าง 3 migrations:
  * 1. seed_schools_from_excel - INSERT School (โรงเรียนที่ไม่ซ้ำ)
- * 2. seed_members_from_excel - INSERT Member (ต้องมี School, MemberType แล้ว)
- * 3. seed_association_member_from_excel - INSERT AssociationMember (match กับ Member)
+ * 2. seed_association_member_from_excel - INSERT AssociationMember (ข้อมูลบุคคลจาก Excel)
+ * 3. seed_members_from_excel - INSERT Member ฌาปนกิจ (อ้าง associationMemberId)
  *
  * หมายเหตุ: ต้องมี MemberType ใน DB (รัน prisma db seed ก่อน หรือมี migration seed MemberType)
  * รัน: npm run db:excel-to-migration
@@ -45,7 +45,7 @@ function schoolCodeFromName(name: string, index: number): string {
   return `SCH_${String(index + 1).padStart(3, '0')}_${slug}`.substring(0, 50);
 }
 
-/** แยกชื่อ-นามสกุล ( lastName ไม่เป็นค่าว่าง เพราะ Member.lastName ต้อง NOT NULL ) */
+/** แยกชื่อ-นามสกุล ( lastName ไม่เป็นค่าว่าง เพราะ AssociationMember.lastName ต้อง NOT NULL ) */
 function parseName(full: string): { firstName: string; lastName: string } {
   const t = full.replace(/\s+/g, ' ').trim();
   const parts = t.split(' ').filter(Boolean);
@@ -194,91 +194,92 @@ ${schoolInserts.join('\n')}
   fs.writeFileSync(path.join(schoolMigrationDir, 'migration.sql'), schoolSql, 'utf-8');
   console.log('\n✅ Migration 1 (School):', path.join(schoolMigrationDir, 'migration.sql'));
 
-  // ========== Migration 2: Member ==========
-  const memberSeedMigrationName = `${ts}130001_seed_members_from_excel`;
-  const memberSeedMigrationDir = path.join(OUTPUT_PATH, memberSeedMigrationName);
-  fs.mkdirSync(memberSeedMigrationDir, { recursive: true });
+  // ========== Migration 2: AssociationMember ==========
+  const assocMigrationName = `${ts}130001_seed_association_member_from_excel`;
+  const assocMigrationDir = path.join(OUTPUT_PATH, assocMigrationName);
+  fs.mkdirSync(assocMigrationDir, { recursive: true });
 
-  const memberInsertsRaw = members.map((row, i) => {
+  const assocInserts = members.map((row, i) => {
     const id = toCuid();
-    const memberNo = `M${String(i + 1).padStart(5, '0')}`;
     const schoolLike = row.schoolName.replace(/'/g, "''").substring(0, 50);
+    const memberNo = `M${String(i + 1).padStart(5, '0')}`;
+
     return `-- แถว ${i + 1}: ${row.fullName} | ${row.schoolName}
-INSERT INTO \`Member\` (\`id\`, \`memberNo\`, \`schoolId\`, \`memberTypeId\`, \`firstName\`, \`lastName\`, \`phone\`, \`joinDate\`, \`status\`, \`createdAt\`, \`updatedAt\`)
-SELECT 
+INSERT INTO \`AssociationMember\` (\`id\`, \`schoolId\`, \`memberTypeId\`, \`associationMemberNo\`, \`firstName\`, \`lastName\`, \`phone\`, \`position\`, \`associationJoinDate\`, \`createdAt\`, \`updatedAt\`)
+SELECT
   ${escapeSql(id)},
-  ${escapeSql(memberNo)},
   s.id,
   (SELECT id FROM \`MemberType\` ORDER BY id LIMIT 1),
+  ${escapeSql(memberNo)},
   ${escapeSql(row.firstName)},
   ${escapeSql(row.lastName)},
   ${row.phone ? escapeSql(row.phone) : 'NULL'},
+  ${row.position ? escapeSql(row.position) : 'NULL'},
   '2020-01-01 00:00:00',
-  'ACTIVE',
   '${now}',
   '${now}'
 FROM \`School\` s
 WHERE (s.code = ${escapeSql(row.schoolCode)} OR s.name = ${escapeSql(row.schoolName)} OR s.name LIKE ${escapeSql('%' + schoolLike + '%')})
   AND NOT EXISTS (
-    SELECT 1 FROM \`Member\` m 
-    WHERE m.schoolId = s.id AND m.firstName = ${escapeSql(row.firstName)} AND m.lastName = ${escapeSql(row.lastName)}
+    SELECT 1 FROM \`AssociationMember\` am
+    WHERE am.schoolId = s.id
+      AND am.firstName = ${escapeSql(row.firstName)}
+      AND am.lastName = ${escapeSql(row.lastName)}
   )
 LIMIT 1;`;
   });
 
-  const memberSeedSql = `-- Migration: Seed Member จาก doc/member_data.xlsx
+  const assocSql = `-- Migration: Seed AssociationMember จาก doc/member_data.xlsx
 -- สร้างโดย excel-to-migration.ts | รวมข้อมูลทุก sheet
 -- จำนวน: ${members.length} รายการ
 -- หมายเหตุ: ต้องมี School และ MemberType แล้ว (รัน seed_schools และ prisma db seed ก่อน)
 
-${memberInsertsRaw.join('\n')}
+${assocInserts.join('\n')}
 `;
-  fs.writeFileSync(path.join(memberSeedMigrationDir, 'migration.sql'), memberSeedSql, 'utf-8');
-  console.log('✅ Migration 2 (Member):', path.join(memberSeedMigrationDir, 'migration.sql'));
+  fs.writeFileSync(path.join(assocMigrationDir, 'migration.sql'), assocSql, 'utf-8');
+  console.log('✅ Migration 2 (AssociationMember):', path.join(assocMigrationDir, 'migration.sql'));
 
-  // ========== Migration 3: AssociationMember ==========
-  const assocMigrationName = `${ts}130002_seed_association_member_from_excel`;
-  const memberMigrationDir = path.join(OUTPUT_PATH, assocMigrationName);
-  fs.mkdirSync(memberMigrationDir, { recursive: true });
+  // ========== Migration 3: Member (ฌาปนกิจ) ==========
+  const memberSeedMigrationName = `${ts}130002_seed_members_from_excel`;
+  const memberSeedMigrationDir = path.join(OUTPUT_PATH, memberSeedMigrationName);
+  fs.mkdirSync(memberSeedMigrationDir, { recursive: true });
 
   const memberInserts = members.map((row, i) => {
     const id = toCuid();
+    const memberNo = `M${String(i + 1).padStart(5, '0')}`;
     const schoolLike = row.schoolName.replace(/'/g, "''").substring(0, 50);
 
-    return `
--- แถว ${i + 1}: ${row.fullName} | ${row.schoolName}
-INSERT INTO \`AssociationMember\` (\`id\`, \`memberId\`, \`schoolId\`, \`memberTypeId\`, \`associationMemberNo\`, \`position\`, \`associationJoinDate\`, \`notes\`, \`createdAt\`, \`updatedAt\`)
-SELECT 
+    return `-- แถว ${i + 1}: ${row.fullName} | ${row.schoolName}
+INSERT INTO \`Member\` (\`id\`, \`associationMemberId\`, \`memberNo\`, \`schoolId\`, \`joinDate\`, \`status\`, \`createdAt\`, \`updatedAt\`)
+SELECT
   ${escapeSql(id)},
-  m.id,
-  m.schoolId,
-  m.memberTypeId,
-  m.memberNo,
-  ${row.position ? escapeSql(row.position) : 'NULL'},
-  m.joinDate,
-  ${row.phone ? escapeSql('โทร ' + row.phone) : 'NULL'},
+  am.id,
+  ${escapeSql(memberNo)},
+  am.schoolId,
+  COALESCE(am.associationJoinDate, '2020-01-01 00:00:00'),
+  'ACTIVE',
   '${now}',
   '${now}'
-FROM \`Member\` m
-INNER JOIN \`School\` s ON m.schoolId = s.id
-WHERE m.firstName = ${escapeSql(row.firstName)}
-  AND m.lastName = ${escapeSql(row.lastName)}
+FROM \`AssociationMember\` am
+INNER JOIN \`School\` s ON am.schoolId = s.id
+WHERE am.firstName = ${escapeSql(row.firstName)}
+  AND am.lastName = ${escapeSql(row.lastName)}
   AND (s.name = ${escapeSql(row.schoolName)} OR s.name LIKE ${escapeSql('%' + schoolLike + '%')} OR s.code = ${escapeSql(row.schoolCode)})
-  AND NOT EXISTS (SELECT 1 FROM \`AssociationMember\` am WHERE am.memberId = m.id)
+  AND NOT EXISTS (SELECT 1 FROM \`Member\` m WHERE m.associationMemberId = am.id)
 LIMIT 1;`;
   });
 
-  const memberSql = `-- Migration: Seed AssociationMember จาก doc/member_data.xlsx
+  const memberSeedSql = `-- Migration: Seed Member ฌาปนกิจจาก doc/member_data.xlsx
 -- สร้างโดย excel-to-migration.ts | รวมข้อมูลทุก sheet
 -- จำนวน: ${members.length} รายการ
--- หมายเหตุ: School ต้องมีอยู่แล้ว (รัน seed_schools ก่อน) และ Member ต้อง match ชื่อ+โรงเรียน
+-- หมายเหตุ: AssociationMember ต้องมีอยู่แล้ว (รัน seed_association_member ก่อน)
 
 ${memberInserts.join('\n')}
 `;
-  fs.writeFileSync(path.join(memberMigrationDir, 'migration.sql'), memberSql, 'utf-8');
-  console.log('✅ Migration 3 (AssociationMember):', path.join(memberMigrationDir, 'migration.sql'));
+  fs.writeFileSync(path.join(memberSeedMigrationDir, 'migration.sql'), memberSeedSql, 'utf-8');
+  console.log('✅ Migration 3 (Member):', path.join(memberSeedMigrationDir, 'migration.sql'));
 
-  console.log('\n📋 ลำดับการรัน: 1) seed_schools  2) seed_members  3) seed_association_member');
+  console.log('\n📋 ลำดับการรัน: 1) seed_schools  2) seed_association_member  3) seed_members');
 }
 
 main().catch(console.error);

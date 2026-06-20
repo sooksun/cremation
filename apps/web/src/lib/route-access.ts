@@ -11,12 +11,31 @@ const VIEWER_BLOCKED_PREFIXES = [
   '/settings',
 ];
 
+const SCHOOL_ADMIN_BLOCKED_PREFIXES = [
+  '/users',
+  '/school-admins',
+  '/schools',
+  '/school-clusters',
+  '/member-types',
+  '/accounts',
+  '/settings/welfare-rate',
+];
+
 const ROLE_BLOCKED_PREFIXES: Record<string, string[]> = {
   VIEWER: VIEWER_BLOCKED_PREFIXES,
+  SCHOOL_ADMIN: SCHOOL_ADMIN_BLOCKED_PREFIXES,
   GROUP_LEADER: ['/users', '/schools', '/school-clusters', '/member-types', '/groups', '/accounts', '/settings/welfare-rate'],
 };
 
-export function isPathAllowedForRole(pathname: string, role: string): boolean {
+export function isPathAllowedForRole(
+  pathname: string,
+  role: string,
+  memberId?: string,
+): boolean {
+  if (role === 'MEMBER') {
+    return Boolean(memberId && pathname === `/members/${memberId}/profile`);
+  }
+
   const blocked = ROLE_BLOCKED_PREFIXES[role];
   if (!blocked) return true;
 

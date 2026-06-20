@@ -24,7 +24,7 @@ export class BankAccountsController {
 
   @Post()
   @UseGuards(RolesGuard)
-  @Roles(Role.ADMIN, Role.FINANCE)
+  @Roles(Role.ADMIN, Role.SCHOOL_ADMIN, Role.FINANCE)
   create(@Body() dto: CreateBankAccountDto) {
     return this.bankAccountsService.create(dto);
   }
@@ -49,14 +49,14 @@ export class BankAccountsController {
 
   @Post('transactions')
   @UseGuards(RolesGuard)
-  @Roles(Role.ADMIN, Role.FINANCE)
+  @Roles(Role.ADMIN, Role.SCHOOL_ADMIN, Role.FINANCE)
   createManualTransaction(@Body() dto: CreateBankTransactionDto) {
     return this.bankAccountsService.createManualTransaction(dto);
   }
 
   @Patch('transactions/:txnId')
   @UseGuards(RolesGuard)
-  @Roles(Role.ADMIN, Role.FINANCE)
+  @Roles(Role.ADMIN, Role.SCHOOL_ADMIN, Role.FINANCE)
   updateManualTransaction(
     @Param('txnId') txnId: string,
     @Body() dto: UpdateBankTransactionDto,
@@ -66,7 +66,7 @@ export class BankAccountsController {
 
   @Delete('transactions/:txnId')
   @UseGuards(RolesGuard)
-  @Roles(Role.ADMIN, Role.FINANCE)
+  @Roles(Role.ADMIN, Role.SCHOOL_ADMIN, Role.FINANCE)
   removeManualTransaction(@Param('txnId') txnId: string) {
     return this.bankAccountsService.removeManualTransaction(txnId);
   }
@@ -96,21 +96,21 @@ export class BankAccountsController {
 
   @Patch(':id')
   @UseGuards(RolesGuard)
-  @Roles(Role.ADMIN, Role.FINANCE)
+  @Roles(Role.ADMIN, Role.SCHOOL_ADMIN, Role.FINANCE)
   update(@Param('id') id: string, @Body() dto: UpdateBankAccountDto) {
     return this.bankAccountsService.update(id, dto);
   }
 
   @Patch(':id/set-default')
   @UseGuards(RolesGuard)
-  @Roles(Role.ADMIN, Role.FINANCE)
+  @Roles(Role.ADMIN, Role.SCHOOL_ADMIN, Role.FINANCE)
   setDefault(@Param('id') id: string) {
     return this.bankAccountsService.setDefault(id);
   }
 
   @Delete(':id')
   @UseGuards(RolesGuard)
-  @Roles(Role.ADMIN)
+  @Roles(Role.ADMIN, Role.SCHOOL_ADMIN)
   remove(@Param('id') id: string) {
     return this.bankAccountsService.remove(id);
   }

@@ -81,6 +81,8 @@ export class ProtectedPersonsService {
   private async assertMemberAccess(actor: ScopedUser | undefined, memberId: string): Promise<void> {
     if (!actor) return;
 
+    this.schoolScope.assertMemberSelfAccess(actor, memberId);
+
     const member = await this.prisma.member.findUnique({
       where: { id: memberId },
       select: { schoolId: true },

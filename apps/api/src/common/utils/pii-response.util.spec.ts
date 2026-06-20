@@ -46,6 +46,18 @@ describe('pii-response.util (members)', () => {
     expect(masked[0].nationalId).not.toBe(fullId);
   });
 
+  it('masks beneficiary nationalId for VIEWER on member detail', () => {
+    const masked = maskMemberWithAssociation(
+      {
+        ...memberRow,
+        beneficiaries: [{ fullName: 'ผู้รับผลประโยชน์', nationalId: '1234567890123' }],
+      },
+      Role.VIEWER,
+    );
+
+    expect(masked.beneficiaries?.[0].nationalId).toBe('*****01*23');
+  });
+
   it('preserves nationalId for FINANCE', () => {
     const masked = maskProtectedPersonList(
       [{ id: 'p1', fullName: 'Test', nationalId: fullId }],

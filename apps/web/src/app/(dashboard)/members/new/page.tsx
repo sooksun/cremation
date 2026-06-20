@@ -7,21 +7,22 @@ import { ArrowLeft, Save, Plus, Trash2 } from 'lucide-react';
 import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import { showSuccess, showError } from '@/lib/toast';
 import Link from 'next/link';
-import { api, type Group } from '@/lib/api';
+import { api, type School, type MemberType, type Group } from '@/lib/api';
+import { useAuthStore } from '@/store/auth';
+import { canSelectAllSchools, filterSchoolsForUser } from '@/lib/school-scope';
 import ThaiDatePicker from '@/components/ThaiDatePicker';
 import dayjs from 'dayjs';
 
-interface AssociationMemberOption {
-  id: string;
+interface MemberForm {
+  schoolId: string;
+  memberTypeId: string;
   firstName: string;
   lastName: string;
-  school: { id: string; name: string };
-  memberType: { id: string; name: string };
-  cremationMember?: { id: string } | null;
-}
-
-interface MemberForm {
-  associationMemberId: string;
+  idCardNo?: string;
+  birthDate?: string;
+  address?: string;
+  phone?: string;
+  associationMemberNo?: string;
   memberNo?: string;
   groupId?: string;
   joinDate: string;
@@ -35,39 +36,59 @@ interface MemberForm {
 
 export default function NewMemberPage() {
   const router = useRouter();
+  const { user, selectedSchoolId } = useAuthStore();
+  const defaultSchoolId = canSelectAllSchools(user?.role)
+    ? selectedSchoolId || ''
+    : user?.schoolId || '';
 
-  const { register, handleSubmit, control, formState: { errors } } = useForm<MemberForm>({
+  const { register, handleSubmit, control, watch, formState: { errors } } = useForm<MemberForm>({
     defaultValues: {
-      associationMemberId: '',
+      schoolId: defaultSchoolId,
+      memberTypeId: '',
+      firstName: '',
+      lastName: '',
       joinDate: new Date().toISOString().split('T')[0],
+      salaryDeduction: false,
       beneficiaries: [],
     },
   });
 
-  const { data: associationMembersRes } = useQuery<{ data: AssociationMemberOption[] }>({
-    queryKey: ['association-members-all'],
+  const watchSchoolId = watch('schoolId');
+
+  const { data: schoolsRaw } = useQuery<School[]>({
+    queryKey: ['schools'],
     queryFn: async () => {
-      const res = await api.get('/association-members?limit=500');
-      return res.data;
+      const response = await api.get('/schools');
+      return response.data;
     },
   });
-  const associationMembers = associationMembersRes?.data?.filter((am) => !am.cremationMember) ?? [];
+  const schools = filterSchoolsForUser(schoolsRaw ?? [], user?.role, user?.schoolId);
+
+  const { data: memberTypes } = useQuery<MemberType[]>({
+    queryKey: ['member-types'],
+    queryFn: async () => {
+      const response = await api.get('/member-types');
+      return response.data;
+    },
+  });
+
+  const { data: groups } = useQuery<Group[]>({
+    queryKey: ['groups', watchSchoolId],
+    queryFn: async () => {
+      const params = watchSchoolId ? `?schoolId=${watchSchoolId}` : '';
+      const response = await api.get(`/groups${params}`);
+      return response.data;
+    },
+    enabled: !!watchSchoolId,
+  });
 
   const { fields, append, remove } = useFieldArray({
     control,
     name: 'beneficiaries',
   });
 
-  const { data: groups } = useQuery<Group[]>({
-    queryKey: ['groups'],
-    queryFn: async () => {
-      const response = await api.get('/groups');
-      return response.data;
-    },
-  });
-
   const createMutation = useMutation({
-    mutationFn: (data: MemberForm) => api.post('/members', data),
+    mutationFn: (data: Record<string, unknown>) => api.post('/members', data),
     onSuccess: () => {
       showSuccess('เพิ่มสมาชิกสำเร็จ');
       router.push('/members');
@@ -79,14 +100,22 @@ export default function NewMemberPage() {
 
   const onSubmit = (data: MemberForm) => {
     const payload: Record<string, unknown> = {
-      associationMemberId: data.associationMemberId,
+      schoolId: data.schoolId,
+      memberTypeId: data.memberTypeId,
+      firstName: data.firstName.trim(),
+      lastName: data.lastName.trim(),
       joinDate: data.joinDate,
       salaryDeduction: data.salaryDeduction ?? false,
       beneficiaries: data.beneficiaries,
     };
-    if (data.memberNo?.trim()) payload.memberNo = data.memberNo;
+    if (data.idCardNo?.trim()) payload.idCardNo = data.idCardNo.trim();
+    if (data.birthDate?.trim()) payload.birthDate = data.birthDate;
+    if (data.address?.trim()) payload.address = data.address.trim();
+    if (data.phone?.trim()) payload.phone = data.phone.trim();
+    if (data.associationMemberNo?.trim()) payload.associationMemberNo = data.associationMemberNo.trim();
+    if (data.memberNo?.trim()) payload.memberNo = data.memberNo.trim();
     if (data.groupId?.trim()) payload.groupId = data.groupId;
-    createMutation.mutate(payload as any);
+    createMutation.mutate(payload);
   };
 
   return (
@@ -95,7 +124,6 @@ export default function NewMemberPage() {
       animate={{ opacity: 1, y: 0 }}
       className="space-y-6"
     >
-      {/* Header */}
       <div className="flex items-center gap-4">
         <Link href="/members" className="p-2 hover:bg-slate-100 rounded-lg">
           <ArrowLeft size={20} />
@@ -105,37 +133,134 @@ export default function NewMemberPage() {
             เพิ่มสมาชิกใหม่
           </h1>
           <p className="text-slate-500 mt-1">
-            เลือกสมาชิกสมาคมที่ต้องการเข้าร่วมฌาปนกิจ และกรอกข้อมูลการเข้าร่วม
+            กรอกข้อมูลบุคคลและการเข้าร่วมฌาปนกิจ — ระบบจะสร้างทะเบียนสมาชิกสมาคมให้อัตโนมัติ
           </p>
         </div>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        {/* Basic Info */}
         <div className="card p-6">
-          <h3 className="font-semibold text-slate-900 mb-4">ข้อมูลการเข้าร่วมฌาปนกิจ</h3>
+          <h3 className="font-semibold text-slate-900 mb-4">ข้อมูลสมาชิกสมาคม</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div className="md:col-span-2">
-              <label className="label">เลือกสมาชิกสมาคม *</label>
+            <div>
+              <label className="label">โรงเรียน *</label>
               <select
-                {...register('associationMemberId', { required: 'กรุณาเลือกสมาชิกสมาคม' })}
+                {...register('schoolId', { required: 'กรุณาเลือกโรงเรียน' })}
                 className="input"
+                disabled={!canSelectAllSchools(user?.role)}
               >
-                <option value="">-- เลือกสมาชิกที่ยังไม่ได้เข้าร่วมฌาปนกิจ --</option>
-                {associationMembers.map((am) => (
-                  <option key={am.id} value={am.id}>
-                    {am.firstName} {am.lastName} ({am.school.name} - {am.memberType.name})
+                <option value="">-- เลือกโรงเรียน --</option>
+                {schools.map((school) => (
+                  <option key={school.id} value={school.id}>
+                    {school.name}
                   </option>
                 ))}
               </select>
-              {errors.associationMemberId && (
-                <p className="text-sm text-red-500 mt-1">{errors.associationMemberId.message}</p>
-              )}
-              {associationMembers.length === 0 && (
-                <p className="text-sm text-slate-500 mt-1">ไม่มีสมาชิกสมาคมที่ยังไม่ได้เข้าร่วมฌาปนกิจ หรือให้เพิ่มสมาชิกที่เมนู สมาชิกสมาคม ก่อน</p>
+              {errors.schoolId && (
+                <p className="text-sm text-red-500 mt-1">{errors.schoolId.message}</p>
               )}
             </div>
 
+            <div>
+              <label className="label">ประเภทสมาชิก *</label>
+              <select
+                {...register('memberTypeId', { required: 'กรุณาเลือกประเภทสมาชิก' })}
+                className="input"
+              >
+                <option value="">-- เลือกประเภท --</option>
+                {memberTypes?.map((type) => (
+                  <option key={type.id} value={type.id}>
+                    {type.name}
+                  </option>
+                ))}
+              </select>
+              {errors.memberTypeId && (
+                <p className="text-sm text-red-500 mt-1">{errors.memberTypeId.message}</p>
+              )}
+            </div>
+
+            <div>
+              <label className="label">เลขสมาชิกสมาคม</label>
+              <input
+                {...register('associationMemberNo')}
+                className="input"
+                placeholder="เว้นว่างได้"
+              />
+            </div>
+
+            <div>
+              <label className="label">ชื่อ *</label>
+              <input
+                {...register('firstName', { required: 'กรุณากรอกชื่อ' })}
+                className="input"
+                placeholder="ชื่อ"
+              />
+              {errors.firstName && (
+                <p className="text-sm text-red-500 mt-1">{errors.firstName.message}</p>
+              )}
+            </div>
+
+            <div>
+              <label className="label">นามสกุล *</label>
+              <input
+                {...register('lastName', { required: 'กรุณากรอกนามสกุล' })}
+                className="input"
+                placeholder="นามสกุล"
+              />
+              {errors.lastName && (
+                <p className="text-sm text-red-500 mt-1">{errors.lastName.message}</p>
+              )}
+            </div>
+
+            <div>
+              <label className="label">เลขบัตรประชาชน</label>
+              <input
+                {...register('idCardNo')}
+                className="input"
+                placeholder="13 หลัก"
+                maxLength={13}
+              />
+            </div>
+
+            <div>
+              <label className="label">วันเกิด</label>
+              <Controller
+                name="birthDate"
+                control={control}
+                render={({ field }) => (
+                  <ThaiDatePicker
+                    value={field.value ? dayjs(field.value) : null}
+                    onChange={(date) => field.onChange(date ? date.format('YYYY-MM-DD') : '')}
+                    placeholder="เลือกวันเกิด"
+                    style={{ width: '100%' }}
+                  />
+                )}
+              />
+            </div>
+
+            <div>
+              <label className="label">เบอร์โทรศัพท์</label>
+              <input
+                {...register('phone')}
+                className="input"
+                placeholder="08x-xxx-xxxx"
+              />
+            </div>
+
+            <div className="md:col-span-2 lg:col-span-3">
+              <label className="label">ที่อยู่</label>
+              <textarea
+                {...register('address')}
+                className="input min-h-[80px]"
+                placeholder="ที่อยู่ตามทะเบียนบ้าน"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="card p-6">
+          <h3 className="font-semibold text-slate-900 mb-4">ข้อมูลการเข้าร่วมฌาปนกิจ</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <div>
               <label className="label">เลขทะเบียนสมาชิกฌาปนกิจ</label>
               <input
@@ -147,10 +272,12 @@ export default function NewMemberPage() {
 
             <div>
               <label className="label">กลุ่ม</label>
-              <select {...register('groupId')} className="input">
+              <select {...register('groupId')} className="input" disabled={!watchSchoolId}>
                 <option value="">ไม่ระบุกลุ่ม</option>
                 {groups?.map((group) => (
-                  <option key={group.id} value={group.id}>{group.name}</option>
+                  <option key={group.id} value={group.id}>
+                    {group.name}
+                  </option>
                 ))}
               </select>
             </div>
@@ -175,7 +302,7 @@ export default function NewMemberPage() {
               )}
             </div>
 
-            <div className="md:col-span-2">
+            <div className="md:col-span-2 lg:col-span-3">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
@@ -188,7 +315,6 @@ export default function NewMemberPage() {
           </div>
         </div>
 
-        {/* Beneficiaries */}
         <div className="card p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold text-slate-900">ผู้รับผลประโยชน์</h3>
@@ -207,7 +333,7 @@ export default function NewMemberPage() {
           {fields.length === 0 ? (
             <div className="text-center py-8 text-slate-500 border-2 border-dashed border-slate-200 rounded-xl">
               <p>ยังไม่มีผู้รับผลประโยชน์</p>
-              <p className="text-sm mt-1">คลิกปุ่ม "เพิ่มผู้รับผลประโยชน์" เพื่อเพิ่ม (สูงสุด 3 คน)</p>
+              <p className="text-sm mt-1">คลิกปุ่ม &quot;เพิ่มผู้รับผลประโยชน์&quot; เพื่อเพิ่ม (สูงสุด 3 คน)</p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -255,7 +381,6 @@ export default function NewMemberPage() {
           )}
         </div>
 
-        {/* Actions */}
         <div className="flex justify-end gap-3">
           <Link href="/members" className="btn-secondary">
             ยกเลิก

@@ -17,6 +17,8 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { UsersService } from '../users/users.service';
 import { AUTH_COOKIE_NAME, getAuthCookieOptions } from './constants';
 import { AllowViewerWrite } from './decorators/allow-viewer-write.decorator';
+import { AllowMemberAccess } from './decorators/allow-member-access.decorator';
+import { SkipMustChangePassword } from './decorators/skip-must-change-password.decorator';
 
 @Controller('auth')
 export class AuthController {
@@ -38,6 +40,8 @@ export class AuthController {
     return { user };
   }
 
+  @UseGuards(JwtAuthGuard)
+  @SkipMustChangePassword()
   @Post('logout')
   logout(@Res({ passthrough: true }) res: Response) {
     res.clearCookie(AUTH_COOKIE_NAME, getAuthCookieOptions());
@@ -45,6 +49,8 @@ export class AuthController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @AllowMemberAccess()
+  @SkipMustChangePassword()
   @Get('me')
   async getProfile(@Request() req: { user: Record<string, unknown> }) {
     const { passwordHash, ...user } = req.user;
@@ -52,7 +58,9 @@ export class AuthController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @AllowMemberAccess()
   @AllowViewerWrite()
+  @SkipMustChangePassword()
   @Post('change-password')
   async changePassword(
     @Request() req: { user: { id: string } },
@@ -63,6 +71,7 @@ export class AuthController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @AllowMemberAccess()
   @Post('me/signature')
   async updateMySignature(
     @Request() req: { user: { id: string } },

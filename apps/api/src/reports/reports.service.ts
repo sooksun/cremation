@@ -1,11 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { DeathClaimStatus, MemberStatus, Role } from '@prisma/client';
-import { applyIdCardMask } from '../common/utils/pii.util';
+import { applyIdCardMask, applyNationalIdMask } from '../common/utils/pii.util';
+import { SchoolScopeService, ScopedUser } from '../common/security/school-scope.service';
 
 @Injectable()
 export class ReportsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly schoolScope: SchoolScopeService,
+  ) {}
 
   // Dashboard summary
   async getDashboard(schoolId?: string, year?: number) {
@@ -76,18 +80,17 @@ export class ReportsService {
   }
 
   // Member statistics by school
-  async getMemberStats(year?: number) {
-    const joinedFilter = year
-      ? { joinDate: { gte: new Date(`${year}-01-01`), lt: new Date(`${year + 1}-01-01`) } }
-      : {};
+  async getMemberStats(year?: number, schoolId?: string) {
+    const memberWhere = schoolId ? { schoolId } : {};
 
     const bySchool = await this.prisma.member.groupBy({
       by: ['schoolId', 'status'],
+      where: memberWhere,
       _count: true,
     });
 
     const schools = await this.prisma.school.findMany({
-      where: { isActive: true },
+      where: { isActive: true, ...(schoolId ? { id: schoolId } : {}) },
     });
 
     return schools.map((school) => {
@@ -556,24 +559,28 @@ export class ReportsService {
   // =============================================
   // EXECUTIVE DASHBOARD - สำหรับผู้บริหาร/บอร์ด
   // =============================================
-  async getExecutiveDashboard() {
+  async getExecutiveDashboard(schoolId?: string) {
     const currentYear = new Date().getFullYear();
     const currentMonth = new Date().getMonth();
+    const memberWhere = schoolId ? { schoolId } : {};
+    const schoolWhere = schoolId ? { isActive: true, id: schoolId } : { isActive: true };
 
     // สมาชิกรวมทุกโรงเรียน
     const memberStats = await this.prisma.member.groupBy({
       by: ['status'],
+      where: memberWhere,
       _count: true,
     });
 
     // สมาชิกแยกตามโรงเรียน
     const membersBySchool = await this.prisma.school.findMany({
-      where: { isActive: true },
+      where: schoolWhere,
       include: {
         _count: {
-          select: { members: true },
+          select: { members: { where: memberWhere } },
         },
         members: {
+          where: memberWhere,
           select: { status: true },
         },
       },
@@ -584,6 +591,7 @@ export class ReportsService {
       Array.from({ length: 5 }, (_, i) => currentYear - i).map(async (year) => {
         const claims = await this.prisma.deathClaim.findMany({
           where: {
+            ...(schoolId ? { schoolId } : {}),
             reportedDate: {
               gte: new Date(`${year}-01-01`),
               lt: new Date(`${year + 1}-01-01`),
@@ -619,12 +627,18 @@ export class ReportsService {
 
         const [receipts, payments] = await Promise.all([
           this.prisma.receipt.aggregate({
-            where: { date: { gte: startOfMonth, lte: endOfMonth } },
+            where: {
+              ...(schoolId ? { schoolId } : {}),
+              date: { gte: startOfMonth, lte: endOfMonth },
+            },
             _sum: { amount: true },
             _count: true,
           }),
           this.prisma.paymentVoucher.aggregate({
-            where: { date: { gte: startOfMonth, lte: endOfMonth } },
+            where: {
+              ...(schoolId ? { schoolId } : {}),
+              date: { gte: startOfMonth, lte: endOfMonth },
+            },
             _sum: { amount: true },
             _count: true,
           }),
@@ -642,7 +656,11 @@ export class ReportsService {
 
     // เงินค้างจ่าย
     const pendingPayments = await this.prisma.deathClaim.findMany({
-      where: { payment: null, status: { not: DeathClaimStatus.PAID } },
+      where: {
+        ...(schoolId ? { schoolId } : {}),
+        payment: null,
+        status: { not: DeathClaimStatus.PAID },
+      },
       include: {
         member: { include: { associationMember: true, school: true } },
         school: true,
@@ -652,13 +670,17 @@ export class ReportsService {
 
     // สมาชิกค้างชำระ
     const arrearsMembers = await this.prisma.memberContribution.findMany({
-      where: { isArrears: true, paidAmount: { equals: 0 } },
+      where: {
+        ...(schoolId ? { schoolId } : {}),
+        isArrears: true,
+        paidAmount: { equals: 0 },
+      },
       include: { member: true, school: true, period: true },
     });
 
     // ดึงอัตราเงินสงเคราะห์ต่อคนจากสมาชิกที่ active
     const activeMembers = await this.prisma.member.count({
-      where: { status: MemberStatus.ACTIVE },
+      where: { ...memberWhere, status: MemberStatus.ACTIVE },
     });
 
     return {
@@ -829,7 +851,7 @@ export class ReportsService {
   // =============================================
   // MEMBER PROFILE - สำหรับสมาชิกรายบุคคล
   // =============================================
-  async getMemberProfile(memberId: string, role: Role) {
+  async getMemberProfile(memberId: string, actor: ScopedUser) {
     const member = await this.prisma.member.findUnique({
       where: { id: memberId },
       include: {
@@ -849,6 +871,9 @@ export class ReportsService {
 
     if (!member) return null;
 
+    this.schoolScope.assertMemberSelfAccess(actor, memberId);
+    this.schoolScope.assertSchoolAccess(actor, member.schoolId);
+
     const am = member.associationMember;
 
     // สรุปการชำระเงิน
@@ -866,7 +891,7 @@ export class ReportsService {
     const benefitsReceived = member.deathClaims.filter(c => c.payment);
 
     const idCardForRole = am
-      ? applyIdCardMask({ idCardNo: am.idCardNo }, role).idCardNo
+      ? applyIdCardMask({ idCardNo: am.idCardNo }, actor.role).idCardNo
       : undefined;
 
     return {
@@ -886,7 +911,9 @@ export class ReportsService {
         memberType: am?.memberType,
         group: member.group,
       },
-      beneficiaries: member.beneficiaries,
+      beneficiaries: member.beneficiaries.map((beneficiary) =>
+        applyNationalIdMask(beneficiary, actor.role),
+      ),
       summary: {
         membershipYears,
         totalContributions,

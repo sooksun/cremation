@@ -3,10 +3,11 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateAssociationMemberDto } from './dto/create-association-member.dto';
 import { UpdateAssociationMemberDto } from './dto/update-association-member.dto';
 import { MemberStatus } from '@prisma/client';
+import { SchoolScopeService, ScopedUser } from '../common/security/school-scope.service';
 
 export interface AssociationMemberQueryParams {
   schoolId?: string;
-  status?: MemberStatus; // สถานะสมาชิกฌาปนกิจ (กรองเฉพาะคนที่เป็นสมาชิกฌาปนกิจ)
+  status?: MemberStatus;
   search?: string;
   page?: number;
   limit?: number;
@@ -14,9 +15,16 @@ export interface AssociationMemberQueryParams {
 
 @Injectable()
 export class AssociationMembersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly schoolScope: SchoolScopeService,
+  ) {}
 
-  async create(dto: CreateAssociationMemberDto) {
+  async create(dto: CreateAssociationMemberDto, actor?: ScopedUser) {
+    if (actor) {
+      this.schoolScope.assertSchoolAccess(actor, dto.schoolId);
+    }
+
     return this.prisma.associationMember.create({
       data: {
         schoolId: dto.schoolId,
@@ -42,8 +50,11 @@ export class AssociationMembersService {
     });
   }
 
-  async findAll(params: AssociationMemberQueryParams) {
-    const { schoolId, status, search, page = 1, limit = 50 } = params;
+  async findAll(params: AssociationMemberQueryParams, actor?: ScopedUser) {
+    const { status, search, page = 1, limit = 50 } = params;
+    const schoolId = actor
+      ? this.schoolScope.resolveSchoolId(actor, params.schoolId)
+      : params.schoolId;
 
     const where: any = {};
     if (schoolId) where.schoolId = schoolId;
@@ -85,8 +96,7 @@ export class AssociationMembersService {
     };
   }
 
-  /** ดึงข้อมูลสมาชิกสมาคมโดยใช้ id ของสมาชิกสมาคม */
-  async findById(associationMemberId: string) {
+  async findById(associationMemberId: string, actor?: ScopedUser) {
     const row = await this.prisma.associationMember.findUnique({
       where: { id: associationMemberId },
       include: {
@@ -100,11 +110,15 @@ export class AssociationMembersService {
     if (!row) {
       throw new NotFoundException('ไม่พบสมาชิกสมาคม');
     }
+
+    if (actor) {
+      this.schoolScope.assertSchoolAccess(actor, row.schoolId);
+    }
+
     return row;
   }
 
-  /** ดึงข้อมูลสมาชิกสมาคมของสมาชิกฌาปนกิจ (memberId = สมาชิกฌาปนกิจ id) */
-  async findByMemberId(memberId: string) {
+  async findByMemberId(memberId: string, actor?: ScopedUser) {
     const member = await this.prisma.member.findUnique({
       where: { id: memberId },
       include: {
@@ -117,16 +131,26 @@ export class AssociationMembersService {
     if (!member) {
       throw new NotFoundException('ไม่พบสมาชิก');
     }
+
+    if (actor) {
+      this.schoolScope.assertMemberSelfAccess(actor, memberId);
+      this.schoolScope.assertSchoolAccess(actor, member.schoolId);
+    }
+
     return member;
   }
 
-  async update(memberId: string, dto: UpdateAssociationMemberDto) {
+  async update(memberId: string, dto: UpdateAssociationMemberDto, actor?: ScopedUser) {
     const member = await this.prisma.member.findUnique({
       where: { id: memberId },
       include: { associationMember: true },
     });
     if (!member) {
       throw new NotFoundException('ไม่พบสมาชิก');
+    }
+
+    if (actor) {
+      this.schoolScope.assertSchoolAccess(actor, member.schoolId);
     }
 
     const data: any = {
@@ -143,18 +167,22 @@ export class AssociationMembersService {
     if (dto.birthDate !== undefined) data.birthDate = new Date(dto.birthDate);
     if (dto.address !== undefined) data.address = dto.address;
     if (dto.phone !== undefined) data.phone = dto.phone;
+    if (dto.memberTypeId !== undefined) data.memberTypeId = dto.memberTypeId;
 
     await this.prisma.associationMember.update({
       where: { id: member.associationMemberId },
       data,
     });
 
-    return this.findByMemberId(memberId);
+    return this.findByMemberId(memberId, actor);
   }
 
-  /** อัปเดตข้อมูลสมาชิกสมาคมโดยใช้ id ของสมาชิกสมาคม */
-  async updateById(associationMemberId: string, dto: UpdateAssociationMemberDto) {
-    await this.findById(associationMemberId);
+  async updateById(
+    associationMemberId: string,
+    dto: UpdateAssociationMemberDto,
+    actor?: ScopedUser,
+  ) {
+    await this.findById(associationMemberId, actor);
 
     const data: any = {
       associationMemberNo: dto.associationMemberNo,
@@ -170,6 +198,7 @@ export class AssociationMembersService {
     if (dto.birthDate !== undefined) data.birthDate = new Date(dto.birthDate);
     if (dto.address !== undefined) data.address = dto.address;
     if (dto.phone !== undefined) data.phone = dto.phone;
+    if (dto.memberTypeId !== undefined) data.memberTypeId = dto.memberTypeId;
 
     return this.prisma.associationMember.update({
       where: { id: associationMemberId },

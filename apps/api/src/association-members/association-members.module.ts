@@ -1,8 +1,10 @@
 import { Module } from '@nestjs/common';
 import { AssociationMembersService } from './association-members.service';
 import { AssociationMembersController } from './association-members.controller';
+import { CommonModule } from '../common/common.module';
 
 @Module({
+  imports: [CommonModule],
   controllers: [AssociationMembersController],
   providers: [AssociationMembersService],
   exports: [AssociationMembersService],

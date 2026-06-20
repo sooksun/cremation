@@ -132,7 +132,7 @@ export default function MembersPage() {
             ทะเบียนสมาชิก
           </h1>
           <p className="text-slate-500 mt-1">
-            จัดการข้อมูลสมาชิกฌาปนกิจสงเคราะห์
+            จัดการสมาชิกฌาปนกิจ — ระบบสร้างทะเบียนสมาชิกสมาคมให้อัตโนมัติเมื่อเพิ่มสมาชิกใหม่
           </p>
         </div>
         <Link href="/members/new" className="btn-primary">
@@ -219,7 +219,11 @@ export default function MembersPage() {
           <div className="text-center py-20 text-slate-500">
             <UserX className="w-16 h-16 mx-auto text-slate-300 mb-4" />
             <p className="text-lg font-medium">ไม่พบข้อมูลสมาชิก</p>
-            <p className="text-sm mt-1">ลองเปลี่ยนตัวกรองหรือเพิ่มสมาชิกใหม่</p>
+            <p className="text-sm mt-1">เพิ่มสมาชิกใหม่ — ระบบจะสร้างทะเบียนสมาชิกสมาคมให้อัตโนมัติ</p>
+            <Link href="/members/new" className="btn-primary mt-4 inline-flex">
+              <Plus size={18} />
+              เพิ่มสมาชิก
+            </Link>
           </div>
         ) : (
           <>

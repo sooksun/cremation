@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, UserCog, Edit, Trash2, X, Shield, Building2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { showSuccess, showError, showConfirm } from '@/lib/toast';
-import { api, type School } from '@/lib/api';
+import { api, type Member, type School } from '@/lib/api';
 
 interface User {
   id: string;
@@ -15,6 +15,8 @@ interface User {
   role: string;
   schoolId?: string;
   school?: School;
+  memberId?: string;
+  member?: Member;
 }
 
 interface UserForm {
@@ -23,9 +25,11 @@ interface UserForm {
   fullName: string;
   role: string;
   schoolId?: string;
+  memberId?: string;
 }
 
 const roleLabels: Record<string, string> = {
+  MEMBER: 'สมาชิก',
   ADMIN: 'ผู้ดูแลระบบ',
   FINANCE: 'เจ้าหน้าที่การเงิน',
   ACCOUNTING: 'เจ้าหน้าที่บัญชี',
@@ -34,6 +38,7 @@ const roleLabels: Record<string, string> = {
 };
 
 const roleColors: Record<string, string> = {
+  MEMBER: 'badge-info',
   ADMIN: 'badge-danger',
   FINANCE: 'badge-success',
   ACCOUNTING: 'badge-info',
@@ -46,7 +51,8 @@ export default function UsersPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
 
-  const { register, handleSubmit, reset, formState: { errors } } = useForm<UserForm>();
+  const { register, handleSubmit, reset, watch, formState: { errors } } = useForm<UserForm>();
+  const selectedRole = watch('role');
 
   const { data: users, isLoading } = useQuery<User[]>({
     queryKey: ['users'],
@@ -61,6 +67,14 @@ export default function UsersPage() {
     queryFn: async () => {
       const response = await api.get('/schools');
       return response.data;
+    },
+  });
+
+  const { data: members } = useQuery<Member[]>({
+    queryKey: ['members-for-user-account'],
+    queryFn: async () => {
+      const response = await api.get('/members', { params: { limit: 1000 } });
+      return response.data.data;
     },
   });
 
@@ -109,10 +123,18 @@ export default function UsersPage() {
         fullName: user.fullName,
         role: user.role,
         schoolId: user.schoolId || '',
+        memberId: user.memberId || '',
       });
     } else {
       setEditingUser(null);
-      reset({ username: '', password: '', fullName: '', role: 'VIEWER', schoolId: '' });
+      reset({
+        username: '',
+        password: '',
+        fullName: '',
+        role: 'VIEWER',
+        schoolId: '',
+        memberId: '',
+      });
     }
     setModalOpen(true);
   };
@@ -131,8 +153,11 @@ export default function UsersPage() {
     };
     
     // Only include schoolId if it has a value
-    if (data.schoolId && data.schoolId.trim() !== '') {
+    if (data.role !== 'MEMBER' && data.schoolId && data.schoolId.trim() !== '') {
       submitData.schoolId = data.schoolId;
+    }
+    if (data.role === 'MEMBER' && data.memberId) {
+      submitData.memberId = data.memberId;
     }
     
     if (editingUser) {
@@ -277,7 +302,7 @@ export default function UsersPage() {
                   <input
                     {...register('password', { 
                       required: editingUser ? false : 'กรุณากรอกรหัสผ่าน',
-                      minLength: { value: 4, message: 'รหัสผ่านต้องมีอย่างน้อย 4 ตัวอักษร' }
+                      minLength: { value: 8, message: 'รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร' }
                     })}
                     type="password"
                     className="input"
@@ -303,6 +328,7 @@ export default function UsersPage() {
                 <div>
                   <label className="label">บทบาท</label>
                   <select {...register('role')} className="input">
+                    <option value="MEMBER">สมาชิก</option>
                     <option value="ADMIN">ผู้ดูแลระบบ</option>
                     <option value="FINANCE">เจ้าหน้าที่การเงิน</option>
                     <option value="ACCOUNTING">เจ้าหน้าที่บัญชี</option>
@@ -312,7 +338,33 @@ export default function UsersPage() {
                 </div>
 
                 <div>
-                  <label className="label">โรงเรียน (ถ้าไม่เลือก = ทุกโรงเรียน)</label>
+                  <label className="label">
+                    {selectedRole === 'MEMBER'
+                      ? 'สมาชิกที่ผูกกับบัญชี'
+                      : 'โรงเรียน (ถ้าไม่เลือก = ทุกโรงเรียน)'}
+                  </label>
+                  {selectedRole === 'MEMBER' ? (
+                  <select
+                    {...register('memberId', {
+                      required: selectedRole === 'MEMBER' ? 'กรุณาเลือกสมาชิก' : false,
+                    })}
+                    className="input"
+                  >
+                    <option value="">เลือกสมาชิก</option>
+                    {members
+                      ?.filter(
+                        (member) =>
+                          member.id === editingUser?.memberId ||
+                          !users?.some((user) => user.memberId === member.id),
+                      )
+                      .map((member) => (
+                      <option key={member.id} value={member.id}>
+                        {member.memberNo} - {member.associationMember?.firstName}{' '}
+                        {member.associationMember?.lastName}
+                      </option>
+                      ))}
+                  </select>
+                  ) : (
                   <select {...register('schoolId')} className="input">
                     <option value="">ทุกโรงเรียน</option>
                     {schools?.map((school) => (
@@ -321,6 +373,10 @@ export default function UsersPage() {
                       </option>
                     ))}
                   </select>
+                  )}
+                  {errors.memberId && (
+                    <p className="text-sm text-red-500 mt-1">{errors.memberId.message}</p>
+                  )}
                 </div>
 
                 <div className="flex gap-3 pt-4">
@@ -347,4 +403,3 @@ export default function UsersPage() {
     </motion.div>
   );
 }
-

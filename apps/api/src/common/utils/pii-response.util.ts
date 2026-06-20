@@ -9,14 +9,17 @@ export function maskAssociationMemberRow<T extends { idCardNo?: string | null }>
 }
 
 export function maskMemberWithAssociation<
-  T extends { associationMember?: { idCardNo?: string | null } | null },
+  T extends {
+    associationMember?: { idCardNo?: string | null } | null;
+    beneficiaries?: Array<{ nationalId?: string | null }>;
+  },
 >(member: T, role: Role): T {
-  if (!member.associationMember) {
-    return member;
-  }
   return {
     ...member,
-    associationMember: maskAssociationMemberRow(member.associationMember, role),
+    associationMember: member.associationMember
+      ? maskAssociationMemberRow(member.associationMember, role)
+      : member.associationMember,
+    beneficiaries: member.beneficiaries?.map((row) => applyNationalIdMask(row, role)),
   };
 }
 
@@ -31,7 +34,10 @@ export function maskAssociationMemberListResponse(
 }
 
 export function maskMemberListResponse<
-  T extends { associationMember?: { idCardNo?: string | null } | null },
+  T extends {
+    associationMember?: { idCardNo?: string | null } | null;
+    beneficiaries?: Array<{ nationalId?: string | null }>;
+  },
 >(result: { data: T[]; meta: unknown }, role: Role) {
   return {
     ...result,

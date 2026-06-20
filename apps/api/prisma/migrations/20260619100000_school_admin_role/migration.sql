@@ -1,0 +1,2 @@
+-- AlterEnum: add SCHOOL_ADMIN role for per-school administrators (separate from members)
+ALTER TABLE `User` MODIFY `role` ENUM('ADMIN', 'SCHOOL_ADMIN', 'FINANCE', 'ACCOUNTING', 'GROUP_LEADER', 'VIEWER') NOT NULL;

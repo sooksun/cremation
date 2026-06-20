@@ -31,7 +31,17 @@ class BeneficiaryDto {
   @IsOptional() @IsString() name?: string;
   @IsOptional() @IsString() relationship?: string;
   @IsOptional() @IsString() @MaxLength(13) nationalId?: string;
+  @IsOptional() @IsString() houseNo?: string;
+  @IsOptional() @IsString() moo?: string;
+  @IsOptional() @IsString() road?: string;
+  @IsOptional() @IsString() soi?: string;
+  @IsOptional() @IsString() subdistrict?: string;
+  @IsOptional() @IsString() district?: string;
+  @IsOptional() @IsString() province?: string;
+  @IsOptional() @IsString() @MaxLength(10) zip?: string;
   @IsOptional() @IsString() phone?: string;
+  @IsOptional() @IsString() contactPerson?: string;
+  @IsOptional() @IsString() contactPhone?: string;
 }
 
 export class SubmitApplicationDto {

@@ -86,7 +86,7 @@ interface TemplateCoords {
   fullName: { x: number; yTop: number };
   birthDate: { x: number; yTop: number };
   age: { x: number; yTop: number };
-  nationalId: { x: number; yTop: number };
+  nationalId: { x: number; yTop: number; digitCentersX?: number[] };
   registeredAddress1: AddressLine1Coords;
   registeredAddress2: AddressLine2Coords;
   maritalStatus: { yTop: number; singleX: number; marriedX: number; spouseX: number };
@@ -103,14 +103,14 @@ const BENEFICIARY_FIELDS: BeneficiaryFieldCoords = {
   nationalIdX: 170.9,
   houseX: 441.5,
   mooX: 504.5,
-  roadX: 86.4,
+  roadX: 103,
   soiX: 201.3,
   subdistrictX: 298.1,
   districtX: 424.9,
   provinceX: 95.6,
   zipX: 236.5,
   phoneX: 398.6,
-  contactX: 146.6,
+  contactX: 176,
   contactPhoneX: 400.9,
   lineSpacing: 21,
 };
@@ -129,40 +129,44 @@ const TEMPLATE_COORDS: Record<MembershipType, TemplateCoords> = {
     memberSince: { x: 502.3, yTop: 108.1 },
     governmentAgency: { x: 436.9, yTop: 171 },
     applicationDate: { day: 364.2, month: 426.2, year: 514.7, yTop: 192 },
-    fullName: { x: 131.6, yTop: 212.9 },
+    fullName: { x: 132.6, yTop: 212.9 },
     birthDate: { x: 424, yTop: 212.9 },
     age: { x: 522.9, yTop: 212.9 },
-    nationalId: { x: 170.9, yTop: 233.9 },
+    nationalId: {
+      x: 191.4,
+      yTop: 233.9,
+      digitCentersX: [201.4, 225.5, 237.5, 249.5, 261.4, 285.4, 297.4, 309.4, 321.4, 333.3, 357.3, 369.2, 393.2],
+    },
     registeredAddress1: {
       yTop: 265.4,
-      houseNo: 166.9,
-      moo: 243.5,
-      road: 290.2,
-      soi: 403.4,
-      subdistrict: 488.9,
+      houseNo: 200,
+      moo: 258,
+      road: 300,
+      soi: 400,
+      subdistrict: 486,
     },
     registeredAddress2: {
       yTop: 286.4,
-      district: 89.2,
-      province: 180.9,
-      zip: 303.2,
-      phone: 409.9,
+      district: 95,
+      province: 205,
+      zip: 314,
+      phone: 438,
     },
     maritalStatus: { yTop: 308.1, singleX: 108, marriedX: 178, spouseX: 317.1 },
     contactAddress1: {
       yTop: 371,
-      houseNo: 190.2,
-      moo: 261.3,
-      road: 303.4,
-      soi: 410.1,
+      houseNo: 215,
+      moo: 270,
+      road: 310,
+      soi: 406,
       subdistrict: 490,
     },
     contactAddress2: {
       yTop: 392,
-      district: 89.2,
-      province: 184.9,
-      zip: 303.2,
-      phone: 381.4,
+      district: 95,
+      province: 205,
+      zip: 314,
+      phone: 410,
     },
     bloodRelatives: {
       nameX: 118,
@@ -182,36 +186,42 @@ const TEMPLATE_COORDS: Record<MembershipType, TemplateCoords> = {
     fullName: { x: 131.6, yTop: 212.1 },
     birthDate: { x: 424, yTop: 212.1 },
     age: { x: 522.9, yTop: 212.1 },
-    nationalId: { x: 170.9, yTop: 233.1 },
+    nationalId: {
+      x: 223.3,
+      yTop: 236.9,
+      // Calibrated from ref1-2.pdf vector boxes (yTop ~243, Thai ID 1-4-5-2-1 gaps)
+      digitCentersX: [223.3, 247.3, 259.3, 271.3, 283.3, 307.3, 319.3, 331.3, 343.3, 355.2, 379.1, 391, 415],
+    },
     registeredAddress1: {
       yTop: 264.5,
-      houseNo: 166.9,
-      moo: 243.5,
-      road: 290.2,
-      soi: 403.4,
-      subdistrict: 488.9,
+      houseNo: 184,
+      moo: 258,
+      road: 322,
+      soi: 420,
+      subdistrict: 510,
     },
     registeredAddress2: {
       yTop: 285.5,
-      district: 89.2,
-      province: 180.9,
-      zip: 303.2,
-      phone: 409.9,
+      district: 105,
+      province: 205,
+      zip: 354,
+      phone: 438,
     },
     maritalStatus: { yTop: 307.3, singleX: 108, marriedX: 178, spouseX: 317.1 },
     contactAddress1: {
       yTop: 370.1,
-      houseNo: 189.6,
-      moo: 260.5,
-      soi: 406.9,
-      subdistrict: 487.2,
+      houseNo: 215,
+      moo: 280,
+      road: 325,
+      soi: 430,
+      subdistrict: 510,
     },
     contactAddress2: {
       yTop: 391,
-      district: 89.2,
-      province: 184.9,
-      zip: 303.2,
-      phone: 380.7,
+      district: 105,
+      province: 205,
+      zip: 334,
+      phone: 410,
     },
     bloodRelatives: {
       nameX: 118,
@@ -284,6 +294,35 @@ function drawText(
     size,
     font,
     color: rgb(0, 0, 0),
+  });
+}
+
+function drawNationalId(
+  page: PDFPage,
+  font: PDFFont,
+  value: string,
+  coords: TemplateCoords['nationalId'],
+) {
+  const nationalId = sanitizeField(value).replace(/\D/g, '').slice(0, 13);
+  if (!nationalId) return;
+
+  const y = toPdfY(page, coords.yTop);
+  if (!coords.digitCentersX) {
+    drawText(page, font, nationalId, { page: 0, x: coords.x, y, maxChars: 13 });
+    return;
+  }
+
+  [...nationalId].forEach((digit, index) => {
+    const centerX = coords.digitCentersX?.[index];
+    if (centerX == null) return;
+    const width = font.widthOfTextAtSize(digit, DEFAULT_SIZE);
+    page.drawText(digit, {
+      x: centerX - width / 2,
+      y,
+      size: DEFAULT_SIZE,
+      font,
+      color: rgb(0, 0, 0),
+    });
   });
 }
 
@@ -455,12 +494,7 @@ function fillTemplate(pdfDoc: PDFDocument, font: PDFFont, data: MembershipRegist
     maxChars: 4,
   });
 
-  drawText(page1, font, data.nationalId, {
-    page: 0,
-    x: coords.nationalId.x,
-    y: toPdfY(page1, coords.nationalId.yTop),
-    maxChars: 13,
-  });
+  drawNationalId(page1, font, data.nationalId, coords.nationalId);
 
   drawAddressLine1(page1, font, data.registeredAddress, coords.registeredAddress1);
   drawAddressLine2(page1, font, data.registeredAddress, coords.registeredAddress2);

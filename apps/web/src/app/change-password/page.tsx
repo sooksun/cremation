@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { KeyRound } from 'lucide-react';
+import { KeyRound, ArrowLeft } from 'lucide-react';
 import { showSuccess, showError } from '@/lib/toast';
 import { useAuthStore } from '@/store/auth';
 import { api } from '@/lib/api';
@@ -15,6 +16,7 @@ export default function ChangePasswordPage() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const mustChange = user?.mustChangePassword === true;
 
   useEffect(() => {
     const checkSession = async () => {
@@ -29,6 +31,16 @@ export default function ChangePasswordPage() {
       checkSession();
     }
   }, [user, setUser, router]);
+
+  useEffect(() => {
+    if (!mustChange) return;
+    const onPopState = () => {
+      window.history.pushState(null, '', '/change-password');
+    };
+    window.history.pushState(null, '', '/change-password');
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, [mustChange]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,6 +77,16 @@ export default function ChangePasswordPage() {
         animate={{ opacity: 1, y: 0 }}
         className="card w-full max-w-md p-8"
       >
+        {!mustChange && (
+          <Link
+            href="/dashboard"
+            className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-slate-700 mb-4"
+          >
+            <ArrowLeft size={16} />
+            กลับไปแดชบอร์ด
+          </Link>
+        )}
+
         <div className="text-center mb-6">
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary-100 text-primary-700 mb-4">
             <KeyRound size={24} />
@@ -73,7 +95,7 @@ export default function ChangePasswordPage() {
             เปลี่ยนรหัสผ่าน
           </h1>
           <p className="text-slate-500 mt-2">
-            {user?.mustChangePassword
+            {mustChange
               ? 'กรุณาตั้งรหัสผ่านใหม่ก่อนเข้าใช้งานระบบ'
               : 'อัปเดตรหัสผ่านของคุณ'}
           </p>

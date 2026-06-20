@@ -26,7 +26,7 @@ export class DeathClaimsController {
 
   @Post()
   @UseGuards(RolesGuard)
-  @Roles(Role.ADMIN, Role.FINANCE)
+  @Roles(Role.ADMIN, Role.SCHOOL_ADMIN, Role.FINANCE)
   create(
     @Body() dto: CreateDeathClaimDto,
     @Request() req: { user: { id: string; role: Role; schoolId?: string }; ip?: string },
@@ -86,7 +86,7 @@ export class DeathClaimsController {
 
   @Patch(':id/workflow')
   @UseGuards(RolesGuard)
-  @Roles(Role.ADMIN, Role.FINANCE)
+  @Roles(Role.ADMIN, Role.SCHOOL_ADMIN, Role.FINANCE)
   updateWorkflow(
     @Param('id') id: string,
     @Body() dto: UpdateDeathClaimWorkflowDto,
@@ -97,7 +97,7 @@ export class DeathClaimsController {
 
   @Patch(':id/documents')
   @UseGuards(RolesGuard)
-  @Roles(Role.ADMIN, Role.FINANCE)
+  @Roles(Role.ADMIN, Role.SCHOOL_ADMIN, Role.FINANCE)
   updateDocuments(
     @Param('id') id: string,
     @Body() dto: UpdateDeathClaimDocumentsDto,
@@ -108,7 +108,7 @@ export class DeathClaimsController {
 
   @Post(':id/approve')
   @UseGuards(RolesGuard)
-  @Roles(Role.ADMIN, Role.FINANCE)
+  @Roles(Role.ADMIN, Role.SCHOOL_ADMIN, Role.FINANCE)
   approveDisbursement(
     @Param('id') id: string,
     @Request() req: { user: { id: string; role: Role; schoolId?: string }; ip?: string },
@@ -118,7 +118,7 @@ export class DeathClaimsController {
 
   @Post(':id/payment')
   @UseGuards(RolesGuard)
-  @Roles(Role.ADMIN, Role.FINANCE)
+  @Roles(Role.ADMIN, Role.SCHOOL_ADMIN, Role.FINANCE)
   recordPayment(
     @Param('id') id: string,
     @Body() dto: RecordBenefitPaymentDto,

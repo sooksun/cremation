@@ -158,8 +158,9 @@ export class ContributionsService {
       throw new BadRequestException('งวดนี้ปิดแล้ว ไม่สามารถสร้างรายการได้');
     }
 
-    // Get all active members
-    const where: any = { status: MemberStatus.ACTIVE };
+    const where: any = {
+      status: { in: [MemberStatus.ACTIVE, MemberStatus.ARREARS] },
+    };
     if (schoolId) where.schoolId = schoolId;
 
     const activeMembers = await this.prisma.member.findMany({ where });
@@ -478,13 +479,16 @@ export class ContributionsService {
   }
 
   // Get arrears by school/group
-  async getArrears(schoolId?: string, periodId?: string) {
+  async getArrears(schoolId?: string, periodId?: string, actor?: ScopedUser) {
+    const scopedSchoolId = actor
+      ? this.schoolScope.resolveSchoolId(actor, schoolId)
+      : schoolId;
     const where: any = {
       paidAmount: 0,
       isArrears: true,
     };
 
-    if (schoolId) where.schoolId = schoolId;
+    if (scopedSchoolId) where.schoolId = scopedSchoolId;
     if (periodId) where.periodId = periodId;
 
     return this.prisma.memberContribution.findMany({
@@ -506,13 +510,15 @@ export class ContributionsService {
   }
 
   // Mark unpaid contributions as arrears
-  async markArrearsForPeriod(periodId: string) {
+  async markArrearsForPeriod(periodId: string, actor?: ScopedUser) {
     const period = await this.findPeriodById(periodId);
     this.assertPeriodOpen(period, 'ทำเครื่องหมายค้างชำระ');
+    const scopedSchoolId = actor ? this.schoolScope.resolveSchoolId(actor) : undefined;
     const result = await this.prisma.memberContribution.updateMany({
       where: {
         periodId,
         paidAmount: 0,
+        ...(scopedSchoolId ? { schoolId: scopedSchoolId } : {}),
       },
       data: {
         isArrears: true,
@@ -522,11 +528,15 @@ export class ContributionsService {
     return { message: `ทำเครื่องหมายค้างชำระ ${result.count} รายการ`, count: result.count };
   }
 
-  async sendArrearsNoticeForPeriod(periodId: string) {
+  async sendArrearsNoticeForPeriod(periodId: string, actor?: ScopedUser) {
     const period = await this.findPeriodById(periodId);
     this.assertPeriodOpen(period, 'แจ้งเตือนค้างชำระ');
-    const arrearsResult = await this.markArrearsForPeriod(periodId);
-    const noticeResult = await this.membershipRules.processArrearsAfterNotice(periodId);
+    const scopedSchoolId = actor ? this.schoolScope.resolveSchoolId(actor) : undefined;
+    const arrearsResult = await this.markArrearsForPeriod(periodId, actor);
+    const noticeResult = await this.membershipRules.processArrearsAfterNotice(
+      periodId,
+      scopedSchoolId,
+    );
     return {
       message: `แจ้งเตือนค้างชำระ ${noticeResult.noticeSent} ราย, สิ้นสุดสมาชิกภาพ ${noticeResult.terminated} ราย`,
       markedArrears: arrearsResult.count,
@@ -716,7 +726,9 @@ export class ContributionsService {
     });
 
     // Get all members (filter by school if provided)
-    const memberWhere: any = { status: MemberStatus.ACTIVE };
+    const memberWhere: any = {
+      status: { in: [MemberStatus.ACTIVE, MemberStatus.ARREARS] },
+    };
     if (schoolId) memberWhere.schoolId = schoolId;
 
     const members = await this.prisma.member.findMany({
@@ -902,7 +914,9 @@ export class ContributionsService {
       include: {
         _count: {
           select: {
-            members: { where: { status: MemberStatus.ACTIVE } },
+            members: {
+              where: { status: { in: [MemberStatus.ACTIVE, MemberStatus.ARREARS] } },
+            },
           },
         },
       },
@@ -934,10 +948,10 @@ export class ContributionsService {
       throw new NotFoundException(`ไม่พบงวดสำหรับเดือน ${month} ปี ${year}`);
     }
 
-    // ดึงสมาชิกที่หักผ่านเงินเดือนและมีสถานะ ACTIVE
+    // ดึงสมาชิกที่หักผ่านเงินเดือน (ACTIVE + ARREARS ที่ยังไม่ตัดสมาชิกภาพ)
     const members = await this.prisma.member.findMany({
       where: {
-        status: MemberStatus.ACTIVE,
+        status: { in: [MemberStatus.ACTIVE, MemberStatus.ARREARS] },
         salaryDeduction: true,
       },
       include: {
@@ -996,6 +1010,7 @@ export class ContributionsService {
       ยอดที่ต้องชำระ?: number;
       สถานะ?: string;
     }>,
+    actor?: ScopedUser,
   ) {
     // หา period
     const period = await this.prisma.contributionPeriod.findUnique({
@@ -1036,6 +1051,19 @@ export class ContributionsService {
             error: 'ไม่พบสมาชิก',
           });
           continue;
+        }
+
+        if (actor) {
+          try {
+            this.schoolScope.assertSchoolAccess(actor, member.schoolId);
+          } catch {
+            results.failed++;
+            results.errors.push({
+              memberNo: row.เลขสมาชิก,
+              error: 'ไม่มีสิทธิ์บันทึกการชำระสำหรับโรงเรียนนี้',
+            });
+            continue;
+          }
         }
 
         // หา contribution

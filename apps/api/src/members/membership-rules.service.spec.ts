@@ -40,7 +40,7 @@ describe('MembershipRulesService', () => {
     protectedPerson: { updateMany: jest.Mock };
     member: { update: jest.Mock };
     contributionPeriod: { findUnique: jest.Mock };
-    memberContribution: { findMany: jest.Mock };
+    memberContribution: { findMany: jest.Mock; update: jest.Mock };
   };
 
   beforeEach(() => {
@@ -48,7 +48,10 @@ describe('MembershipRulesService', () => {
       protectedPerson: { updateMany: jest.fn().mockResolvedValue({ count: 1 }) },
       member: { update: jest.fn().mockResolvedValue({}) },
       contributionPeriod: { findUnique: jest.fn().mockResolvedValue({ id: 'p1' }) },
-      memberContribution: { findMany: jest.fn().mockResolvedValue([]) },
+      memberContribution: {
+        findMany: jest.fn().mockResolvedValue([]),
+        update: jest.fn().mockResolvedValue({}),
+      },
     };
     service = new MembershipRulesService(prisma as unknown as PrismaService);
   });
@@ -93,6 +96,7 @@ describe('MembershipRulesService', () => {
   it('terminates contributory member after 3 arrears periods post-notice', async () => {
     prisma.memberContribution.findMany.mockResolvedValue([
       {
+        id: 'c1',
         member: {
           id: 'm1',
           membershipClass: MembershipClass.CONTRIBUTORY,
@@ -106,6 +110,7 @@ describe('MembershipRulesService', () => {
 
     const result = await service.processArrearsAfterNotice('p1');
     expect(result.terminated).toBe(1);
+    expect(prisma.memberContribution.update).toHaveBeenCalled();
     expect(prisma.member.update).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({
@@ -113,5 +118,13 @@ describe('MembershipRulesService', () => {
         }),
       }),
     );
+  });
+
+  it('skips contributions that already received arrears notice for the period', async () => {
+    prisma.memberContribution.findMany.mockResolvedValue([]);
+
+    const result = await service.processArrearsAfterNotice('p1');
+    expect(result).toEqual({ noticeSent: 0, terminated: 0 });
+    expect(prisma.member.update).not.toHaveBeenCalled();
   });
 });

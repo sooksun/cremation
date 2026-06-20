@@ -35,6 +35,7 @@ import {
 } from 'recharts';
 import { api } from '@/lib/api';
 import { formatThaiDate, formatThaiDateShort } from '@/components/ThaiDatePicker';
+import { useAuthStore } from '@/store/auth';
 
 interface MemberProfile {
   member: {
@@ -104,6 +105,7 @@ const thaiMonths = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.�
 export default function MemberProfilePage() {
   const params = useParams();
   const memberId = params.id as string;
+  const isMemberUser = useAuthStore((state) => state.user?.role === 'MEMBER');
 
   const { data, isLoading } = useQuery<MemberProfile>({
     queryKey: ['member-profile', memberId],
@@ -135,7 +137,10 @@ export default function MemberProfilePage() {
       <div className="text-center py-20">
         <User className="w-16 h-16 mx-auto text-slate-300 mb-4" />
         <p className="text-lg text-slate-500">ไม่พบข้อมูลสมาชิก</p>
-        <Link href="/members" className="btn-secondary mt-4">
+        <Link
+          href="/members"
+          className={isMemberUser ? 'hidden' : 'btn-secondary mt-4'}
+        >
           กลับไปรายการสมาชิก
         </Link>
       </div>
@@ -162,7 +167,10 @@ export default function MemberProfilePage() {
     >
       {/* Header */}
       <div className="flex items-center gap-4">
-        <Link href={`/members/${memberId}`} className="p-2 hover:bg-slate-100 rounded-lg">
+        <Link
+          href={`/members/${memberId}`}
+          className={isMemberUser ? 'hidden' : 'p-2 hover:bg-slate-100 rounded-lg'}
+        >
           <ArrowLeft size={20} />
         </Link>
         <div className="flex-1">
@@ -514,4 +522,3 @@ export default function MemberProfilePage() {
     </motion.div>
   );
 }
-

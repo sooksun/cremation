@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import {
@@ -86,19 +86,12 @@ const THAI_MONTHS_FULL = [
 
 export default function ContributionMatrixPage() {
   const queryClient = useQueryClient();
-  const { selectedYear, user } = useAuthStore();
+  const { selectedYear, user, selectedSchoolId: globalSchoolId } = useAuthStore();
   const showAllSchoolsOption = canSelectAllSchools(user?.role);
-  const [selectedSchoolId, setSelectedSchoolId] = useState<string>(
-    showAllSchoolsOption ? '' : user?.schoolId || '',
-  );
+  const selectedSchoolId = showAllSchoolsOption
+    ? (globalSchoolId ?? '')
+    : (user?.schoolId || '');
   const [search, setSearch] = useState('');
-
-  useEffect(() => {
-    if (!user || showAllSchoolsOption) return;
-    if (user.schoolId) {
-      setSelectedSchoolId(user.schoolId);
-    }
-  }, [user, showAllSchoolsOption]);
   const [viewMode, setViewMode] = useState<'detail' | 'summary'>('detail');
   const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth() + 1);
   const [showUploadModal, setShowUploadModal] = useState(false);
@@ -581,16 +574,9 @@ export default function ContributionMatrixPage() {
               <Building2 size={18} className="text-slate-400" />
               <select
                 value={selectedSchoolId}
-                onChange={(e) => {
-                  const next = e.target.value;
-                  if (!showAllSchoolsOption && user?.schoolId) {
-                    setSelectedSchoolId(user.schoolId);
-                    return;
-                  }
-                  setSelectedSchoolId(next);
-                }}
-                disabled={!showAllSchoolsOption && !!user?.schoolId}
-                className="input disabled:cursor-default"
+                disabled
+                className="input disabled:cursor-default bg-slate-50"
+                title="ใช้ตัวกรองโรงเรียนจากแถบด้านบน"
               >
                 {showAllSchoolsOption && (
                   <option value="">

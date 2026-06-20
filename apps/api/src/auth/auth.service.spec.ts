@@ -56,6 +56,27 @@ describe('AuthService', () => {
       });
     });
 
+    it('returns the linked member id in a MEMBER session', async () => {
+      usersService.findByUsername.mockResolvedValue({
+        ...mockUser,
+        username: 'member001',
+        role: 'MEMBER',
+        memberId: 'member-1',
+        schoolId: 'school-1',
+      } as never);
+      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+
+      const result = await service.login({
+        username: 'member001',
+        password: 'secret',
+      });
+
+      expect(result.user.memberId).toBe('member-1');
+      expect(jwtService.sign).toHaveBeenCalledWith(
+        expect.objectContaining({ memberId: 'member-1' }),
+      );
+    });
+
     it('throws when user not found', async () => {
       usersService.findByUsername.mockResolvedValue(null);
 

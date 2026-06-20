@@ -3,7 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { DocumentNumberService, DocumentType } from '../common/document-number.service';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import { AuditAction, PaymentType } from '@prisma/client';
-import { ScopedUser } from '../common/security/school-scope.service';
+import { SchoolScopeService, ScopedUser } from '../common/security/school-scope.service';
 import { AuditLogService } from '../common/services/audit-log.service';
 
 @Injectable()
@@ -12,9 +12,14 @@ export class PaymentsService {
     private readonly prisma: PrismaService,
     private readonly documentNumberService: DocumentNumberService,
     private readonly auditLog: AuditLogService,
+    private readonly schoolScope: SchoolScopeService,
   ) {}
 
   async create(dto: CreatePaymentDto, actor?: ScopedUser, ipAddress?: string) {
+    if (actor && dto.schoolId) {
+      this.schoolScope.assertSchoolAccess(actor, dto.schoolId);
+    }
+
     const voucherNo = await this.documentNumberService.generateNumber(DocumentType.PAYMENT_VOUCHER);
 
     const payment = await this.prisma.paymentVoucher.create({
@@ -62,7 +67,7 @@ export class PaymentsService {
     });
   }
 
-  async findById(id: string) {
+  async findById(id: string, actor?: ScopedUser) {
     const payment = await this.prisma.paymentVoucher.findUnique({
       where: { id },
       include: {
@@ -75,6 +80,10 @@ export class PaymentsService {
 
     if (!payment) {
       throw new NotFoundException('ไม่พบใบสำคัญจ่าย');
+    }
+
+    if (actor) {
+      this.schoolScope.assertResourceSchoolAccess(actor, payment.schoolId);
     }
 
     return payment;

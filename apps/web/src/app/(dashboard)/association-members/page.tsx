@@ -86,9 +86,11 @@ export default function AssociationMembersPage() {
   const updateMutation = useMutation({
     mutationFn: async ({
       associationMemberId,
+      cremationMemberId,
       data,
     }: {
       associationMemberId: string;
+      cremationMemberId?: string;
       data: typeof editForm;
     }) => {
       const payload: Record<string, string> = {};
@@ -96,7 +98,10 @@ export default function AssociationMembersPage() {
       if (data.position !== undefined) payload.position = data.position;
       if (data.associationJoinDate) payload.associationJoinDate = data.associationJoinDate;
       if (data.notes !== undefined) payload.notes = data.notes;
-      const res = await api.patch(`/association-members/by-id/${associationMemberId}`, payload);
+      const path = cremationMemberId
+        ? `/association-members/${cremationMemberId}`
+        : `/association-members/by-id/${associationMemberId}`;
+      const res = await api.patch(path, payload);
       return res.data;
     },
     onSuccess: () => {
@@ -123,7 +128,11 @@ export default function AssociationMembersPage() {
 
   const handleSubmitEdit = () => {
     if (!editModal) return;
-    updateMutation.mutate({ associationMemberId: editModal.id, data: editForm });
+    updateMutation.mutate({
+      associationMemberId: editModal.id,
+      cremationMemberId: editModal.cremationMember?.id,
+      data: editForm,
+    });
   };
 
   const formatDate = (d?: string) => {
@@ -202,9 +211,9 @@ export default function AssociationMembersPage() {
           <div className="text-center py-20 text-slate-500">
             <UserX className="w-16 h-16 mx-auto text-slate-300 mb-4" />
             <p className="text-lg font-medium">ไม่พบข้อมูลสมาชิกสมาคม</p>
-            <p className="text-sm mt-1">ลองเปลี่ยนตัวกรองหรือเพิ่มสมาชิกที่ทะเบียนสมาชิก</p>
+            <p className="text-sm mt-1">เพิ่มสมาชิกฌาปนกิจใหม่ — ระบบจะสร้างทะเบียนสมาชิกสมาคมให้อัตโนมัติ</p>
             <Link href="/members/new" className="btn-primary mt-4 inline-flex">
-              เพิ่มสมาชิก
+              เพิ่มสมาชิกฌาปนกิจ
             </Link>
           </div>
         ) : (

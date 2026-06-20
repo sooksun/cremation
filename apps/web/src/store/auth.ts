@@ -10,6 +10,7 @@ interface User {
   schoolId?: string;
   schoolName?: string;
   groupId?: string;
+  memberId?: string;
   mustChangePassword?: boolean;
 }
 

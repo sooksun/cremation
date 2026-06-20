@@ -41,16 +41,22 @@ const menuItems = [
     icon: UserCog,
     roles: ['ADMIN'],
   },
+  {
+    label: 'ผู้ดูแลโรงเรียน',
+    href: '/school-admins',
+    icon: Building2,
+    roles: ['ADMIN'],
+  },
   // ─── 1. ข้อมูลหลัก ─────────────────────────────────────
   {
     label: '1. ข้อมูลหลัก',
     icon: BookOpen,
     children: [
-      { label: 'การจัดการโรงเรียน', href: '/schools' },
-      { label: 'ประเภทสมาชิก', href: '/member-types' },
-      { label: 'กลุ่มเก็บเงิน', href: '/groups' },
-      { label: 'ผังบัญชี', href: '/accounts' },
-      { label: 'บัญชีธนาคาร', href: '/bank-accounts' },
+      { label: 'การจัดการโรงเรียน', href: '/schools', roles: ['ADMIN'] },
+      { label: 'ประเภทสมาชิก', href: '/member-types', roles: ['ADMIN'] },
+      { label: 'กลุ่มเก็บเงิน', href: '/groups', roles: ['ADMIN', 'SCHOOL_ADMIN', 'FINANCE'] },
+      { label: 'ผังบัญชี', href: '/accounts', roles: ['ADMIN', 'ACCOUNTING'] },
+      { label: 'บัญชีธนาคาร', href: '/bank-accounts', roles: ['ADMIN', 'SCHOOL_ADMIN', 'FINANCE'] },
     ],
   },
   // ─── 2. งานสมาคม (สมาคมผู้ประกอบวิชาชีพ) ────────────────
@@ -134,8 +140,16 @@ export default function DashboardLayout({
   }, [sessionChecked, user, pathname, router]);
 
   useEffect(() => {
-    if (sessionChecked && user && !isPathAllowedForRole(pathname, user.role)) {
-      router.replace('/access-denied');
+    if (
+      sessionChecked &&
+      user &&
+      !isPathAllowedForRole(pathname, user.role, user.memberId)
+    ) {
+      router.replace(
+        user.role === 'MEMBER' && user.memberId
+          ? `/members/${user.memberId}/profile`
+          : '/access-denied',
+      );
     }
   }, [sessionChecked, user, pathname, router]);
 
@@ -147,6 +161,8 @@ export default function DashboardLayout({
   }, [user, selectedSchoolId, setSelectedSchool]);
 
   useEffect(() => {
+    if (!sessionChecked || !user || user.role === 'MEMBER') return;
+
     const fetchSchools = async () => {
       try {
         const response = await api.get('/schools');
@@ -156,7 +172,7 @@ export default function DashboardLayout({
       }
     };
     fetchSchools();
-  }, []);
+  }, [sessionChecked, user]);
 
   // ขยายเมนูที่เกี่ยวข้องกับ pathname ปัจจุบัน
   useEffect(() => {
@@ -221,7 +237,18 @@ export default function DashboardLayout({
 
         {/* Menu */}
         <nav className="flex-1 overflow-y-auto py-4 px-3 min-h-0 scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-slate-100">
-          {menuItems.map((item) => {
+          {user.role === 'MEMBER' && user.memberId ? (
+            <Link
+              href={`/members/${user.memberId}/profile`}
+              className={`sidebar-link mb-1 ${
+                pathname === `/members/${user.memberId}/profile` ? 'active' : ''
+              }`}
+              onClick={() => setSidebarOpen(false)}
+            >
+              <Users size={20} />
+              <span>ข้อมูลของฉัน</span>
+            </Link>
+          ) : menuItems.map((item) => {
             const isActive = item.href === pathname || item.children?.some((c) => c.href === pathname);
             const isExpanded = expandedMenus.includes(item.label);
             const Icon = item.icon;
@@ -342,6 +369,11 @@ export default function DashboardLayout({
             {/* School selector */}
             <div className="flex items-center gap-2">
               <Building2 size={18} className="text-slate-400" />
+              {user.role === 'MEMBER' ? (
+                <span className="text-sm text-slate-700 font-medium">
+                  {user.schoolName || 'โรงเรียนของสมาชิก'}
+                </span>
+              ) : (
               <select
                 value={selectedSchoolId || ''}
                 onChange={(e) => setSelectedSchool(e.target.value || null)}
@@ -355,6 +387,7 @@ export default function DashboardLayout({
                   </option>
                 ))}
               </select>
+              )}
             </div>
 
             {/* Year selector */}

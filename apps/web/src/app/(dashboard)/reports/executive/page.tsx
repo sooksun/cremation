@@ -30,6 +30,7 @@ import {
   Cell,
 } from 'recharts';
 import { api } from '@/lib/api';
+import { useAuthStore } from '@/store/auth';
 import { formatThaiDateShort } from '@/components/ThaiDatePicker';
 
 interface ExecutiveData {
@@ -88,10 +89,13 @@ const COLORS = ['#10b981', '#f59e0b', '#f43f5e', '#6366f1', '#94a3b8'];
 const thaiMonths = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
 
 export default function ExecutiveDashboardPage() {
+  const { selectedSchoolId } = useAuthStore();
+
   const { data, isLoading } = useQuery<ExecutiveData>({
-    queryKey: ['executive-dashboard'],
+    queryKey: ['executive-dashboard', selectedSchoolId],
     queryFn: async () => {
-      const response = await api.get('/reports/executive');
+      const params = selectedSchoolId ? `?schoolId=${selectedSchoolId}` : '';
+      const response = await api.get(`/reports/executive${params}`);
       return response.data;
     },
   });

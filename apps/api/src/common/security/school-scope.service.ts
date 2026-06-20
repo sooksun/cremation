@@ -6,12 +6,32 @@ export interface ScopedUser {
   role: Role;
   schoolId?: string | null;
   groupId?: string | null;
+  memberId?: string | null;
 }
 
 @Injectable()
 export class SchoolScopeService {
   canAccessAllSchools(user: ScopedUser): boolean {
     return user.role === Role.ADMIN;
+  }
+
+  isSchoolScopedRole(user: ScopedUser): boolean {
+    return (
+      user.role === Role.SCHOOL_ADMIN ||
+      user.role === Role.FINANCE ||
+      user.role === Role.ACCOUNTING ||
+      user.role === Role.GROUP_LEADER ||
+      user.role === Role.MEMBER
+    );
+  }
+
+  assertMemberSelfAccess(user: ScopedUser, memberId: string): void {
+    if (user.role !== Role.MEMBER) {
+      return;
+    }
+    if (!user.memberId || user.memberId !== memberId) {
+      throw new ForbiddenException('บัญชีสมาชิกเข้าถึงได้เฉพาะข้อมูลของตนเอง');
+    }
   }
 
   assertSchoolAccess(user: ScopedUser, schoolId: string): void {
@@ -24,6 +44,16 @@ export class SchoolScopeService {
     if (user.schoolId !== schoolId) {
       throw new ForbiddenException('ไม่มีสิทธิ์เข้าถึงข้อมูลโรงเรียนนี้');
     }
+  }
+
+  assertResourceSchoolAccess(user: ScopedUser, schoolId?: string | null): void {
+    if (!schoolId) {
+      if (!this.canAccessAllSchools(user)) {
+        throw new ForbiddenException('ไม่มีสิทธิ์เข้าถึงข้อมูลนี้');
+      }
+      return;
+    }
+    this.assertSchoolAccess(user, schoolId);
   }
 
   resolveSchoolId(user: ScopedUser, requestedSchoolId?: string): string | undefined {

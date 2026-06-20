@@ -51,7 +51,10 @@ describe('ReportsService.getBoardMonthlyReport', () => {
         }),
       },
     };
-    service = new ReportsService(prisma as unknown as PrismaService);
+    service = new ReportsService(
+      prisma as unknown as PrismaService,
+      {} as never,
+    );
   });
 
   it('aggregates monthly board report sections', async () => {

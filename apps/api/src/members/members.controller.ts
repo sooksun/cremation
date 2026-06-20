@@ -23,6 +23,7 @@ import { ProtectedPersonsService } from './protected-persons.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { AllowMemberAccess } from '../auth/decorators/allow-member-access.decorator';
 import { Role, MemberStatus, MembershipClass } from '@prisma/client';
 import { ScopedUser } from '../common/security/school-scope.service';
 import {
@@ -42,12 +43,12 @@ export class MembersController {
 
   @Post()
   @UseGuards(RolesGuard)
-  @Roles(Role.ADMIN, Role.FINANCE)
+  @Roles(Role.ADMIN, Role.SCHOOL_ADMIN, Role.FINANCE)
   async create(
     @Body() dto: CreateMemberDto,
     @Request() req: { user: ScopedUser },
   ) {
-    const member = await this.membersService.create(dto);
+    const member = await this.membersService.create(dto, req.user);
     return maskMemberWithAssociation(member, req.user.role);
   }
 
@@ -87,24 +88,28 @@ export class MembersController {
 
   @Get('export/csv')
   @UseGuards(RolesGuard)
-  @Roles(Role.ADMIN, Role.FINANCE)
+  @Roles(Role.ADMIN, Role.SCHOOL_ADMIN, Role.FINANCE)
   @Header('Content-Type', 'text/csv; charset=utf-8')
   @Header('Content-Disposition', 'attachment; filename="members.csv"')
   exportCsv(
-    @Query('schoolId') schoolId?: string,
     @Request() req: { user: ScopedUser },
+    @Query('schoolId') schoolId?: string,
   ) {
     return this.membersService.exportCsv(schoolId, req.user.role);
   }
 
   @Post('import/csv')
   @UseGuards(RolesGuard)
-  @Roles(Role.ADMIN, Role.FINANCE)
-  importCsv(@Body() dto: ImportMembersDto) {
-    return this.membersService.importCsv(dto.rows);
+  @Roles(Role.ADMIN, Role.SCHOOL_ADMIN, Role.FINANCE)
+  importCsv(
+    @Body() dto: ImportMembersDto,
+    @Request() req: { user: ScopedUser },
+  ) {
+    return this.membersService.importCsv(dto.rows, req.user);
   }
 
   @Get(':id')
+  @AllowMemberAccess()
   async findOne(
     @Param('id') id: string,
     @Request() req: { user: ScopedUser },
@@ -115,7 +120,7 @@ export class MembersController {
 
   @Patch(':id')
   @UseGuards(RolesGuard)
-  @Roles(Role.ADMIN, Role.FINANCE)
+  @Roles(Role.ADMIN, Role.SCHOOL_ADMIN, Role.FINANCE)
   async update(
     @Param('id') id: string,
     @Body() dto: UpdateMemberDto,
@@ -127,7 +132,7 @@ export class MembersController {
 
   @Patch(':id/status')
   @UseGuards(RolesGuard)
-  @Roles(Role.ADMIN, Role.FINANCE)
+  @Roles(Role.ADMIN, Role.SCHOOL_ADMIN, Role.FINANCE)
   async changeStatus(
     @Param('id') id: string,
     @Body() dto: ChangeStatusDto,
@@ -139,7 +144,7 @@ export class MembersController {
 
   @Delete(':id')
   @UseGuards(RolesGuard)
-  @Roles(Role.ADMIN)
+  @Roles(Role.ADMIN, Role.SCHOOL_ADMIN)
   remove(
     @Param('id') id: string,
     @Request() req: { user: ScopedUser },
@@ -150,7 +155,7 @@ export class MembersController {
   // Beneficiary endpoints
   @Post(':id/beneficiaries')
   @UseGuards(RolesGuard)
-  @Roles(Role.ADMIN, Role.FINANCE)
+  @Roles(Role.ADMIN, Role.SCHOOL_ADMIN, Role.FINANCE)
   addBeneficiary(
     @Param('id') memberId: string,
     @Body() dto: CreateBeneficiaryDto,
@@ -161,7 +166,7 @@ export class MembersController {
 
   @Patch(':memberId/beneficiaries/:id')
   @UseGuards(RolesGuard)
-  @Roles(Role.ADMIN, Role.FINANCE)
+  @Roles(Role.ADMIN, Role.SCHOOL_ADMIN, Role.FINANCE)
   updateBeneficiary(
     @Param('id') id: string,
     @Body() dto: UpdateBeneficiaryDto,
@@ -172,7 +177,7 @@ export class MembersController {
 
   @Delete(':memberId/beneficiaries/:id')
   @UseGuards(RolesGuard)
-  @Roles(Role.ADMIN, Role.FINANCE)
+  @Roles(Role.ADMIN, Role.SCHOOL_ADMIN, Role.FINANCE)
   removeBeneficiary(
     @Param('id') id: string,
     @Request() req: { user: ScopedUser },
@@ -181,6 +186,7 @@ export class MembersController {
   }
 
   @Get(':id/protected-persons')
+  @AllowMemberAccess()
   async listProtectedPersons(
     @Param('id') memberId: string,
     @Request() req: { user: ScopedUser },
@@ -191,7 +197,7 @@ export class MembersController {
 
   @Post(':id/protected-persons')
   @UseGuards(RolesGuard)
-  @Roles(Role.ADMIN, Role.FINANCE)
+  @Roles(Role.ADMIN, Role.SCHOOL_ADMIN, Role.FINANCE)
   addProtectedPerson(
     @Param('id') memberId: string,
     @Body() dto: CreateProtectedPersonDto,
@@ -202,7 +208,7 @@ export class MembersController {
 
   @Patch(':memberId/protected-persons/:id')
   @UseGuards(RolesGuard)
-  @Roles(Role.ADMIN, Role.FINANCE)
+  @Roles(Role.ADMIN, Role.SCHOOL_ADMIN, Role.FINANCE)
   updateProtectedPerson(
     @Param('id') id: string,
     @Body() dto: UpdateProtectedPersonDto,
@@ -213,7 +219,7 @@ export class MembersController {
 
   @Delete(':memberId/protected-persons/:id')
   @UseGuards(RolesGuard)
-  @Roles(Role.ADMIN, Role.FINANCE)
+  @Roles(Role.ADMIN, Role.SCHOOL_ADMIN, Role.FINANCE)
   removeProtectedPerson(
     @Param('id') id: string,
     @Request() req: { user: ScopedUser },

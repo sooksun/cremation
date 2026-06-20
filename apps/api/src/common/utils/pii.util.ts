@@ -1,6 +1,6 @@
 import { Role } from '@prisma/client';
 
-const PII_FULL_ACCESS_ROLES: Role[] = [Role.ADMIN, Role.FINANCE];
+const PII_FULL_ACCESS_ROLES: Role[] = [Role.ADMIN, Role.SCHOOL_ADMIN, Role.FINANCE];
 
 export function maskIdCardNo(idCardNo?: string | null): string | undefined {
   if (!idCardNo) {

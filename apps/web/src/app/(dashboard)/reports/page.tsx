@@ -29,9 +29,11 @@ export default function ReportsPage() {
   });
 
   const { data: memberStats, isLoading: loadingMembers } = useQuery({
-    queryKey: ['member-stats', selectedYear],
+    queryKey: ['member-stats', selectedYear, selectedSchoolId],
     queryFn: async () => {
-      const response = await api.get(`/reports/members?year=${selectedYear}`);
+      const params = new URLSearchParams({ year: selectedYear.toString() });
+      if (selectedSchoolId) params.append('schoolId', selectedSchoolId);
+      const response = await api.get(`/reports/members?${params}`);
       return response.data;
     },
     enabled: reportType === 'members',

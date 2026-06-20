@@ -8,6 +8,8 @@ import { ArrowLeft, Calendar, Users, DollarSign, CheckCircle, AlertCircle, Build
 import Link from 'next/link';
 import { showSuccess, showError, showConfirm } from '@/lib/toast';
 import { api, type ContributionSettings, periodTotalPerPerson } from '@/lib/api';
+import { useAuthStore } from '@/store/auth';
+import { canSelectAllSchools } from '@/lib/school-scope';
 
 interface Contribution {
   id: string;
@@ -100,6 +102,11 @@ export default function PeriodDetailPage() {
   const params = useParams();
   const periodId = params.id as string;
   const queryClient = useQueryClient();
+  const { user, selectedSchoolId } = useAuthStore();
+  const scopedSchoolId = canSelectAllSchools(user?.role)
+    ? (selectedSchoolId ?? undefined)
+    : user?.schoolId;
+  const schoolQuery = scopedSchoolId ? `?schoolId=${scopedSchoolId}` : '';
 
   const { data: period } = useQuery<Period>({
     queryKey: ['period', periodId],
@@ -110,9 +117,9 @@ export default function PeriodDetailPage() {
   });
 
   const { data: contributions, isLoading } = useQuery<Contribution[]>({
-    queryKey: ['period-contributions', periodId],
+    queryKey: ['period-contributions', periodId, scopedSchoolId],
     queryFn: async () => {
-      const response = await api.get(`/contributions/periods/${periodId}/contributions`);
+      const response = await api.get(`/contributions/periods/${periodId}/contributions${schoolQuery}`);
       return response.data;
     },
   });

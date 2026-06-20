@@ -56,8 +56,18 @@ describe('DeathBenefitCalculatorService', () => {
 
     expect(prisma.member.count).toHaveBeenCalledWith({
       where: {
-        status: MemberStatus.ACTIVE,
+        status: { in: [MemberStatus.ACTIVE, MemberStatus.ARREARS] },
         id: { not: 'deceased-id' },
+      },
+    });
+  });
+
+  it('counts ARREARS members as paying members', async () => {
+    await service.calculate({ claimType: DeathClaimType.MEMBER_DEATH });
+
+    expect(prisma.member.count).toHaveBeenCalledWith({
+      where: {
+        status: { in: [MemberStatus.ACTIVE, MemberStatus.ARREARS] },
       },
     });
   });

@@ -3,6 +3,9 @@ import { Role } from '@prisma/client';
 import { SchoolScopeService } from './school-scope.service';
 import { MembersService } from '../../members/members.service';
 import { DeathClaimsService } from '../../death-claims/death-claims.service';
+import { GroupsService } from '../../groups/groups.service';
+import { ReceiptsService } from '../../receipts/receipts.service';
+import { PaymentsService } from '../../payments/payments.service';
 
 describe('School scope on ID routes', () => {
   const schoolA = 'school-a';
@@ -73,6 +76,31 @@ describe('School scope on ID routes', () => {
       });
 
       await expect(membersService.findById(memberId, scopedUser)).resolves.toBeDefined();
+    });
+
+    it('allows a member account to read its linked member only', async () => {
+      prisma.member.findUnique.mockResolvedValue({
+        id: memberId,
+        schoolId: schoolA,
+        associationMember: null,
+        school: null,
+        group: null,
+        beneficiaries: [],
+        protectedPersons: [],
+        contributions: [],
+        deathClaims: [],
+      });
+      const memberUser = {
+        id: 'member-user',
+        role: Role.MEMBER,
+        schoolId: schoolA,
+        memberId,
+      };
+
+      await expect(membersService.findById(memberId, memberUser)).resolves.toBeDefined();
+      await expect(
+        membersService.findById('another-member', memberUser),
+      ).rejects.toThrow(ForbiddenException);
     });
   });
 
@@ -153,6 +181,165 @@ describe('School scope on ID routes', () => {
       expect(prisma.deathClaim.count).toHaveBeenCalledWith(
         expect.objectContaining({ where: expect.objectContaining({ schoolId: schoolA }) }),
       );
+    });
+  });
+
+  describe('GroupsService.findById', () => {
+    const prisma = {
+      group: {
+        findUnique: jest.fn(),
+      },
+    };
+
+    const groupsService = new GroupsService(prisma as never, schoolScope);
+
+    beforeEach(() => {
+      prisma.group.findUnique.mockResolvedValue({
+        id: 'group-1',
+        schoolId: schoolB,
+        school: null,
+        leader: null,
+        members: [],
+      });
+    });
+
+    it('denies school-scoped user reading another school group', async () => {
+      await expect(groupsService.findById('group-1', scopedUser)).rejects.toThrow(
+        ForbiddenException,
+      );
+    });
+
+    it('allows school-scoped user reading own school group', async () => {
+      prisma.group.findUnique.mockResolvedValue({
+        id: 'group-1',
+        schoolId: schoolA,
+        school: null,
+        leader: null,
+        members: [],
+      });
+
+      await expect(groupsService.findById('group-1', scopedUser)).resolves.toBeDefined();
+    });
+  });
+
+  describe('ReceiptsService.findById', () => {
+    const prisma = {
+      receipt: {
+        findUnique: jest.fn(),
+      },
+    };
+
+    const receiptsService = new ReceiptsService(
+      prisma as never,
+      {} as never,
+      {} as never,
+      schoolScope,
+    );
+
+    beforeEach(() => {
+      prisma.receipt.findUnique.mockResolvedValue({
+        id: 'receipt-1',
+        schoolId: schoolB,
+        school: null,
+        bankAccount: null,
+        ledgerEntries: [],
+        memberContribution: null,
+      });
+    });
+
+    it('denies school-scoped user reading another school receipt', async () => {
+      await expect(receiptsService.findById('receipt-1', scopedUser)).rejects.toThrow(
+        ForbiddenException,
+      );
+    });
+  });
+
+  describe('PaymentsService.findById', () => {
+    const prisma = {
+      paymentVoucher: {
+        findUnique: jest.fn(),
+      },
+    };
+
+    const paymentsService = new PaymentsService(
+      prisma as never,
+      {} as never,
+      {} as never,
+      schoolScope,
+    );
+
+    beforeEach(() => {
+      prisma.paymentVoucher.findUnique.mockResolvedValue({
+        id: 'payment-1',
+        schoolId: schoolB,
+        school: null,
+        bankAccount: null,
+        ledgerEntries: [],
+        deathBenefit: null,
+      });
+    });
+
+    it('denies school-scoped user reading another school payment', async () => {
+      await expect(paymentsService.findById('payment-1', scopedUser)).rejects.toThrow(
+        ForbiddenException,
+      );
+    });
+  });
+
+  describe('MembersService.importCsv', () => {
+    const prisma = {
+      school: {
+        findUnique: jest.fn(),
+      },
+      memberType: {
+        findUnique: jest.fn(),
+      },
+      group: {
+        findFirst: jest.fn(),
+      },
+      member: {
+        findFirst: jest.fn(),
+        create: jest.fn(),
+      },
+      associationMember: {
+        create: jest.fn(),
+        update: jest.fn(),
+      },
+    };
+
+    const membersService = new MembersService(
+      prisma as never,
+      {} as never,
+      {} as never,
+      {} as never,
+      schoolScope,
+    );
+
+    beforeEach(() => {
+      prisma.school.findUnique.mockResolvedValue({ id: schoolB, code: 'SCH_B' });
+      prisma.memberType.findUnique.mockResolvedValue({ id: 'type-1', code: 'T1' });
+      prisma.member.findFirst.mockResolvedValue(null);
+      prisma.associationMember.create.mockResolvedValue({ id: 'am-1' });
+      prisma.member.create.mockResolvedValue({ id: 'member-1' });
+    });
+
+    it('skips rows outside the actor school', async () => {
+      const result = await membersService.importCsv(
+        [
+          {
+            memberNo: 'M00001',
+            firstName: 'A',
+            lastName: 'B',
+            schoolCode: 'SCH_B',
+            memberTypeCode: 'T1',
+          },
+        ],
+        scopedUser,
+      );
+
+      expect(result.skipped).toBe(1);
+      expect(result.errors[0]).toContain('ไม่มีสิทธิ์นำเข้า');
+      expect(prisma.associationMember.create).not.toHaveBeenCalled();
     });
   });
 });

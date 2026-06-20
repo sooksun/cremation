@@ -10,6 +10,7 @@ generator client {
 
 enum Role {
   ADMIN
+  SCHOOL_ADMIN
   FINANCE
   ACCOUNTING
   GROUP_LEADER

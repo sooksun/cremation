@@ -21,6 +21,7 @@ import { ReportsModule } from './reports/reports.module';
 import { AssociationMembersModule } from './association-members/association-members.module';
 import { MemberApplicationsModule } from './member-applications/member-applications.module';
 import { AuditLogsModule } from './audit-logs/audit-logs.module';
+import { SchoolAdminsModule } from './school-admins/school-admins.module';
 import { SchoolScopeInterceptor } from './common/interceptors/school-scope.interceptor';
 import { ViewerReadOnlyGuard } from './auth/guards/viewer-readonly.guard';
 import { HealthController } from './health.controller';
@@ -57,6 +58,7 @@ import { HealthController } from './health.controller';
     AssociationMembersModule,
     MemberApplicationsModule,
     AuditLogsModule,
+    SchoolAdminsModule,
   ],
   providers: [
     SchoolScopeInterceptor,
