@@ -1,6 +1,7 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
+import { useRef } from 'react';
 import { motion } from 'framer-motion';
 import {
   Users,
@@ -13,7 +14,9 @@ import {
   Clock,
   BarChart3,
   PieChart,
+  Download,
 } from 'lucide-react';
+import { exportElementToPdf } from '@/lib/export-pdf';
 import {
   BarChart,
   Bar,
@@ -32,6 +35,7 @@ import {
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/auth';
 import { formatThaiDateShort } from '@/components/ThaiDatePicker';
+import dayjs from 'dayjs';
 
 interface ExecutiveData {
   summary: {
@@ -146,11 +150,20 @@ export default function ExecutiveDashboardPage() {
     color: statusColors[s.status] || '#94a3b8',
   }));
 
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  const handleExportPdf = async () => {
+    if (contentRef.current) {
+      await exportElementToPdf(contentRef.current, `executive-report-${dayjs().format('YYYY-MM-DD')}.pdf`);
+    }
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       className="space-y-6"
+      ref={contentRef}
     >
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -163,6 +176,9 @@ export default function ExecutiveDashboardPage() {
             ภาพรวมสมาคมฌาปนกิจสงเคราะห์ สำหรับคณะกรรมการและผู้บริหาร
           </p>
         </div>
+        <button onClick={handleExportPdf} className="btn-secondary flex items-center gap-2">
+          <Download size={18} /> PDF
+        </button>
       </div>
 
       {/* KPI Cards */}

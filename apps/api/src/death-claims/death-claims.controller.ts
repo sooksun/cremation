@@ -10,19 +10,25 @@ import {
   Request,
 } from '@nestjs/common';
 import { DeathClaimsService } from './death-claims.service';
+import { WelfareSettingsService } from './welfare-settings.service';
 import { CreateDeathClaimDto } from './dto/create-death-claim.dto';
 import { RecordBenefitPaymentDto } from './dto/record-payment.dto';
 import { UpdateDeathClaimWorkflowDto } from './dto/update-workflow.dto';
 import { UpdateDeathClaimDocumentsDto } from './dto/update-documents.dto';
+import { UpdateDeathBenefitFixedDto } from './dto/update-death-benefit-fixed.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { DeathClaimType, Role } from '@prisma/client';
+import { ScopedUser } from '../common/security/school-scope.service';
 
 @Controller('death-claims')
 @UseGuards(JwtAuthGuard)
 export class DeathClaimsController {
-  constructor(private readonly deathClaimsService: DeathClaimsService) {}
+  constructor(
+    private readonly deathClaimsService: DeathClaimsService,
+    private readonly welfareSettingsService: WelfareSettingsService,
+  ) {}
 
   @Post()
   @UseGuards(RolesGuard)
@@ -125,5 +131,18 @@ export class DeathClaimsController {
     @Request() req: { user: { id: string; role: Role; schoolId?: string }; ip?: string },
   ) {
     return this.deathClaimsService.recordPayment(id, dto, req.user, req.ip);
+  }
+
+  // === Death Benefit Fixed Amount Settings (ตามมติคณะกรรมการ) ===
+  @Get('settings/death-benefit-fixed')
+  getDeathBenefitFixed() {
+    return this.welfareSettingsService.getCurrentDeathBenefitFixed();
+  }
+
+  @Patch('settings/death-benefit-fixed')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
+  updateDeathBenefitFixed(@Body() dto: UpdateDeathBenefitFixedDto, @Request() req: { user: ScopedUser }) {
+    return this.welfareSettingsService.updateDeathBenefitFixed(dto, req.user);
   }
 }

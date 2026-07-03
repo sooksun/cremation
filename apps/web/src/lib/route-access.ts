@@ -18,7 +18,9 @@ const SCHOOL_ADMIN_BLOCKED_PREFIXES = [
   '/school-clusters',
   '/member-types',
   '/accounts',
+  '/settings',
   '/settings/welfare-rate',
+  '/reports/executive',
 ];
 
 const ROLE_BLOCKED_PREFIXES: Record<string, string[]> = {
@@ -33,7 +35,10 @@ export function isPathAllowedForRole(
   memberId?: string,
 ): boolean {
   if (role === 'MEMBER') {
-    return Boolean(memberId && pathname === `/members/${memberId}/profile`);
+    if (memberId && pathname === `/members/${memberId}/profile`) {
+      return true;
+    }
+    return /^\/receipts\/[^/]+$/.test(pathname) && pathname !== '/receipts/new';
   }
 
   const blocked = ROLE_BLOCKED_PREFIXES[role];

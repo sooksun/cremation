@@ -3,12 +3,15 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateGroupDto } from './dto/create-group.dto';
 import { UpdateGroupDto } from './dto/update-group.dto';
 import { SchoolScopeService, ScopedUser } from '../common/security/school-scope.service';
+import { AuditLogService } from '../common/services/audit-log.service';
+import { AuditAction } from '@prisma/client';
 
 @Injectable()
 export class GroupsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly schoolScope: SchoolScopeService,
+    private readonly auditLog: AuditLogService,
   ) {}
 
   async create(dto: CreateGroupDto, actor?: ScopedUser) {
@@ -16,13 +19,26 @@ export class GroupsService {
       this.schoolScope.assertSchoolAccess(actor, dto.schoolId);
     }
 
-    return this.prisma.group.create({
+    const group = await this.prisma.group.create({
       data: dto,
       include: {
         school: true,
         leader: true,
       },
     });
+
+    if (actor) {
+      await this.auditLog.log({
+        userId: actor.id,
+        action: AuditAction.GROUP_CREATE,
+        entityType: 'Group',
+        entityId: group.id,
+        schoolId: group.schoolId,
+        metadata: { code: group.code, name: group.name, leaderId: group.leaderId },
+      });
+    }
+
+    return group;
   }
 
   async findAll(schoolId?: string) {
@@ -72,16 +88,41 @@ export class GroupsService {
 
   async update(id: string, dto: UpdateGroupDto, actor?: ScopedUser) {
     await this.findById(id, actor);
-    return this.prisma.group.update({
+    const before = await this.prisma.group.findUnique({ where: { id } });
+    const updated = await this.prisma.group.update({
       where: { id },
       data: dto,
       include: { school: true, leader: true },
     });
+
+    if (actor) {
+      await this.auditLog.log({
+        userId: actor.id,
+        action: AuditAction.GROUP_UPDATE,
+        entityType: 'Group',
+        entityId: id,
+        schoolId: updated.schoolId,
+        metadata: { updatedFields: Object.keys(dto), beforeLeader: before?.leaderId, leaderId: updated.leaderId },
+      });
+    }
+    return updated;
   }
 
   async remove(id: string, actor?: ScopedUser) {
     await this.findById(id, actor);
+    const group = await this.prisma.group.findUnique({ where: { id } });
     await this.prisma.group.delete({ where: { id } });
+
+    if (actor && group) {
+      await this.auditLog.log({
+        userId: actor.id,
+        action: AuditAction.GROUP_DELETE,
+        entityType: 'Group',
+        entityId: id,
+        schoolId: group.schoolId,
+        metadata: { code: group.code, name: group.name },
+      });
+    }
     return { message: 'ลบกลุ่มสำเร็จ' };
   }
 }

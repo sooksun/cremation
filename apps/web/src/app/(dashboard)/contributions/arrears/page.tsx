@@ -2,9 +2,13 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
-import { AlertCircle, Phone, Building2, Calendar, DollarSign } from 'lucide-react';
+import { AlertCircle, Phone, Building2, Calendar, DollarSign, Download } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/auth';
+import { exportElementToPdf } from '@/lib/export-pdf';
+import { exportToCsv } from '@/lib/export-csv';
+import { useRef } from 'react';
+import dayjs from 'dayjs';
 
 interface Arrears {
   id: string;
@@ -56,6 +60,31 @@ export default function ArrearsPage() {
 
   const totalArrears = arrears?.reduce((sum, a) => sum + Number(a.totalAmount), 0) || 0;
 
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  const handleExportPdf = async () => {
+    if (contentRef.current) {
+      await exportElementToPdf(contentRef.current, `arrears-report.pdf`);
+    }
+  };
+
+  const handleExportCsv = () => {
+    if (!arrears) return;
+    const rows = [
+      ['เลขสมาชิก', 'ชื่อ-สกุล', 'โรงเรียน', 'กลุ่ม', 'งวด', 'ยอดค้าง', 'โทร'],
+      ...arrears.map(a => [
+        a.member.memberNo,
+        `${a.member.firstName} ${a.member.lastName}`,
+        a.school.name,
+        a.member.group?.name || '-',
+        `${monthNames[a.period.month-1]} ${a.period.year + 543}`,
+        a.totalAmount,
+        a.member.phone || '-'
+      ])
+    ];
+    exportToCsv(`arrears-${dayjs().format('YYYY-MM-DD')}`, rows);
+  };
+
   // Group by school
   const groupedBySchool = arrears?.reduce((acc, item) => {
     if (!acc[item.school.id]) {
@@ -75,6 +104,7 @@ export default function ArrearsPage() {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       className="space-y-6"
+      ref={contentRef}
     >
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -85,6 +115,14 @@ export default function ArrearsPage() {
           <p className="text-slate-500 mt-1">
             รายการเงินสงเคราะห์ที่ยังไม่ได้ชำระ
           </p>
+        </div>
+        <div className="flex gap-2">
+          <button onClick={handleExportPdf} className="btn-secondary flex items-center gap-2">
+            <Download size={18} /> PDF
+          </button>
+          <button onClick={handleExportCsv} className="btn-secondary flex items-center gap-2">
+            <Download size={18} /> CSV
+          </button>
         </div>
       </div>
 

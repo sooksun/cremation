@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, MinLength, IsEnum, IsOptional, ValidateIf } from 'class-validator';
+import { IsString, IsNotEmpty, MinLength, IsEnum, IsOptional, ValidateIf, Matches } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { Role } from '@prisma/client';
 
@@ -11,6 +11,9 @@ export class CreateUserDto {
   @IsString()
   @IsNotEmpty({ message: 'กรุณากรอกรหัสผ่าน' })
   @MinLength(8, { message: 'รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร' })
+  @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>_\-+=~`[\]\\;'/]).{8,}$/, {
+    message: 'รหัสผ่านต้องมีตัวพิมพ์ใหญ่, ตัวพิมพ์เล็ก, ตัวเลข และอักขระพิเศษอย่างน้อย 1 ตัว',
+  })
   password: string;
 
   @IsString()

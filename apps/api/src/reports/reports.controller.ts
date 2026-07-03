@@ -106,6 +106,36 @@ export class ReportsController {
     );
   }
 
+  // Group 8: Cash Flow Report
+  @Get('cash-flow')
+  getCashFlow(
+    @Request() req: { user: ScopedUser },
+    @Query('startDate') startDate: string,
+    @Query('endDate') endDate: string,
+    @Query('schoolId') schoolId?: string,
+  ) {
+    return this.reportsService.getCashFlow(
+      new Date(startDate),
+      new Date(endDate),
+      this.scopedSchoolId(req.user, schoolId),
+    );
+  }
+
+  // Group 13: Statement of Changes in Equity
+  @Get('changes-in-equity')
+  getChangesInEquity(
+    @Request() req: { user: ScopedUser },
+    @Query('startDate') startDate: string,
+    @Query('endDate') endDate: string,
+    @Query('schoolId') schoolId?: string,
+  ) {
+    return this.reportsService.getChangesInEquity(
+      new Date(startDate),
+      new Date(endDate),
+      this.scopedSchoolId(req.user, schoolId),
+    );
+  }
+
   @Get('board-monthly')
   @UseGuards(RolesGuard)
   @Roles(Role.ADMIN, Role.SCHOOL_ADMIN, Role.FINANCE, Role.ACCOUNTING)

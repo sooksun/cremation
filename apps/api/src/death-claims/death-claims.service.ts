@@ -145,6 +145,8 @@ export class DeathClaimsService {
       payoutRatio: calc.payoutRatio,
       otherDeductions: calc.otherDeductions,
       netToPay: calc.netToPay,
+      isFixedBenefit: calc.isFixedAmount ?? false,
+      fixedBenefitAmount: calc.fixedAmount != null ? new Prisma.Decimal(calc.fixedAmount) : null,
       status: DeathClaimStatus.REPORTED,
       collectionChannel: workflow.collectionChannel,
       notifyAuthorityDeadline: workflow.notifyAuthorityDeadline,

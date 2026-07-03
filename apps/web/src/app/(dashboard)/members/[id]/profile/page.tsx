@@ -79,6 +79,7 @@ interface MemberProfile {
     paidAmount: string;
     paidDate?: string;
     isArrears: boolean;
+    receipt?: { id: string; receiptNo: string } | null;
   }[];
   arrears: any[];
   deathClaims: any[];
@@ -433,6 +434,7 @@ export default function MemberProfilePage() {
                     <th className="text-right">ชำระแล้ว</th>
                     <th>วันที่ชำระ</th>
                     <th>สถานะ</th>
+                    <th>ใบเสร็จ</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -464,6 +466,19 @@ export default function MemberProfilePage() {
                             <Clock size={12} />
                             รอชำระ
                           </span>
+                        )}
+                      </td>
+                      <td>
+                        {c.receipt ? (
+                          <Link
+                            href={`/receipts/${c.receipt.id}`}
+                            className="inline-flex items-center gap-1 text-xs text-primary-600 hover:underline"
+                          >
+                            <FileText size={12} />
+                            {c.receipt.receiptNo}
+                          </Link>
+                        ) : (
+                          <span className="text-xs text-slate-300">-</span>
                         )}
                       </td>
                     </tr>

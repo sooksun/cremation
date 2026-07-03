@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Settings, Calculator, Users, AlertTriangle, Edit2, Plus } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { api, type ContributionSettings, periodTotalPerPerson } from '@/lib/api';
@@ -23,6 +23,14 @@ interface PeriodForm {
   serviceFee: number;
 }
 
+interface DeathBenefitFixed {
+  id: string;
+  effectiveDate: string;
+  welfareAmountPerCase: number;
+  description?: string;
+  isActive: boolean;
+}
+
 const monthNames = [
   'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
   'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
@@ -32,7 +40,17 @@ export default function WelfareRateSettingsPage() {
   const queryClient = useQueryClient();
   const { selectedYear } = useAuthStore();
   const [editingPeriod, setEditingPeriod] = useState<ContributionPeriod | null>(null);
+  const [editingFixed, setEditingFixed] = useState(false);
+  const [fixedForm, setFixedForm] = useState({ welfareAmountPerCase: 0, description: '' });
   const { register, handleSubmit, reset, formState: { errors } } = useForm<PeriodForm>();
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('th-TH', {
+      style: 'currency',
+      currency: 'THB',
+      minimumFractionDigits: 0,
+    }).format(amount);
+  };
 
   const { data: periods, isLoading } = useQuery<ContributionPeriod[]>({
     queryKey: ['contribution-periods', selectedYear],
@@ -51,6 +69,26 @@ export default function WelfareRateSettingsPage() {
   });
 
   const serviceFeeEnabled = settings?.serviceFeeEnabled ?? false;
+
+  const { data: deathBenefitFixed, isLoading: loadingFixed } = useQuery<DeathBenefitFixed | null>({
+    queryKey: ['death-benefit-fixed'],
+    queryFn: async () => {
+      const res = await api.get('/death-claims/settings/death-benefit-fixed');
+      return res.data;
+    },
+  });
+
+  const fixedUpdateMutation = useMutation({
+    mutationFn: (data: { welfareAmountPerCase: number; description?: string }) =>
+      api.patch('/death-claims/settings/death-benefit-fixed', data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['death-benefit-fixed'] });
+      showSuccess('อัปเดตจำนวนเงินสงเคราะห์ศพคงที่สำเร็จ');
+    },
+    onError: (error: any) => {
+      showError(error.response?.data?.message || 'เกิดข้อผิดพลาด');
+    },
+  });
 
   const updateMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: PeriodForm }) =>
@@ -79,6 +117,26 @@ export default function WelfareRateSettingsPage() {
     reset();
   };
 
+  const openFixedModal = () => {
+    setFixedForm({
+      welfareAmountPerCase: deathBenefitFixed?.welfareAmountPerCase || 50000,
+      description: deathBenefitFixed?.description || '',
+    });
+    setEditingFixed(true);
+  };
+
+  const closeFixedModal = () => {
+    setEditingFixed(false);
+  };
+
+  const saveFixed = () => {
+    fixedUpdateMutation.mutate({
+      welfareAmountPerCase: Number(fixedForm.welfareAmountPerCase),
+      description: fixedForm.description || undefined,
+    });
+    closeFixedModal();
+  };
+
   const onSubmit = (data: PeriodForm) => {
     if (!editingPeriod) return;
     
@@ -94,14 +152,6 @@ export default function WelfareRateSettingsPage() {
         });
       }
     );
-  };
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('th-TH', {
-      style: 'currency',
-      currency: 'THB',
-      minimumFractionDigits: 0,
-    }).format(amount);
   };
 
   return (
@@ -129,10 +179,55 @@ export default function WelfareRateSettingsPage() {
           หลักการจ่ายเงินสงเคราะห์ศพ
         </h3>
         <div className="space-y-2 text-sm text-blue-800">
-          <p>ระบบนี้ใช้วิธีการคำนวณเงินสงเคราะห์ศพแบบ <strong>"กองทุนกลาง"</strong> ดังนี้:</p>
-          <p>• อัตราเงินสงเคราะห์กำหนดแยกตามแต่ละงวด{serviceFeeEnabled ? ' และค่าบริการ (เมื่อเปิดใช้งาน)' : ''}</p>
-          <p>• สามารถแก้ไขอัตราได้เฉพาะงวดที่ยังไม่ปิด</p>
+          <p>ระบบรองรับ 2 แบบ:</p>
+          <p>• <strong>แบบคงที่ (แนะนำ)</strong>: กำหนดยอดจ่ายต่อรายตามมติคณะกรรมการ (คงที่ ไม่ขึ้นกับจำนวนสมาชิก) — เหมาะกับการย้ายเข้าย้ายออกของข้าราชการครู</p>
+          <p>• <strong>แบบกองทุนกลาง</strong>: คำนวณจากจำนวนสมาชิกที่ชำระ (legacy)</p>
         </div>
+      </div>
+
+      {/* Fixed Death Benefit Amount (ตามมติคณะกรรมการ) */}
+      <div className="card p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h3 className="font-semibold text-slate-900 flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-amber-600" />
+              เงินสงเคราะห์ศพแบบคงที่ (มติคณะกรรมการสมาคม)
+            </h3>
+            <p className="text-sm text-slate-500 mt-1">กำหนดยอดจ่ายต่อ 1 ราย (คงที่) — จะใช้เป็นยอด netToPay เมื่อตั้งค่าไว้</p>
+          </div>
+        </div>
+
+        {loadingFixed ? (
+          <div className="py-8 text-center text-slate-500">กำลังโหลด...</div>
+        ) : deathBenefitFixed ? (
+          <div className="flex flex-col md:flex-row md:items-center gap-4 p-4 bg-amber-50 border border-amber-200 rounded-xl">
+            <div className="flex-1">
+              <div className="text-3xl font-bold text-amber-800">
+                {formatCurrency(deathBenefitFixed.welfareAmountPerCase)}
+              </div>
+              <div className="text-sm text-amber-700 mt-1">
+                ต่อ 1 รายเสียชีวิต • มีผลตั้งแต่ {new Date(deathBenefitFixed.effectiveDate).toLocaleDateString('th-TH')}
+              </div>
+              {deathBenefitFixed.description && (
+                <div className="text-xs text-amber-600 mt-1">{deathBenefitFixed.description}</div>
+              )}
+            </div>
+            <button
+              onClick={() => openFixedModal()}
+              className="btn-secondary"
+            >
+              <Edit2 size={16} className="mr-1" /> แก้ไข
+            </button>
+          </div>
+        ) : (
+          <div className="p-4 bg-slate-50 rounded-xl text-center">
+            <p className="text-slate-600 mb-3">ยังไม่ได้กำหนดยอดคงที่</p>
+            <p className="text-xs text-slate-500 mb-3">หากไม่ตั้ง ระบบจะใช้การคำนวณจากกองทุนกลาง (legacy)</p>
+            <button onClick={() => openFixedModal()} className="btn-primary">
+              <Plus size={16} className="mr-1" /> กำหนดยอดคงที่
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Periods Table */}
@@ -215,11 +310,11 @@ export default function WelfareRateSettingsPage() {
           </div>
           <div className="space-y-4">
             <div className="p-4 bg-slate-50 rounded-xl">
-              <p className="text-sm text-slate-600 mb-2">ยอดเงินสงเคราะห์ศพ (ระเบียบ ข้อ 13–16) =</p>
+              <p className="text-sm text-slate-600 mb-2">ยอดเงินสงเคราะห์ศพ (ตามมติคณะกรรมการหรือระเบียบเดิม)</p>
               <div className="text-lg font-semibold text-slate-900">
-                (สมาชิกที่ส่ง × 100 หรือ 50 บาท) × 90% − หักอื่นๆ
+                {deathBenefitFixed ? 'ยอดคงที่ (fixed)' : '(สมาชิกที่ส่ง × 100/50) × 90% − หักอื่นๆ'}
               </div>
-              <p className="text-xs text-slate-500 mt-2">10% ที่เหลือเข้ากองทุนฌาปนกิจสงเคราะห์</p>
+              <p className="text-xs text-slate-500 mt-2">แบบคงที่: ใช้ยอดที่คณะกรรมการกำหนด (แนะนำสำหรับย้ายเข้าย้ายออก)</p>
             </div>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between py-2 border-b border-slate-100">
@@ -363,6 +458,68 @@ export default function WelfareRateSettingsPage() {
           </motion.div>
         </div>
       )}
+    </motion.div>
+      )}
+
+      {/* Fixed Death Benefit Modal */}
+      <AnimatePresence>
+        {editingFixed && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+            onClick={closeFixedModal}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white rounded-2xl w-full max-w-md p-6 shadow-xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h2 className="text-xl font-bold text-slate-900 mb-2">กำหนดเงินสงเคราะห์ศพแบบคงที่</h2>
+              <p className="text-sm text-slate-500 mb-4">ตามมติคณะกรรมการสมาคม (ยอดจ่ายต่อรายคงที่)</p>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="label">ยอดจ่ายต่อ 1 ราย (บาท)</label>
+                  <input
+                    type="number"
+                    className="input"
+                    value={fixedForm.welfareAmountPerCase}
+                    onChange={(e) => setFixedForm({ ...fixedForm, welfareAmountPerCase: parseFloat(e.target.value) || 0 })}
+                    min={0}
+                    step="100"
+                  />
+                </div>
+                <div>
+                  <label className="label">หมายเหตุ / มติ (ไม่บังคับ)</label>
+                  <input
+                    className="input"
+                    value={fixedForm.description}
+                    onChange={(e) => setFixedForm({ ...fixedForm, description: e.target.value })}
+                    placeholder="มติที่ประชุม ครั้งที่ ... /2568"
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-6">
+                <button onClick={closeFixedModal} className="btn-secondary flex-1">ยกเลิก</button>
+                <button
+                  onClick={saveFixed}
+                  className="btn-primary flex-1"
+                  disabled={fixedUpdateMutation.isPending || fixedForm.welfareAmountPerCase <= 0}
+                >
+                  {fixedUpdateMutation.isPending ? 'กำลังบันทึก...' : 'บันทึกยอดคงที่'}
+                </button>
+              </div>
+
+              <p className="text-xs text-amber-600 mt-3">* เมื่อตั้งค่าแล้ว ระบบจะใช้ยอดนี้เป็น netToPay สำหรับการแจ้งเสียชีวิตใหม่</p>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }

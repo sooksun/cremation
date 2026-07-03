@@ -3,7 +3,13 @@ export function canSelectAllSchools(role?: string): boolean {
 }
 
 export function isSchoolScopedRole(role?: string): boolean {
-  return role === 'SCHOOL_ADMIN' || role === 'FINANCE' || role === 'ACCOUNTING' || role === 'GROUP_LEADER';
+  return (
+    role === 'SCHOOL_ADMIN' ||
+    role === 'FINANCE' ||
+    role === 'ACCOUNTING' ||
+    role === 'GROUP_LEADER' ||
+    role === 'MEMBER'
+  );
 }
 
 export function resolveSelectedSchoolId(

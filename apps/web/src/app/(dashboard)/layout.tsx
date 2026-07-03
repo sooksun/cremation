@@ -23,6 +23,8 @@ import {
   Building2,
   Calendar,
   Award,
+  History,
+  Package,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/auth';
 import { api, type School } from '@/lib/api';
@@ -57,6 +59,9 @@ const menuItems = [
       { label: 'กลุ่มเก็บเงิน', href: '/groups', roles: ['ADMIN', 'SCHOOL_ADMIN', 'FINANCE'] },
       { label: 'ผังบัญชี', href: '/accounts', roles: ['ADMIN', 'ACCOUNTING'] },
       { label: 'บัญชีธนาคาร', href: '/bank-accounts', roles: ['ADMIN', 'SCHOOL_ADMIN', 'FINANCE'] },
+      { label: 'สินทรัพย์ถาวร', href: '/assets', roles: ['ADMIN', 'ACCOUNTING'] },
+      { label: 'สมุดเงินสด', href: '/cash-book', roles: ['ADMIN', 'SCHOOL_ADMIN', 'FINANCE'] },
+      { label: 'ใบสมัครสมาชิก', href: '/member-applications', roles: ['ADMIN', 'SCHOOL_ADMIN'] },
     ],
   },
   // ─── 2. งานสมาคม (สมาคมผู้ประกอบวิชาชีพ) ────────────────
@@ -64,12 +69,13 @@ const menuItems = [
     label: '2. งานสมาคม',
     icon: Award,
     children: [
-      { label: 'สมาชิกสมาคม', href: '/association-members' },
-      { label: 'ธนาคาร', href: '/bank' },
-      { label: 'รายงานการเงิน', href: '/reports/finance' },
-      { label: 'งบการเงิน', href: '/reports/financial-statements' },
-      { label: 'รายงานรายวัน', href: '/reports/daily' },
-      { label: 'รายงานสมาชิก', href: '/reports' },
+      { label: 'สมาชิกสมาคม', href: '/association-members', roles: ['ADMIN', 'SCHOOL_ADMIN', 'FINANCE'] },
+      { label: 'ธนาคาร', href: '/bank', roles: ['ADMIN', 'SCHOOL_ADMIN', 'FINANCE'] },
+      { label: 'รายงานการเงิน', href: '/reports/finance', roles: ['ADMIN', 'SCHOOL_ADMIN', 'FINANCE', 'ACCOUNTING'] },
+      { label: 'งบการเงิน', href: '/reports/financial-statements', roles: ['ADMIN', 'SCHOOL_ADMIN', 'FINANCE', 'ACCOUNTING'] },
+      { label: 'รายงานรายวัน', href: '/reports/daily', roles: ['ADMIN', 'SCHOOL_ADMIN', 'FINANCE', 'ACCOUNTING'] },
+      { label: 'งบทดลอง (Trial Balance)', href: '/reports/trial-balance', roles: ['ADMIN', 'SCHOOL_ADMIN', 'FINANCE', 'ACCOUNTING'] },
+      { label: 'รายงานสมาชิก', href: '/reports', roles: ['ADMIN', 'SCHOOL_ADMIN', 'FINANCE'] },
     ],
   },
   // ─── 3. งานฌาปนกิจ (กองทุนฌาปนกิจสงเคราะห์) ────────────
@@ -77,16 +83,16 @@ const menuItems = [
     label: '3. งานฌาปนกิจ',
     icon: PiggyBank,
     children: [
-      { label: 'ภาพรวมผู้บริหาร', href: '/reports/executive' },
-      { label: 'รายงานคณะกรรมการ', href: '/reports/board-monthly', roles: ['ADMIN', 'FINANCE', 'ACCOUNTING'] },
-      { label: 'สมาชิกฌาปนกิจ', href: '/members' },
-      { label: 'งวดเงินสงเคราะห์', href: '/contributions/periods' },
-      { label: 'ตารางการชำระ', href: '/contributions/matrix' },
-      { label: 'รายการค้างชำระ', href: '/contributions/arrears' },
-      { label: 'ใบเสร็จรับเงิน', href: '/receipts' },
-      { label: 'ใบสำคัญจ่าย', href: '/payments' },
-      { label: 'ธนาคาร', href: '/bank' },
-      { label: 'แจ้งเสียชีวิต', href: '/death-claims' },
+      { label: 'ภาพรวมผู้บริหาร', href: '/reports/executive', roles: ['ADMIN'] },
+      { label: 'รายงานคณะกรรมการ', href: '/reports/board-monthly', roles: ['ADMIN', 'SCHOOL_ADMIN', 'FINANCE', 'ACCOUNTING'] },
+      { label: 'สมาชิกฌาปนกิจ', href: '/members', roles: ['ADMIN', 'SCHOOL_ADMIN', 'FINANCE'] },
+      { label: 'งวดเงินสงเคราะห์', href: '/contributions/periods', roles: ['ADMIN', 'SCHOOL_ADMIN', 'FINANCE', 'GROUP_LEADER'] },
+      { label: 'ตารางการชำระ', href: '/contributions/matrix', roles: ['ADMIN', 'SCHOOL_ADMIN', 'FINANCE', 'GROUP_LEADER'] },
+      { label: 'รายการค้างชำระ', href: '/contributions/arrears', roles: ['ADMIN', 'SCHOOL_ADMIN', 'FINANCE'] },
+      { label: 'ใบเสร็จรับเงิน', href: '/receipts', roles: ['ADMIN', 'SCHOOL_ADMIN', 'FINANCE'] },
+      { label: 'ใบสำคัญจ่าย', href: '/payments', roles: ['ADMIN', 'SCHOOL_ADMIN', 'FINANCE'] },
+      { label: 'ธนาคาร', href: '/bank', roles: ['ADMIN', 'SCHOOL_ADMIN', 'FINANCE'] },
+      { label: 'แจ้งเสียชีวิต', href: '/death-claims', roles: ['ADMIN', 'SCHOOL_ADMIN', 'FINANCE'] },
     ],
   },
   {
@@ -97,6 +103,12 @@ const menuItems = [
       { label: 'อัตราเงินช่วยเหลือ', href: '/settings/welfare-rate', roles: ['ADMIN'] },
       { label: 'การจัดการลายเซ็น', href: '/settings/signature' },
     ],
+  },
+  {
+    label: 'บันทึกกิจกรรม',
+    href: '/audit-logs',
+    icon: History,
+    roles: ['ADMIN', 'SCHOOL_ADMIN', 'FINANCE', 'ACCOUNTING'],
   },
 ];
 

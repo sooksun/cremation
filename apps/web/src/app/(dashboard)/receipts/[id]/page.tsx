@@ -9,6 +9,7 @@ import Link from 'next/link';
 import { api } from '@/lib/api';
 import { showSuccess, showError } from '@/lib/toast';
 import ReceiptTemplate from '@/components/ReceiptTemplate';
+import { useAuthStore } from '@/store/auth';
 
 interface ReceiptDetail {
   id: string;
@@ -46,6 +47,11 @@ export default function ReceiptDetailPage() {
   
   const receiptRef = useRef<HTMLDivElement>(null);
   const [isPrinting, setIsPrinting] = useState(false);
+  const authUser = useAuthStore((state) => state.user);
+  const isMemberUser = authUser?.role === 'MEMBER';
+  const backHref = isMemberUser && authUser?.memberId
+    ? `/members/${authUser.memberId}/profile`
+    : '/receipts';
 
   const { data: receipt, isLoading } = useQuery<ReceiptDetail>({
     queryKey: ['receipt', receiptId],
@@ -123,8 +129,8 @@ export default function ReceiptDetailPage() {
     return (
       <div className="text-center py-20">
         <p className="text-lg text-slate-500">ไม่พบใบเสร็จ</p>
-        <Link href="/receipts" className="btn-secondary mt-4">
-          กลับไปรายการใบเสร็จ
+        <Link href={backHref} className="btn-secondary mt-4">
+          {isMemberUser ? 'กลับไปข้อมูลของฉัน' : 'กลับไปรายการใบเสร็จ'}
         </Link>
       </div>
     );
@@ -156,7 +162,7 @@ export default function ReceiptDetailPage() {
       {/* Header - Hidden when printing */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 print:hidden">
         <div className="flex items-center gap-4">
-          <Link href="/receipts" className="p-2 hover:bg-slate-100 rounded-lg">
+          <Link href={backHref} className="p-2 hover:bg-slate-100 rounded-lg">
             <ArrowLeft size={20} />
           </Link>
           <div>

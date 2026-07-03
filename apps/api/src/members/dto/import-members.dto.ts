@@ -36,6 +36,18 @@ export class MemberCsvRowDto {
   @IsOptional()
   @IsString()
   idCardNo?: string;
+
+  @IsOptional()
+  @IsDateString()
+  birthDate?: string;
+
+  @IsOptional()
+  @IsString()
+  address?: string;
+
+  @IsOptional()
+  @IsString()
+  position?: string;
 }
 
 export class ImportMembersDto {

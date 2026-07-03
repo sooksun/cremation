@@ -204,7 +204,7 @@ const TEMPLATE_COORDS: Record<MembershipType, TemplateCoords> = {
       yTop: 285.5,
       district: 105,
       province: 205,
-      zip: 354,
+      zip: 334,
       phone: 438,
     },
     maritalStatus: { yTop: 307.3, singleX: 108, marriedX: 178, spouseX: 317.1 },

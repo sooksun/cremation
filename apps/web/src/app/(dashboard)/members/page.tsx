@@ -91,6 +91,9 @@ export default function MembersPage() {
         joinDate: r.joinDate || undefined,
         phone: r.phone || undefined,
         idCardNo: r.idCardNo || undefined,
+        birthDate: r.birthDate || undefined,
+        address: r.address || undefined,
+        position: r.position || undefined,
       }));
       const response = await api.post('/members/import/csv', { rows });
       const r = response.data;

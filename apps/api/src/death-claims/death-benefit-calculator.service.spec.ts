@@ -6,11 +6,13 @@ describe('DeathBenefitCalculatorService', () => {
   let service: DeathBenefitCalculatorService;
   let prisma: {
     member: { count: jest.Mock };
+    welfareSettings: { findFirst: jest.Mock };
   };
 
   beforeEach(() => {
     prisma = {
       member: { count: jest.fn().mockResolvedValue(100) },
+      welfareSettings: { findFirst: jest.fn().mockResolvedValue(null) }, // no fixed = legacy mode
     };
     service = new DeathBenefitCalculatorService(prisma as unknown as PrismaService);
   });

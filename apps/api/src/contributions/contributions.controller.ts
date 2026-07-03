@@ -13,12 +13,12 @@ import { ContributionsService } from './contributions.service';
 import { CreatePeriodDto, UpdatePeriodDto } from './dto/period.dto';
 import { UpdateContributionSettingsDto } from './dto/contribution-settings.dto';
 import { RecordPaymentDto } from './dto/payment.dto';
+import { ScopedUser } from '../common/security/school-scope.service';
 import { BatchPaymentDto } from './dto/batch-payment.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '@prisma/client';
-import { ScopedUser } from '../common/security/school-scope.service';
 
 @Controller('contributions')
 @UseGuards(JwtAuthGuard)
@@ -65,8 +65,8 @@ export class ContributionsController {
   @Post('periods/:id/close')
   @UseGuards(RolesGuard)
   @Roles(Role.ADMIN, Role.SCHOOL_ADMIN, Role.FINANCE)
-  closePeriod(@Param('id') id: string) {
-    return this.contributionsService.closePeriod(id);
+  closePeriod(@Param('id') id: string, @Request() req: { user: ScopedUser }) {
+    return this.contributionsService.closePeriod(id, req.user);
   }
 
   @Get('periods/:id/summary')

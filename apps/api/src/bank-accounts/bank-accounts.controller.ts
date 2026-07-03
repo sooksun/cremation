@@ -8,6 +8,7 @@ import {
   Delete,
   Query,
   UseGuards,
+  Request,
 } from '@nestjs/common';
 import { BankAccountsService } from './bank-accounts.service';
 import { CreateBankAccountDto, UpdateBankAccountDto } from './dto/bank-account.dto';
@@ -16,6 +17,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '@prisma/client';
+import { ScopedUser } from '../common/security/school-scope.service';
 
 @Controller('bank-accounts')
 @UseGuards(JwtAuthGuard)
@@ -25,8 +27,8 @@ export class BankAccountsController {
   @Post()
   @UseGuards(RolesGuard)
   @Roles(Role.ADMIN, Role.SCHOOL_ADMIN, Role.FINANCE)
-  create(@Body() dto: CreateBankAccountDto) {
-    return this.bankAccountsService.create(dto);
+  create(@Body() dto: CreateBankAccountDto, @Request() req: { user: ScopedUser }) {
+    return this.bankAccountsService.create(dto, req.user);
   }
 
   @Get()
@@ -97,8 +99,8 @@ export class BankAccountsController {
   @Patch(':id')
   @UseGuards(RolesGuard)
   @Roles(Role.ADMIN, Role.SCHOOL_ADMIN, Role.FINANCE)
-  update(@Param('id') id: string, @Body() dto: UpdateBankAccountDto) {
-    return this.bankAccountsService.update(id, dto);
+  update(@Param('id') id: string, @Body() dto: UpdateBankAccountDto, @Request() req: { user: ScopedUser }) {
+    return this.bankAccountsService.update(id, dto, req.user);
   }
 
   @Patch(':id/set-default')
@@ -111,7 +113,7 @@ export class BankAccountsController {
   @Delete(':id')
   @UseGuards(RolesGuard)
   @Roles(Role.ADMIN, Role.SCHOOL_ADMIN)
-  remove(@Param('id') id: string) {
-    return this.bankAccountsService.remove(id);
+  remove(@Param('id') id: string, @Request() req: { user: ScopedUser }) {
+    return this.bankAccountsService.remove(id, req.user);
   }
 }

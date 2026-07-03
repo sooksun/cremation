@@ -9,6 +9,9 @@ import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateSchoolAdminDto } from './dto/create-school-admin.dto';
 import { UpdateSchoolAdminDto } from './dto/update-school-admin.dto';
+import { AuditLogService } from '../common/services/audit-log.service';
+import { AuditAction } from '@prisma/client';
+import { ScopedUser } from '../common/security/school-scope.service';
 
 export function buildDefaultSchoolAdminUsername(schoolCode: string): string {
   return `admin-${schoolCode.toLowerCase()}`;
@@ -16,7 +19,10 @@ export function buildDefaultSchoolAdminUsername(schoolCode: string): string {
 
 @Injectable()
 export class SchoolAdminsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly auditLog: AuditLogService,
+  ) {}
 
   private stripPassword<T extends { passwordHash?: string }>(user: T) {
     const { passwordHash: _, ...result } = user;
@@ -45,6 +51,7 @@ export class SchoolAdminsService {
       fullName: string;
       mustChangePassword?: boolean;
     },
+    actor?: ScopedUser,
   ) {
     const school = await this.prisma.school.findUnique({ where: { id: schoolId } });
     if (!school) {
@@ -73,15 +80,24 @@ export class SchoolAdminsService {
       include: { school: true },
     });
 
+    await this.auditLog.log({
+      userId: actor ? actor.id : 'system',
+      action: AuditAction.SCHOOL_ADMIN_CREATE,
+      entityType: 'User',
+      entityId: user.id,
+      schoolId: schoolId,
+      metadata: { username: user.username, role: 'SCHOOL_ADMIN', fullName: user.fullName },
+    });
+
     return this.stripPassword(user);
   }
 
-  async create(dto: CreateSchoolAdminDto) {
+  async create(dto: CreateSchoolAdminDto, actor?: ScopedUser) {
     return this.createForSchool(dto.schoolId, {
       username: dto.username,
       password: dto.password,
       fullName: dto.fullName,
-    });
+    }, actor);
   }
 
   async findAll() {
@@ -130,7 +146,7 @@ export class SchoolAdminsService {
     return this.stripPassword(admin);
   }
 
-  async update(schoolId: string, dto: UpdateSchoolAdminDto) {
+  async update(schoolId: string, dto: UpdateSchoolAdminDto, actor?: ScopedUser) {
     const admin = await this.prisma.user.findFirst({
       where: { role: Role.SCHOOL_ADMIN, schoolId },
     });
@@ -165,10 +181,19 @@ export class SchoolAdminsService {
       include: { school: true },
     });
 
+    await this.auditLog.log({
+      userId: actor ? actor.id : 'system',
+      action: AuditAction.SCHOOL_ADMIN_UPDATE,
+      entityType: 'User',
+      entityId: admin.id,
+      schoolId: schoolId,
+      metadata: { updatedFields: Object.keys(data), role: 'SCHOOL_ADMIN' },
+    });
+
     return this.stripPassword(updated);
   }
 
-  async remove(schoolId: string) {
+  async remove(schoolId: string, actor?: ScopedUser) {
     const admin = await this.prisma.user.findFirst({
       where: { role: Role.SCHOOL_ADMIN, schoolId },
     });
@@ -176,6 +201,15 @@ export class SchoolAdminsService {
     if (!admin) {
       throw new NotFoundException('โรงเรียนนี้ยังไม่มีผู้ดูแล');
     }
+
+    await this.auditLog.log({
+      userId: actor ? actor.id : 'system',
+      action: AuditAction.SCHOOL_ADMIN_DELETE,
+      entityType: 'User',
+      entityId: admin.id,
+      schoolId: schoolId,
+      metadata: { role: 'SCHOOL_ADMIN' },
+    });
 
     await this.prisma.user.delete({ where: { id: admin.id } });
     return { message: 'ลบผู้ดูแลโรงเรียนสำเร็จ' };

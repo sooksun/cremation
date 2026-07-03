@@ -19,6 +19,7 @@ import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/auth';
 import ThaiDatePicker from '@/components/ThaiDatePicker';
 import dayjs from 'dayjs';
+import { formatThaiDateShort } from '@/components/ThaiDatePicker';
 
 export default function ReportsPage() {
   const { selectedSchoolId, selectedYear } = useAuthStore();
@@ -73,12 +74,7 @@ export default function ReportsPage() {
   };
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('th-TH', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
-    });
+    return formatThaiDateShort(dateString);
   };
 
   return (

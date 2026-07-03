@@ -1,10 +1,11 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { DocumentNumberService, DocumentType } from '../common/document-number.service';
 import { CreateReceiptDto } from './dto/create-receipt.dto';
-import { AuditAction, ReceiptType } from '@prisma/client';
+import { AuditAction, ReceiptType, Role } from '@prisma/client';
 import { SchoolScopeService, ScopedUser } from '../common/security/school-scope.service';
 import { AuditLogService } from '../common/services/audit-log.service';
+import { CashBookService } from '../cash-book/cash-book.service';
 
 @Injectable()
 export class ReceiptsService {
@@ -13,6 +14,7 @@ export class ReceiptsService {
     private readonly documentNumberService: DocumentNumberService,
     private readonly auditLog: AuditLogService,
     private readonly schoolScope: SchoolScopeService,
+    private readonly cashBook: CashBookService,
   ) {}
 
   async create(dto: CreateReceiptDto, actor?: ScopedUser, ipAddress?: string) {
@@ -36,6 +38,10 @@ export class ReceiptsService {
     });
 
     await this.createLedgerEntries(receipt);
+
+    if (!receipt.bankAccountId) {
+      await this.cashBook.createFromReceipt(receipt);
+    }
 
     if (actor) {
       await this.auditLog.log({
@@ -74,7 +80,12 @@ export class ReceiptsService {
         school: true,
         bankAccount: true,
         ledgerEntries: { include: { account: true } },
-        memberContribution: { include: { member: true, period: true } },
+        memberContribution: {
+          include: {
+            member: { include: { associationMember: true, school: true } },
+            period: true,
+          },
+        },
       },
     });
 
@@ -83,7 +94,13 @@ export class ReceiptsService {
     }
 
     if (actor) {
-      this.schoolScope.assertResourceSchoolAccess(actor, receipt.schoolId);
+      if (actor.role === Role.MEMBER) {
+        if (receipt.memberContribution?.memberId !== actor.memberId) {
+          throw new ForbiddenException('บัญชีสมาชิกเข้าถึงได้เฉพาะใบเสร็จของตนเอง');
+        }
+      } else {
+        this.schoolScope.assertResourceSchoolAccess(actor, receipt.schoolId);
+      }
     }
 
     return receipt;
@@ -140,26 +157,33 @@ export class ReceiptsService {
     }
 
     if (debitAccountId && creditAccountId) {
-      await this.prisma.ledgerEntry.createMany({
-        data: [
-          {
-            accountId: debitAccountId,
-            date: receipt.date,
-            description: receipt.description || `ใบเสร็จ ${receipt.receiptNo}`,
-            debit: receipt.amount,
-            credit: 0,
-            receiptId: receipt.id,
-          },
-          {
-            accountId: creditAccountId,
-            date: receipt.date,
-            description: receipt.description || `ใบเสร็จ ${receipt.receiptNo}`,
-            debit: 0,
-            credit: receipt.amount,
-            receiptId: receipt.id,
-          },
-        ],
-      });
+      const entries = [
+        {
+          accountId: debitAccountId,
+          date: receipt.date,
+          description: receipt.description || `ใบเสร็จ ${receipt.receiptNo}`,
+          debit: receipt.amount,
+          credit: 0,
+          receiptId: receipt.id,
+        },
+        {
+          accountId: creditAccountId,
+          date: receipt.date,
+          description: receipt.description || `ใบเสร็จ ${receipt.receiptNo}`,
+          debit: 0,
+          credit: receipt.amount,
+          receiptId: receipt.id,
+        },
+      ];
+
+      // Double-entry validation
+      const totalDebit = entries.reduce((s, e) => s + Number(e.debit), 0);
+      const totalCredit = entries.reduce((s, e) => s + Number(e.credit), 0);
+      if (Math.abs(totalDebit - totalCredit) > 0.01) {
+        throw new Error(`Double-entry violation in Receipt ${receipt.receiptNo}: Debit ${totalDebit} != Credit ${totalCredit}`);
+      }
+
+      await this.prisma.ledgerEntry.createMany({ data: entries });
     }
   }
 }

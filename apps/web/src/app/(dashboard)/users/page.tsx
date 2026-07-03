@@ -160,6 +160,23 @@ export default function UsersPage() {
       submitData.memberId = data.memberId;
     }
     
+    // Client-side strong password check for new users or when providing password
+    const passwordToCheck = editingUser ? (data.password || '') : data.password;
+    if (passwordToCheck && passwordToCheck.trim() !== '') {
+      if (passwordToCheck.length < 8) {
+        showError('รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร');
+        return;
+      }
+      const hasUpper = /[A-Z]/.test(passwordToCheck);
+      const hasLower = /[a-z]/.test(passwordToCheck);
+      const hasNumber = /[0-9]/.test(passwordToCheck);
+      const hasSpecial = /[!@#$%^&*(),.?":{}|<>_\-+=~`[\]\\;'/]/.test(passwordToCheck);
+      if (!hasUpper || !hasLower || !hasNumber || !hasSpecial) {
+        showError('รหัสผ่านต้องมีตัวพิมพ์ใหญ่, ตัวพิมพ์เล็ก, ตัวเลข และอักขระพิเศษอย่างน้อย 1 ตัว');
+        return;
+      }
+    }
+    
     if (editingUser) {
       // Only include password if it's provided
       if (data.password && data.password.trim() !== '') {

@@ -223,11 +223,15 @@ model DeathClaim {
 
   // snapshot values for calculation
   activeMemberCount  Int                   // จำนวนสมาชิกที่ชำระเงินในงวดนั้น
-  welfareRate        Decimal  @db.Decimal(10, 2) // อัตราเงินสงเคราะห์ต่อสมาชิก
+  welfareRate        Decimal  @db.Decimal(10, 2) // อัตราเงินสงเคราะห์ต่อสมาชิก (collection) หรือ fixed
   totalContribution  Decimal  @db.Decimal(12, 2) // ยอดรวมเงินสงเคราะห์ที่สมาชิกชำระ
   associationSupport Decimal  @db.Decimal(12, 2) // เงินช่วยเหลือจากสมาคม
   otherDeductions    Decimal  @default(0) @db.Decimal(12, 2) // หักอื่นๆ
   netToPay           Decimal  @db.Decimal(12, 2) // ยอดสุทธิที่จ่าย
+  payoutRatio        Decimal  @default(0.9) @db.Decimal(5,4)
+  // Fixed benefit support (ตามมติคณะกรรมการ)
+  isFixedBenefit     Boolean  @default(false)
+  fixedBenefitAmount Decimal? @db.Decimal(12, 2)
 
   payment   DeathBenefitPayment?
   createdAt DateTime             @default(now())

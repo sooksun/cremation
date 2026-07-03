@@ -199,4 +199,53 @@ export class MemberApplicationsService {
     ].filter(Boolean);
     return parts.length ? parts.join(' ') : undefined;
   }
+
+  // Admin: list recent applications (members with application data)
+  async listApplications(schoolId?: string, limit = 20) {
+    const where: any = {
+      applicationSubmittedAt: { not: null },
+    };
+    if (schoolId) where.schoolId = schoolId;
+
+    return this.prisma.member.findMany({
+      where,
+      take: limit,
+      orderBy: { applicationSubmittedAt: 'desc' },
+      include: {
+        school: { select: { id: true, name: true, code: true } },
+        associationMember: {
+          include: { memberType: { select: { name: true } } },
+        },
+        beneficiaries: true,
+      },
+    });
+  }
+
+  async getApplication(id: string) {
+    const member = await this.prisma.member.findUnique({
+      where: { id },
+      include: {
+        school: true,
+        associationMember: { include: { memberType: true } },
+        beneficiaries: true,
+        protectedPersons: true,
+      },
+    });
+    if (!member || !member.applicationSubmittedAt) {
+      throw new BadRequestException('ไม่พบใบสมัคร');
+    }
+    return member;
+  }
+
+  async approveApplication(id: string) {
+    const member = await this.prisma.member.findUnique({ where: { id } });
+    if (!member || !member.applicationSubmittedAt) {
+      throw new BadRequestException('ไม่พบใบสมัคร');
+    }
+    const updated = await this.prisma.member.update({
+      where: { id },
+      data: { status: MemberStatus.ACTIVE },
+    });
+    return { message: 'อนุมัติใบสมัครและเปิดใช้งานสมาชิกแล้ว', member: updated };
+  }
 }

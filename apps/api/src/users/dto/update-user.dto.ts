@@ -1,4 +1,4 @@
-import { IsString, MinLength, IsEnum, IsOptional, ValidateIf, IsBoolean } from 'class-validator';
+import { IsString, MinLength, IsEnum, IsOptional, ValidateIf, IsBoolean, Matches } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { Role } from '@prisma/client';
 
@@ -8,6 +8,9 @@ export class UpdateUserDto {
   @ValidateIf((o) => o.password !== undefined && o.password !== '')
   @IsString()
   @MinLength(8, { message: 'รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร' })
+  @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>_\-+=~`[\]\\;'/]).{8,}$/, {
+    message: 'รหัสผ่านต้องมีตัวพิมพ์ใหญ่, ตัวพิมพ์เล็ก, ตัวเลข และอักขระพิเศษอย่างน้อย 1 ตัว',
+  })
   password?: string;
 
   @IsOptional()

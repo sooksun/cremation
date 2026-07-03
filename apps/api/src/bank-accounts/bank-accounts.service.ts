@@ -3,15 +3,19 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateBankAccountDto, UpdateBankAccountDto } from './dto/bank-account.dto';
 import { CreateBankTransactionDto, UpdateBankTransactionDto } from './dto/bank-transaction.dto';
 import { DocumentNumberService, DocumentType } from '../common/document-number.service';
+import { AuditLogService } from '../common/services/audit-log.service';
+import { AuditAction } from '@prisma/client';
+import { ScopedUser } from '../common/security/school-scope.service';
 
 @Injectable()
 export class BankAccountsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly documentNumberService: DocumentNumberService,
+    private readonly auditLog: AuditLogService,
   ) {}
 
-  async create(dto: CreateBankAccountDto) {
+  async create(dto: CreateBankAccountDto, actor?: ScopedUser) {
     // Check if accountNo already exists
     const existing = await this.prisma.bankAccount.findUnique({
       where: { accountNo: dto.accountNo },
@@ -29,7 +33,18 @@ export class BankAccountsService {
       });
     }
 
-    return this.prisma.bankAccount.create({ data: dto });
+    const account = await this.prisma.bankAccount.create({ data: dto });
+
+    if (actor) {
+      await this.auditLog.log({
+        userId: actor.id,
+        action: AuditAction.BANK_ACCOUNT_CREATE,
+        entityType: 'BankAccount',
+        entityId: account.id,
+        metadata: { bankName: account.bankName, accountNo: account.accountNo },
+      });
+    }
+    return account;
   }
 
   async findAll() {
@@ -73,7 +88,7 @@ export class BankAccountsService {
     return defaultAccount;
   }
 
-  async update(id: string, dto: UpdateBankAccountDto) {
+  async update(id: string, dto: UpdateBankAccountDto, actor?: ScopedUser) {
     await this.findById(id);
 
     // If setting as default, unset other defaults
@@ -84,13 +99,24 @@ export class BankAccountsService {
       });
     }
 
-    return this.prisma.bankAccount.update({
+    const updated = await this.prisma.bankAccount.update({
       where: { id },
       data: dto,
     });
+
+    if (actor) {
+      await this.auditLog.log({
+        userId: actor.id,
+        action: AuditAction.BANK_ACCOUNT_UPDATE,
+        entityType: 'BankAccount',
+        entityId: id,
+        metadata: { updatedFields: Object.keys(dto) },
+      });
+    }
+    return updated;
   }
 
-  async remove(id: string) {
+  async remove(id: string, actor?: ScopedUser) {
     const account = await this.findById(id);
     
     // Don't allow deleting default account unless it's the last one
@@ -108,6 +134,16 @@ export class BankAccountsService {
       where: { id },
       data: { isActive: false, isDefault: false },
     });
+
+    if (actor) {
+      await this.auditLog.log({
+        userId: actor.id,
+        action: AuditAction.BANK_ACCOUNT_DELETE,
+        entityType: 'BankAccount',
+        entityId: id,
+        metadata: { bankName: account.bankName, accountNo: account.accountNo },
+      });
+    }
     return { message: 'ปิดใช้งานบัญชีธนาคารสำเร็จ' };
   }
 

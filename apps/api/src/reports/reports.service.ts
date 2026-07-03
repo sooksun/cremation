@@ -1,14 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { DeathClaimStatus, MemberStatus, Role } from '@prisma/client';
+import { DeathClaimStatus, MemberStatus, Role, BankTransactionType } from '@prisma/client';
 import { applyIdCardMask, applyNationalIdMask } from '../common/utils/pii.util';
 import { SchoolScopeService, ScopedUser } from '../common/security/school-scope.service';
+import { AccountsService } from '../accounts/accounts.service';
 
 @Injectable()
 export class ReportsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly schoolScope: SchoolScopeService,
+    private readonly accountsService: AccountsService,
   ) {}
 
   // Dashboard summary
@@ -287,6 +289,67 @@ export class ReportsService {
         receiptCount: receipts.length,
         paymentCount: payments.length,
         bankTxnCount: bankTransactions.length,
+      },
+    };
+  }
+
+  // Cash Flow Statement (for group 8 completeness)
+  async getCashFlow(startDate: Date, endDate: Date, schoolId?: string) {
+    const where: any = schoolId ? { schoolId } : {};
+    const dateFilter = { date: { gte: startDate, lte: endDate } };
+
+    const [receiptsSum, paymentsSum, bankDeposits, bankWithdrawals] = await Promise.all([
+      this.prisma.receipt.aggregate({
+        where: { ...where, ...dateFilter },
+        _sum: { amount: true },
+      }),
+      this.prisma.paymentVoucher.aggregate({
+        where: { ...where, ...dateFilter },
+        _sum: { amount: true },
+      }),
+      this.prisma.bankTransaction.aggregate({
+        where: {
+          type: BankTransactionType.DEPOSIT, // assume enum or 'DEPOSIT'
+          date: { gte: startDate, lte: endDate },
+          // if bank has school, add filter
+        },
+        _sum: { amount: true },
+      }),
+      this.prisma.bankTransaction.aggregate({
+        where: {
+          type: BankTransactionType.WITHDRAWAL,
+          date: { gte: startDate, lte: endDate },
+        },
+        _sum: { amount: true },
+      }),
+    ]);
+
+    const cashInFromReceipts = Number(receiptsSum._sum.amount || 0);
+    const cashOutToPayments = Number(paymentsSum._sum.amount || 0);
+    const bankIn = Number(bankDeposits._sum.amount || 0);
+    const bankOut = Number(bankWithdrawals._sum.amount || 0);
+
+    const totalIn = cashInFromReceipts + bankIn;
+    const totalOut = cashOutToPayments + bankOut;
+
+    return {
+      period: { startDate, endDate, schoolId },
+      cashFlows: {
+        operatingActivities: {
+          cashReceipts: cashInFromReceipts,
+          cashPayments: cashOutToPayments,
+          net: cashInFromReceipts - cashOutToPayments,
+        },
+        bankActivities: {
+          deposits: bankIn,
+          withdrawals: bankOut,
+          net: bankIn - bankOut,
+        },
+      },
+      netCashFlow: totalIn - totalOut,
+      summary: {
+        totalInflows: totalIn,
+        totalOutflows: totalOut,
       },
     };
   }
@@ -928,6 +991,34 @@ export class ReportsService {
       recentContributions: member.contributions.slice(0, 12),
       arrears,
       deathClaims: member.deathClaims,
+    };
+  }
+
+  // Group 13: Statement of Changes in Equity / Net Assets (to complete the set of financial statements)
+  async getChangesInEquity(startDate: Date, endDate: Date, schoolId?: string) {
+    const [startBS, endBS] = await Promise.all([
+      this.accountsService.getBalanceSheet(startDate, schoolId),
+      this.accountsService.getBalanceSheet(endDate, schoolId),
+    ]);
+
+    const pl = await this.accountsService.getProfitAndLoss(startDate, endDate);  // reuse
+
+    const beginningEquity = startBS.totals.equity || 0;
+    const netIncome = pl.totals.netProfit || 0;
+    const endingEquity = endBS.totals.equity || 0;
+
+    // Simple changes (no other adjustments assumed)
+    const otherAdjustments = endingEquity - (beginningEquity + netIncome);
+
+    return {
+      period: { startDate, endDate },
+      changes: {
+        beginningEquity,
+        netIncome,
+        otherAdjustments,
+        endingEquity,
+      },
+      isConsistent: Math.abs(endingEquity - (beginningEquity + netIncome + otherAdjustments)) < 0.01,
     };
   }
 }

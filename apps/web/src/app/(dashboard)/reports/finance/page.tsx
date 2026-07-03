@@ -1,6 +1,7 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
+import { useRef } from 'react';
 import { motion } from 'framer-motion';
 import {
   Receipt,
@@ -13,7 +14,9 @@ import {
   BarChart3,
   Building,
   Calendar,
+  Download,
 } from 'lucide-react';
+import { exportElementToPdf } from '@/lib/export-pdf';
 import {
   BarChart,
   Bar,
@@ -33,6 +36,7 @@ import {
 } from 'recharts';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/auth';
+import dayjs from 'dayjs';
 
 interface FinanceData {
   year: number;
@@ -76,6 +80,13 @@ const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#f43f5e', '#8b5cf6', '#06b6d4'
 
 export default function FinanceDashboardPage() {
   const { selectedSchoolId, selectedYear } = useAuthStore();
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  const handleExportPdf = async () => {
+    if (contentRef.current) {
+      await exportElementToPdf(contentRef.current, `finance-report-${selectedYear}.pdf`);
+    }
+  };
 
   const { data, isLoading } = useQuery<FinanceData>({
     queryKey: ['finance-dashboard', selectedYear, selectedSchoolId],
@@ -144,6 +155,7 @@ export default function FinanceDashboardPage() {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       className="space-y-6"
+      ref={contentRef}
     >
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -156,6 +168,9 @@ export default function FinanceDashboardPage() {
             สรุปการเงินประจำปี พ.ศ. {selectedYear + 543} • สำหรับเจ้าหน้าที่บัญชีและการเงิน
           </p>
         </div>
+        <button onClick={handleExportPdf} className="btn-secondary flex items-center gap-2">
+          <Download size={18} /> PDF
+        </button>
       </div>
 
       {/* Summary Cards */}

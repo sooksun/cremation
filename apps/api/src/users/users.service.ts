@@ -9,10 +9,17 @@ import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { validateStrongPassword } from '../common/utils/password.util';
+import { AuditLogService } from '../common/services/audit-log.service';
+import { AuditAction } from '@prisma/client';
+import { ScopedUser } from '../common/security/school-scope.service';
 
 @Injectable()
 export class UsersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly auditLog: AuditLogService,
+  ) {}
 
   private async getMemberForAccount(memberId: string, currentUserId?: string) {
     const member = await this.prisma.member.findUnique({
@@ -32,7 +39,7 @@ export class UsersService {
     return member;
   }
 
-  async create(dto: CreateUserDto) {
+  async create(dto: CreateUserDto, actor?: ScopedUser) {
     if (dto.role === Role.SCHOOL_ADMIN) {
       throw new BadRequestException(
         'ผู้ดูแลโรงเรียนให้จัดการผ่านเมนูผู้ดูแลโรงเรียน (โรงเรียนละ 1 คน)',
@@ -50,6 +57,11 @@ export class UsersService {
     });
     if (existing) {
       throw new ConflictException('ชื่อผู้ใช้นี้ถูกใช้งานแล้ว');
+    }
+
+    const passwordValidation = validateStrongPassword(dto.password);
+    if (!passwordValidation.valid) {
+      throw new BadRequestException(passwordValidation.errors.join(', '));
     }
 
     const member = dto.memberId
@@ -74,6 +86,18 @@ export class UsersService {
     });
 
     const { passwordHash: _, ...result } = user;
+
+    if (actor) {
+      await this.auditLog.log({
+        userId: actor.id,
+        action: AuditAction.USER_CREATE,
+        entityType: 'User',
+        entityId: user.id,
+        schoolId: user.schoolId ?? undefined,
+        metadata: { username: user.username, role: user.role, fullName: user.fullName },
+      });
+    }
+
     return result;
   }
 
@@ -116,7 +140,7 @@ export class UsersService {
     });
   }
 
-  async update(id: string, dto: UpdateUserDto) {
+  async update(id: string, dto: UpdateUserDto, actor?: ScopedUser) {
     const user = await this.findById(id);
     const nextRole = dto.role ?? user.role;
 
@@ -136,7 +160,13 @@ export class UsersService {
     if (dto.mustChangePassword !== undefined) {
       data.mustChangePassword = dto.mustChangePassword;
     }
-    if (dto.password) data.passwordHash = await bcrypt.hash(dto.password, 10);
+    if (dto.password) {
+      const passwordValidation = validateStrongPassword(dto.password);
+      if (!passwordValidation.valid) {
+        throw new BadRequestException(passwordValidation.errors.join(', '));
+      }
+      data.passwordHash = await bcrypt.hash(dto.password, 10);
+    }
 
     if (nextRole === Role.MEMBER) {
       const memberId = dto.memberId ?? user.memberId;
@@ -165,11 +195,43 @@ export class UsersService {
       },
     });
     const { passwordHash, ...result } = updated;
+
+    if (actor) {
+      const roleChanged = dto.role !== undefined && dto.role !== user.role;
+      const metadata: any = {
+        updatedFields: Object.keys(dto),
+        previousRole: user.role,
+        newRole: dto.role,
+        changedPassword: !!dto.password,
+        changedSignature: dto.signature !== undefined,
+      };
+      await this.auditLog.log({
+        userId: actor.id,
+        action: roleChanged ? AuditAction.USER_ROLE_CHANGE : AuditAction.USER_UPDATE,
+        entityType: 'User',
+        entityId: id,
+        schoolId: updated.schoolId ?? undefined,
+        metadata,
+      });
+    }
+
     return result;
   }
 
-  async remove(id: string) {
-    await this.findById(id);
+  async remove(id: string, actor?: ScopedUser) {
+    const user = await this.findById(id);
+
+    if (actor) {
+      await this.auditLog.log({
+        userId: actor.id,
+        action: AuditAction.USER_DELETE,
+        entityType: 'User',
+        entityId: id,
+        schoolId: user.schoolId ?? undefined,
+        metadata: { username: user.username, role: user.role },
+      });
+    }
+
     await this.prisma.user.delete({ where: { id } });
     return { message: 'ลบผู้ใช้สำเร็จ' };
   }

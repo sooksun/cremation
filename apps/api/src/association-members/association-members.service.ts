@@ -4,6 +4,8 @@ import { CreateAssociationMemberDto } from './dto/create-association-member.dto'
 import { UpdateAssociationMemberDto } from './dto/update-association-member.dto';
 import { MemberStatus } from '@prisma/client';
 import { SchoolScopeService, ScopedUser } from '../common/security/school-scope.service';
+import { AuditLogService } from '../common/services/audit-log.service';
+import { AuditAction } from '@prisma/client';
 
 export interface AssociationMemberQueryParams {
   schoolId?: string;
@@ -18,6 +20,7 @@ export class AssociationMembersService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly schoolScope: SchoolScopeService,
+    private readonly auditLog: AuditLogService,
   ) {}
 
   async create(dto: CreateAssociationMemberDto, actor?: ScopedUser) {
@@ -25,7 +28,7 @@ export class AssociationMembersService {
       this.schoolScope.assertSchoolAccess(actor, dto.schoolId);
     }
 
-    return this.prisma.associationMember.create({
+    const created = await this.prisma.associationMember.create({
       data: {
         schoolId: dto.schoolId,
         memberTypeId: dto.memberTypeId,
@@ -48,6 +51,18 @@ export class AssociationMembersService {
         cremationMember: { include: { group: true } },
       },
     });
+
+    if (actor) {
+      await this.auditLog.log({
+        userId: actor.id,
+        action: AuditAction.ASSOCIATION_MEMBER_CREATE,
+        entityType: 'AssociationMember',
+        entityId: created.id,
+        schoolId: created.schoolId,
+        metadata: { firstName: created.firstName, lastName: created.lastName, idCardNo: !!created.idCardNo },
+      });
+    }
+    return created;
   }
 
   async findAll(params: AssociationMemberQueryParams, actor?: ScopedUser) {
@@ -173,6 +188,17 @@ export class AssociationMembersService {
       where: { id: member.associationMemberId },
       data,
     });
+
+    if (actor) {
+      await this.auditLog.log({
+        userId: actor.id,
+        action: AuditAction.ASSOCIATION_MEMBER_UPDATE,
+        entityType: 'AssociationMember',
+        entityId: member.associationMemberId,
+        schoolId: member.schoolId,
+        metadata: { updatedFields: Object.keys(dto), piiChanged: !!(dto.firstName || dto.lastName || dto.idCardNo || dto.birthDate || dto.address) },
+      });
+    }
 
     return this.findByMemberId(memberId, actor);
   }

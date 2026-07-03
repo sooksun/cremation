@@ -474,42 +474,58 @@ export default function NewDeathClaimPage() {
             ยอดเงินช่วยเหลือ (คำนวณอัตโนมัติ)
           </h3>
           {calcPreview ? (
-            <>
-              <p className="text-sm text-blue-800 mb-3">
-                สมาชิกที่ต้องส่งเงิน {calcPreview.payingMemberCount} คน × อัตรา{' '}
-                {formatCurrency(calcPreview.collectionRate)}/คน (ตามระเบียบ ข้อ 13)
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="p-4 bg-white rounded-xl">
-                  <p className="text-sm text-slate-500">ยอดเก็บรวม</p>
-                  <p className="text-xl font-bold text-slate-900">
-                    {formatCurrency(calcPreview.grossCollected)}
-                  </p>
+            calcPreview.isFixedAmount ? (
+              <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl">
+                <div className="flex items-center gap-2 mb-2">
+                  <AlertCircle className="w-4 h-4 text-amber-600" />
+                  <span className="text-sm font-medium text-amber-800">ใช้ยอดคงที่ตามมติคณะกรรมการ</span>
                 </div>
-                <div className="p-4 bg-white rounded-xl">
-                  <p className="text-sm text-slate-500">เข้ากองทุน (10%)</p>
-                  <p className="text-xl font-bold text-amber-700">
-                    {formatCurrency(calcPreview.fundReserve)}
-                  </p>
-                  <p className="text-xs text-slate-400">ข้อ 16</p>
+                <div className="text-3xl font-bold text-amber-900">
+                  {formatCurrency(calcPreview.netToPay)}
                 </div>
-                <div className="p-4 bg-white rounded-xl">
-                  <p className="text-sm text-slate-500">จ่ายผู้รับ (90%)</p>
-                  <p className="text-xl font-bold text-slate-900">
-                    {formatCurrency(calcPreview.grossCollected * calcPreview.payoutRatio)}
-                  </p>
-                </div>
-                <div className="p-4 bg-primary-100 rounded-xl">
-                  <p className="text-sm text-primary-700">ยอดสุทธิจ่าย</p>
-                  <p className="text-2xl font-bold text-primary-700">
-                    {formatCurrency(calcPreview.netToPay)}
-                  </p>
-                  <p className="text-xs text-primary-600">หลังหักรายการอื่นๆ</p>
-                </div>
+                <p className="text-xs text-amber-700 mt-1">ยอดเงินสงเคราะห์ศพคงที่ − หักอื่นๆ</p>
+                {calcPreview.fixedAmount && (
+                  <p className="text-xs text-amber-600">ยอดคงที่: {formatCurrency(calcPreview.fixedAmount)}</p>
+                )}
               </div>
-            </>
+            ) : (
+              <>
+                <p className="text-sm text-blue-800 mb-3">
+                  สมาชิกที่ต้องส่งเงิน {calcPreview.payingMemberCount} คน × อัตรา{' '}
+                  {formatCurrency(calcPreview.collectionRate)}/คน (ตามระเบียบ ข้อ 13)
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div className="p-4 bg-white rounded-xl">
+                    <p className="text-sm text-slate-500">ยอดเก็บรวม</p>
+                    <p className="text-xl font-bold text-slate-900">
+                      {formatCurrency(calcPreview.grossCollected)}
+                    </p>
+                  </div>
+                  <div className="p-4 bg-white rounded-xl">
+                    <p className="text-sm text-slate-500">เข้ากองทุน (10%)</p>
+                    <p className="text-xl font-bold text-amber-700">
+                      {formatCurrency(calcPreview.fundReserve)}
+                    </p>
+                    <p className="text-xs text-slate-400">ข้อ 16</p>
+                  </div>
+                  <div className="p-4 bg-white rounded-xl">
+                    <p className="text-sm text-slate-500">จ่ายผู้รับ (90%)</p>
+                    <p className="text-xl font-bold text-slate-900">
+                      {formatCurrency(calcPreview.grossCollected * calcPreview.payoutRatio)}
+                    </p>
+                  </div>
+                  <div className="p-4 bg-primary-100 rounded-xl">
+                    <p className="text-sm text-primary-700">ยอดสุทธิจ่าย</p>
+                    <p className="text-2xl font-bold text-primary-700">
+                      {formatCurrency(calcPreview.netToPay)}
+                    </p>
+                    <p className="text-xs text-primary-600">หลังหักรายการอื่นๆ</p>
+                  </div>
+                </div>
+              </>
+            )
           ) : (
-            <p className="text-sm text-blue-700">เลือกสมาชิกเพื่อดูการคำนวณตามระเบียบ</p>
+            <p className="text-sm text-blue-700">เลือกสมาชิกเพื่อดูการคำนวณ</p>
           )}
         </div>
 
@@ -568,6 +584,9 @@ export default function NewDeathClaimPage() {
                 <p className="text-2xl font-bold text-emerald-700">
                   {formatCurrency(calcPreview?.netToPay ?? 0)}
                 </p>
+                {calcPreview?.isFixedAmount && (
+                  <p className="text-xs text-emerald-600 mt-1"> (ยอดคงที่ตามมติคณะกรรมการ)</p>
+                )}
               </div>
             </div>
           </div>

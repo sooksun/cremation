@@ -9,6 +9,8 @@ import { MembershipRulesService } from './membership-rules.service';
 import { ProtectedPersonsService } from './protected-persons.service';
 import { SchoolScopeService, ScopedUser } from '../common/security/school-scope.service';
 import { canViewFullIdCard, maskIdCardNo } from '../common/utils/pii.util';
+import { AuditLogService } from '../common/services/audit-log.service';
+import { AuditAction } from '@prisma/client';
 
 const memberInclude = {
   school: true,
@@ -37,6 +39,7 @@ export class MembersService {
     private readonly membershipRules: MembershipRulesService,
     private readonly protectedPersons: ProtectedPersonsService,
     private readonly schoolScope: SchoolScopeService,
+    private readonly auditLog: AuditLogService,
   ) {}
 
   async create(dto: CreateMemberDto, actor?: ScopedUser) {
@@ -125,6 +128,17 @@ export class MembersService {
       await this.protectedPersons.syncForMember(member.id, dto.protectedPersons);
     }
 
+    if (actor) {
+      await this.auditLog.log({
+        userId: actor.id,
+        action: AuditAction.MEMBER_CREATE,
+        entityType: 'Member',
+        entityId: member.id,
+        schoolId: member.schoolId,
+        metadata: { memberNo: member.memberNo, firstName: associationMember.firstName, lastName: associationMember.lastName },
+      });
+    }
+
     return this.findById(member.id);
   }
 
@@ -198,9 +212,9 @@ export class MembersService {
   }
 
   async update(id: string, dto: UpdateMemberDto, actor?: ScopedUser) {
-    await this.findById(id, actor);
+    const before = await this.findById(id, actor);
 
-    return this.prisma.member.update({
+    const updated = await this.prisma.member.update({
       where: { id },
       data: {
         groupId: dto.groupId,
@@ -213,6 +227,19 @@ export class MembersService {
       },
       include: memberInclude,
     });
+
+    if (actor) {
+      await this.auditLog.log({
+        userId: actor.id,
+        action: AuditAction.MEMBER_UPDATE,
+        entityType: 'Member',
+        entityId: id,
+        schoolId: updated.schoolId,
+        metadata: { updatedFields: Object.keys(dto), statusChanged: dto.status && dto.status !== before.status },
+      });
+    }
+
+    return updated;
   }
 
   async markMemberDeceasedInTransaction(
@@ -266,6 +293,18 @@ export class MembersService {
     });
 
     await this.membershipRules.applyStatusSideEffects(id, newStatus, memberTypeCode);
+
+    if (actor) {
+      await this.auditLog.log({
+        userId: actor.id,
+        action: AuditAction.MEMBER_STATUS_CHANGE,
+        entityType: 'Member',
+        entityId: id,
+        schoolId: member.schoolId,
+        metadata: { from: member.status, to: newStatus },
+      });
+    }
+
     return this.findById(id);
   }
 
@@ -441,6 +480,9 @@ export class MembersService {
               phone: row.phone,
               idCardNo: row.idCardNo,
               memberTypeId: memberType.id,
+              birthDate: row.birthDate ? new Date(row.birthDate) : undefined,
+              address: row.address,
+              position: row.position,
             },
           });
           await this.prisma.member.update({
@@ -463,6 +505,9 @@ export class MembersService {
             lastName: row.lastName,
             phone: row.phone,
             idCardNo: row.idCardNo,
+            birthDate: row.birthDate ? new Date(row.birthDate) : undefined,
+            address: row.address,
+            position: row.position,
           },
         });
 

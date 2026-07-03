@@ -16,6 +16,10 @@ export interface DeathBenefitCalculation {
   fundReserve: number;
   otherDeductions: number;
   netToPay: number;
+  /** Whether payout uses fixed committee-set amount (from WelfareSettings) instead of collection-based */
+  isFixedAmount: boolean;
+  /** The fixed amount per case if isFixedAmount */
+  fixedAmount?: number;
   /** @deprecated use payingMemberCount */
   activeMemberCount: number;
   /** @deprecated use collectionRate */
@@ -48,8 +52,26 @@ export class DeathBenefitCalculatorService {
 
     const grossCollected = payingMemberCount * collectionRate;
     const fundReserve = Math.round(grossCollected * DEATH_FUND_RESERVE_RATIO * 100) / 100;
-    const netToPay =
-      Math.round(grossCollected * DEATH_PAYOUT_RATIO * 100) / 100 - otherDeductions;
+
+    // Check for fixed death benefit amount set by committee (WelfareSettings)
+    const activeFixed = await this.prisma.welfareSettings.findFirst({
+      where: { isActive: true },
+      orderBy: { effectiveDate: 'desc' },
+    });
+
+    let netToPay: number;
+    let isFixedAmount = false;
+    let fixedAmount: number | undefined;
+
+    if (activeFixed) {
+      fixedAmount = Number(activeFixed.welfareAmountPerCase);
+      netToPay = Math.max(0, Math.round(fixedAmount * 100) / 100 - otherDeductions);
+      isFixedAmount = true;
+    } else {
+      // Legacy collection-based calculation
+      netToPay =
+        Math.round(grossCollected * DEATH_PAYOUT_RATIO * 100) / 100 - otherDeductions;
+    }
 
     return {
       claimType,
@@ -60,6 +82,8 @@ export class DeathBenefitCalculatorService {
       fundReserve,
       otherDeductions,
       netToPay,
+      isFixedAmount,
+      fixedAmount,
       activeMemberCount: payingMemberCount,
       welfareRate: collectionRate,
       totalContribution: grossCollected,

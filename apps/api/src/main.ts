@@ -13,9 +13,42 @@ loadEnv({ path: resolve(process.cwd(), '.env') });
 async function bootstrap() {
   validateEnv();
 
+  const isProduction = process.env.NODE_ENV === 'production';
+
   const app = await NestFactory.create(AppModule);
 
-  app.use(helmet());
+  app.use(
+    helmet({
+      contentSecurityPolicy: isProduction
+        ? {
+            directives: {
+              defaultSrc: ["'self'"],
+              scriptSrc: ["'self'"],
+              styleSrc: ["'self'", "'unsafe-inline'"],
+              imgSrc: ["'self'", 'data:', 'https:'],
+              connectSrc: ["'self'"],
+              fontSrc: ["'self'"],
+              objectSrc: ["'none'"],
+              upgradeInsecureRequests: [],
+            },
+          }
+        : false, // disable strict CSP in dev for easier debugging
+      crossOriginEmbedderPolicy: false,
+      crossOriginOpenerPolicy: { policy: 'same-origin' },
+      crossOriginResourcePolicy: { policy: 'cross-origin' },
+      hsts: isProduction
+        ? {
+            maxAge: 31536000, // 1 year
+            includeSubDomains: true,
+            preload: true,
+          }
+        : false,
+      noSniff: true,
+      frameguard: { action: 'deny' },
+      xssFilter: true,
+      referrerPolicy: { policy: 'no-referrer' },
+    }),
+  );
   app.use(cookieParser());
 
   const corsOrigins = process.env.CORS_ORIGINS
@@ -23,8 +56,6 @@ async function bootstrap() {
     : process.env.FRONTEND_URL
       ? [process.env.FRONTEND_URL]
       : ['http://localhost:3000'];
-
-  const isProduction = process.env.NODE_ENV === 'production';
 
   app.enableCors({
     origin: (origin, callback) => {

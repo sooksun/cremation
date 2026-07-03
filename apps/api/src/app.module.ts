@@ -15,6 +15,8 @@ import { ContributionsModule } from './contributions/contributions.module';
 import { DeathClaimsModule } from './death-claims/death-claims.module';
 import { AccountsModule } from './accounts/accounts.module';
 import { BankAccountsModule } from './bank-accounts/bank-accounts.module';
+import { AssetsModule } from './assets/assets.module';
+import { CashBookModule } from './cash-book/cash-book.module';
 import { ReceiptsModule } from './receipts/receipts.module';
 import { PaymentsModule } from './payments/payments.module';
 import { ReportsModule } from './reports/reports.module';
@@ -52,6 +54,8 @@ import { HealthController } from './health.controller';
     DeathClaimsModule,
     AccountsModule,
     BankAccountsModule,
+    AssetsModule,
+    CashBookModule,
     ReceiptsModule,
     PaymentsModule,
     ReportsModule,

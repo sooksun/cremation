@@ -13,6 +13,7 @@ import { CreateReceiptDto } from './dto/create-receipt.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { AllowMemberAccess } from '../auth/decorators/allow-member-access.decorator';
 import { Role, ReceiptType } from '@prisma/client';
 import { ScopedUser } from '../common/security/school-scope.service';
 
@@ -60,6 +61,7 @@ export class ReceiptsController {
   }
 
   @Get(':id')
+  @AllowMemberAccess()
   findOne(
     @Param('id') id: string,
     @Request() req: { user: ScopedUser },

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import {
@@ -11,8 +11,10 @@ import {
   AlertTriangle,
   Printer,
   ClipboardCheck,
+  Download,
 } from 'lucide-react';
 import { api, DEATH_CLAIM_STATUS_LABELS, type DeathClaimStatus } from '@/lib/api';
+import { exportElementToPdf } from '@/lib/export-pdf';
 import { useAuthStore } from '@/store/auth';
 import { formatThaiDate, formatThaiDateShort } from '@/components/ThaiDatePicker';
 
@@ -89,6 +91,13 @@ export default function BoardMonthlyReportPage() {
 
   const handlePrint = () => window.print();
 
+  const contentRef = useRef<HTMLDivElement>(null);
+  const handleExportPdf = async () => {
+    if (contentRef.current) {
+      await exportElementToPdf(contentRef.current, `รายงานคณะกรรมการ-${selectedYear}-${month}.pdf`);
+    }
+  };
+
   return (
     <>
       <motion.div
@@ -119,6 +128,9 @@ export default function BoardMonthlyReportPage() {
             <button type="button" onClick={handlePrint} className="btn-secondary">
               <Printer size={18} />พิมพ์
             </button>
+            <button type="button" onClick={handleExportPdf} className="btn-secondary">
+              <Download size={18} /> PDF
+            </button>
           </div>
         </div>
 
@@ -127,7 +139,7 @@ export default function BoardMonthlyReportPage() {
             <div className="w-8 h-8 border-4 border-primary-500 border-t-transparent rounded-full animate-spin" />
           </div>
         ) : report ? (
-          <div className="space-y-6">
+          <div ref={contentRef} className="space-y-6">
             {(report.deathClaims.pendingApproval > 0 || report.deathClaims.overdueWorkflow > 0) && (
               <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-start gap-3">
                 <AlertTriangle className="w-5 h-5 text-amber-600 mt-0.5" />

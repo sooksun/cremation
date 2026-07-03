@@ -5,6 +5,7 @@ import { CreatePaymentDto } from './dto/create-payment.dto';
 import { AuditAction, PaymentType } from '@prisma/client';
 import { SchoolScopeService, ScopedUser } from '../common/security/school-scope.service';
 import { AuditLogService } from '../common/services/audit-log.service';
+import { CashBookService } from '../cash-book/cash-book.service';
 
 @Injectable()
 export class PaymentsService {
@@ -13,6 +14,7 @@ export class PaymentsService {
     private readonly documentNumberService: DocumentNumberService,
     private readonly auditLog: AuditLogService,
     private readonly schoolScope: SchoolScopeService,
+    private readonly cashBook: CashBookService,
   ) {}
 
   async create(dto: CreatePaymentDto, actor?: ScopedUser, ipAddress?: string) {
@@ -36,6 +38,10 @@ export class PaymentsService {
     });
 
     await this.createLedgerEntries(payment);
+
+    if (!payment.bankAccountId) {
+      await this.cashBook.createFromPayment(payment);
+    }
 
     if (actor) {
       await this.auditLog.log({
@@ -139,26 +145,33 @@ export class PaymentsService {
     }
 
     if (debitAccountId && creditAccountId) {
-      await this.prisma.ledgerEntry.createMany({
-        data: [
-          {
-            accountId: debitAccountId,
-            date: payment.date,
-            description: payment.description || `ใบสำคัญจ่าย ${payment.voucherNo}`,
-            debit: payment.amount,
-            credit: 0,
-            paymentId: payment.id,
-          },
-          {
-            accountId: creditAccountId,
-            date: payment.date,
-            description: payment.description || `ใบสำคัญจ่าย ${payment.voucherNo}`,
-            debit: 0,
-            credit: payment.amount,
-            paymentId: payment.id,
-          },
-        ],
-      });
+      const entries = [
+        {
+          accountId: debitAccountId,
+          date: payment.date,
+          description: payment.description || `ใบสำคัญจ่าย ${payment.voucherNo}`,
+          debit: payment.amount,
+          credit: 0,
+          paymentId: payment.id,
+        },
+        {
+          accountId: creditAccountId,
+          date: payment.date,
+          description: payment.description || `ใบสำคัญจ่าย ${payment.voucherNo}`,
+          debit: 0,
+          credit: payment.amount,
+          paymentId: payment.id,
+        },
+      ];
+
+      // Double-entry validation
+      const totalDebit = entries.reduce((s, e) => s + Number(e.debit), 0);
+      const totalCredit = entries.reduce((s, e) => s + Number(e.credit), 0);
+      if (Math.abs(totalDebit - totalCredit) > 0.01) {
+        throw new Error(`Double-entry violation in PaymentVoucher ${payment.voucherNo}: Debit ${totalDebit} != Credit ${totalCredit}`);
+      }
+
+      await this.prisma.ledgerEntry.createMany({ data: entries });
     }
   }
 }

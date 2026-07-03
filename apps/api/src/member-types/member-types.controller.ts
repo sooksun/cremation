@@ -8,6 +8,7 @@ import {
   Delete,
   Query,
   UseGuards,
+  Request,
 } from '@nestjs/common';
 import { MemberTypesService } from './member-types.service';
 import { CreateMemberTypeDto } from './dto/create-member-type.dto';
@@ -16,6 +17,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '@prisma/client';
+import { ScopedUser } from '../common/security/school-scope.service';
 
 @Controller('member-types')
 @UseGuards(JwtAuthGuard)
@@ -25,8 +27,8 @@ export class MemberTypesController {
   @Post()
   @UseGuards(RolesGuard)
   @Roles(Role.ADMIN)
-  create(@Body() dto: CreateMemberTypeDto) {
-    return this.memberTypesService.create(dto);
+  create(@Body() dto: CreateMemberTypeDto, @Request() req: { user: ScopedUser }) {
+    return this.memberTypesService.create(dto, req.user);
   }
 
   @Get()
@@ -42,15 +44,15 @@ export class MemberTypesController {
   @Patch(':id')
   @UseGuards(RolesGuard)
   @Roles(Role.ADMIN)
-  update(@Param('id') id: string, @Body() dto: UpdateMemberTypeDto) {
-    return this.memberTypesService.update(id, dto);
+  update(@Param('id') id: string, @Body() dto: UpdateMemberTypeDto, @Request() req: { user: ScopedUser }) {
+    return this.memberTypesService.update(id, dto, req.user);
   }
 
   @Delete(':id')
   @UseGuards(RolesGuard)
   @Roles(Role.ADMIN)
-  remove(@Param('id') id: string) {
-    return this.memberTypesService.remove(id);
+  remove(@Param('id') id: string, @Request() req: { user: ScopedUser }) {
+    return this.memberTypesService.remove(id, req.user);
   }
 }
 

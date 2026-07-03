@@ -12,6 +12,14 @@ import { SchoolScopeService, ScopedUser } from '../common/security/school-scope.
 import { AuditLogService } from '../common/services/audit-log.service';
 import { AppSettingsService } from '../common/services/app-settings.service';
 
+export interface PaidBySchoolSummary {
+  schoolId: string;
+  schoolName: string;
+  schoolCode: string;
+  paidCount: number;
+  paidAmount: number;
+}
+
 @Injectable()
 export class ContributionsService {
   constructor(
@@ -39,6 +47,30 @@ export class ContributionsService {
     const welfareRate = Number(period.welfareRate);
     const serviceFee = this.appSettings.effectiveServiceFee(Number(period.serviceFee), serviceFeeEnabled);
     return { welfareRate, serviceFee, totalAmount: welfareRate + serviceFee, serviceFeeEnabled };
+  }
+
+  private async getContributionLedgerAccounts() {
+    const [cashAccount, bankAccount, welfareRevenue, serviceRevenue] = await Promise.all([
+      this.prisma.account.findFirst({ where: { code: '101' } }),
+      this.prisma.account.findFirst({ where: { code: '102' } }),
+      this.prisma.account.findFirst({ where: { code: '401' } }),
+      this.prisma.account.findFirst({ where: { code: '402' } }),
+    ]);
+    return { cashAccount, bankAccount, welfareRevenue, serviceRevenue };
+  }
+
+  private async getDefaultBankAccountId(): Promise<string | undefined> {
+    try {
+      const defaultBankAccount = await this.bankAccountsService.findDefault();
+      if (defaultBankAccount?.id) {
+        const verify = await this.prisma.bankAccount.findUnique({
+          where: { id: defaultBankAccount.id },
+          select: { id: true },
+        });
+        return verify?.id;
+      }
+    } catch {}
+    return undefined;
   }
 
   private buildContributionLedgerEntries(params: {
@@ -80,6 +112,13 @@ export class ContributionsService {
         credit: params.serviceAmount,
         receiptId: params.receiptId,
       });
+    }
+
+    // Double-entry validation inside builder
+    const totalDebit = entries.reduce((s, e) => s + Number(e.debit || 0), 0);
+    const totalCredit = entries.reduce((s, e) => s + Number(e.credit || 0), 0);
+    if (Math.abs(totalDebit - totalCredit) > 0.01) {
+      throw new Error(`Double-entry violation in contribution ledger: Debit ${totalDebit} != Credit ${totalCredit}`);
     }
 
     return entries;
@@ -142,12 +181,25 @@ export class ContributionsService {
     });
   }
 
-  async closePeriod(id: string) {
-    await this.findPeriodById(id);
-    return this.prisma.contributionPeriod.update({
+  async closePeriod(id: string, actor?: ScopedUser) {
+    const period = await this.findPeriodById(id);
+    const updated = await this.prisma.contributionPeriod.update({
       where: { id },
       data: { isClosed: true },
     });
+
+    if (actor) {
+      await this.auditLog.log({
+        userId: actor.id,
+        action: AuditAction.CONTRIBUTION_PERIOD_CLOSE,
+        entityType: 'ContributionPeriod',
+        entityId: id,
+        schoolId: period ? undefined : undefined, // periods are global? but filter by school in practice
+        metadata: { year: period.year, month: period.month },
+      });
+    }
+
+    return updated;
   }
 
   // Generate contributions for all active members
@@ -283,27 +335,8 @@ export class ContributionsService {
       throw new BadRequestException('ไม่มีรายการที่ต้องบันทึก');
     }
 
-    // ดึงบัญชีธนาคาร (BankAccount) - บัญชีกลางของกองทุน (ดึงครั้งเดียวสำหรับทุก payment)
-    let defaultBankAccountId: string | undefined = undefined;
-    try {
-      const defaultBankAccount = await this.bankAccountsService.findDefault();
-      if (defaultBankAccount?.id) {
-        const verifyBankAccount = await this.prisma.bankAccount.findUnique({
-          where: { id: defaultBankAccount.id },
-          select: { id: true },
-        });
-        if (verifyBankAccount?.id) {
-          defaultBankAccountId = verifyBankAccount.id;
-        }
-      }
-    } catch (error) {
-    }
-
-    // ดึงบัญชีสำหรับ ledger entries (Account - บัญชีแยกประเภท) (ดึงครั้งเดียว)
-    const cashAccount = await this.prisma.account.findFirst({ where: { code: '101' } });
-    const bankAccount = await this.prisma.account.findFirst({ where: { code: '102' } });
-    const welfareRevenue = await this.prisma.account.findFirst({ where: { code: '401' } });
-    const serviceRevenue = await this.prisma.account.findFirst({ where: { code: '402' } });
+    const defaultBankAccountId = await this.getDefaultBankAccountId();
+    const { cashAccount, bankAccount, welfareRevenue, serviceRevenue } = await this.getContributionLedgerAccounts();
 
     const results: Array<{ contributionId: string; success: boolean; error?: string }> = [];
 
@@ -407,7 +440,7 @@ export class ContributionsService {
           const receipt = await this.prisma.receipt.create({ data: receiptData });
           receiptId = receipt.id;
 
-          if (cashAccount && bankAccount && welfareRevenue && serviceRevenue) {
+          if (cashAccount && welfareRevenue && serviceRevenue) {
             const welfareAmount = Number(contribution.welfareAmount);
             const serviceAmount = Number(contribution.serviceAmount);
             const memberLabel =
@@ -416,7 +449,7 @@ export class ContributionsService {
 
             await this.prisma.ledgerEntry.createMany({
               data: this.buildContributionLedgerEntries({
-                debitAccountId: bankAccount.id,
+                debitAccountId: bankAccount?.id || cashAccount.id,
                 welfareRevenueId: welfareRevenue.id,
                 serviceRevenueId: serviceRevenue.id,
                 paidDate,
@@ -652,36 +685,32 @@ export class ContributionsService {
       batchResult.results.filter((r) => r.success).map((r) => r.contributionId),
     );
 
-    const newlyPaidBySchool = new Map<
-      string,
-      { schoolId: string; schoolName: string; schoolCode: string; paidCount: number; paidAmount: number }
-    >();
+    const paidBySchool: Record<string, PaidBySchoolSummary> = {};
 
     for (const row of unpaid) {
       if (!successIds.has(row.id)) continue;
-      const current = newlyPaidBySchool.get(row.schoolId) ?? {
-        schoolId: row.school.id,
-        schoolName: row.school.name,
-        schoolCode: row.school.code,
-        paidCount: 0,
-        paidAmount: 0,
-      };
-      current.paidCount += 1;
-      current.paidAmount += Number(row.totalAmount);
-      newlyPaidBySchool.set(row.schoolId, current);
+      const key = row.schoolId;
+      if (!paidBySchool[key]) {
+        paidBySchool[key] = {
+          schoolId: row.school.id,
+          schoolName: row.school.name,
+          schoolCode: row.school.code,
+          paidCount: 0,
+          paidAmount: 0,
+        };
+      }
+      paidBySchool[key].paidCount += 1;
+      paidBySchool[key].paidAmount += Number(row.totalAmount);
     }
 
-    const periodSummaryBySchool = await this.getPeriodSummaryBySchool(
-      periodId,
-      scopedSchoolId,
-    );
+    const periodSummaryBySchool = await this.getPeriodSummaryBySchool(periodId, scopedSchoolId);
 
     return {
       message: `บันทึกการชำระ ${batchResult.success} รายการ`,
       batch: batchResult,
-      newlyPaidBySchool: Array.from(newlyPaidBySchool.values()).sort((a, b) =>
+      newlyPaidBySchool: Object.values(paidBySchool).sort((a, b) =>
         a.schoolName.localeCompare(b.schoolName, 'th'),
-      ),
+      ) as PaidBySchoolSummary[],
       periodSummaryBySchool,
     };
   }
@@ -1099,30 +1128,8 @@ export class ContributionsService {
             // สร้างใบเสร็จรับเงิน
             const receiptNo = await this.documentNumberService.generateNumber(DocumentType.RECEIPT);
             
-            // ดึงบัญชีธนาคาร (BankAccount) - บัญชีกลางของกองทุน
-            let defaultBankAccountId: string | undefined = undefined;
-            try {
-              const defaultBankAccount = await this.bankAccountsService.findDefault();
-              if (defaultBankAccount?.id) {
-                // ตรวจสอบว่า bankAccountId มีอยู่ในฐานข้อมูลจริงหรือไม่
-                const verifyBankAccount = await this.prisma.bankAccount.findUnique({
-                  where: { id: defaultBankAccount.id },
-                  select: { id: true },
-                });
-                if (verifyBankAccount?.id) {
-                  defaultBankAccountId = verifyBankAccount.id;
-                } else {
-                }
-              } else {
-              }
-            } catch (error) {
-            }
-            
-            // ดึงบัญชีสำหรับ ledger entries (Account - บัญชีแยกประเภท)
-            const cashAccount = await this.prisma.account.findFirst({ where: { code: '101' } });
-            const bankAccount = await this.prisma.account.findFirst({ where: { code: '102' } });
-            const welfareRevenue = await this.prisma.account.findFirst({ where: { code: '401' } });
-            const serviceRevenue = await this.prisma.account.findFirst({ where: { code: '402' } });
+            const defaultBankAccountId = await this.getDefaultBankAccountId();
+            const { cashAccount, bankAccount, welfareRevenue, serviceRevenue } = await this.getContributionLedgerAccounts();
 
             // สร้าง receipt - ไม่ส่ง bankAccountId ถ้าไม่มีหรือไม่ถูกต้อง
             const receiptData: {
@@ -1238,30 +1245,8 @@ export class ContributionsService {
         },
       });
 
-      // ดึงบัญชีธนาคาร (BankAccount) - บัญชีกลางของกองทุน
-      let defaultBankAccountId: string | undefined = undefined;
-      try {
-        const defaultBankAccount = await this.bankAccountsService.findDefault();
-        if (defaultBankAccount?.id) {
-          // ตรวจสอบว่า bankAccountId มีอยู่ในฐานข้อมูลจริงหรือไม่
-          const verifyBankAccount = await this.prisma.bankAccount.findUnique({
-            where: { id: defaultBankAccount.id },
-            select: { id: true },
-          });
-          if (verifyBankAccount?.id) {
-            defaultBankAccountId = verifyBankAccount.id;
-          } else {
-          }
-        } else {
-        }
-      } catch (error) {
-      }
-      
-      // ดึงบัญชีสำหรับ ledger entries (Account - บัญชีแยกประเภท)
-      const cashAccount = await this.prisma.account.findFirst({ where: { code: '101' } });
-      const bankAccount = await this.prisma.account.findFirst({ where: { code: '102' } });
-      const welfareRevenue = await this.prisma.account.findFirst({ where: { code: '401' } });
-      const serviceRevenue = await this.prisma.account.findFirst({ where: { code: '402' } });
+      const defaultBankAccountId = await this.getDefaultBankAccountId();
+      const { cashAccount, bankAccount, welfareRevenue, serviceRevenue } = await this.getContributionLedgerAccounts();
 
       for (const contribution of paidContributions) {
         try {

@@ -49,6 +49,14 @@ export default function ChangePasswordPage() {
       showError('รหัสผ่านใหม่ต้องมีอย่างน้อย 8 ตัวอักษร');
       return;
     }
+    const hasUpper = /[A-Z]/.test(newPassword);
+    const hasLower = /[a-z]/.test(newPassword);
+    const hasNumber = /[0-9]/.test(newPassword);
+    const hasSpecial = /[!@#$%^&*(),.?":{}|<>_\-+=~`[\]\\;'/]/.test(newPassword);
+    if (!hasUpper || !hasLower || !hasNumber || !hasSpecial) {
+      showError('รหัสผ่านต้องมีตัวพิมพ์ใหญ่, ตัวพิมพ์เล็ก, ตัวเลข และอักขระพิเศษอย่างน้อย 1 ตัว');
+      return;
+    }
     if (newPassword !== confirmPassword) {
       showError('รหัสผ่านใหม่ไม่ตรงกัน');
       return;
@@ -98,6 +106,9 @@ export default function ChangePasswordPage() {
             {mustChange
               ? 'กรุณาตั้งรหัสผ่านใหม่ก่อนเข้าใช้งานระบบ'
               : 'อัปเดตรหัสผ่านของคุณ'}
+          </p>
+          <p className="text-xs text-slate-400 mt-1">
+            นโยบาย: อย่างน้อย 8 ตัวอักษร + ตัวพิมพ์ใหญ่ + ตัวพิมพ์เล็ก + ตัวเลข + อักขระพิเศษ
           </p>
         </div>
 
