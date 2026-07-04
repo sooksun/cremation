@@ -284,6 +284,9 @@ export default function PeriodDetailPage() {
                 : ''}
           </p>
         </div>
+        <Link href={`/reports/period-close-summary/${periodId}`} className="btn-secondary text-sm">
+          สรุปปิดงวด
+        </Link>
         {period?.isClosed ? (
           <div className="ml-auto flex items-center gap-2">
             <span className="badge-neutral">ปิดงวดแล้ว</span>

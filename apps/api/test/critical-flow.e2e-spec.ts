@@ -55,6 +55,13 @@ describe('Critical flow (e2e)', () => {
       findMany: jest.fn().mockResolvedValue([]),
       findUnique: jest.fn(),
     },
+    auditLog: {
+      create: jest.fn().mockResolvedValue({}),
+      findMany: jest.fn().mockResolvedValue([]),
+    },
+    welfareSettings: {
+      findFirst: jest.fn().mockResolvedValue(null),
+    },
     $transaction: jest.fn((ops: unknown[]) => Promise.all(ops as Promise<unknown>[])),
   };
 

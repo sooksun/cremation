@@ -28,6 +28,11 @@ export default function ReportsPage() {
     startDate: `${selectedYear}-01-01`,
     endDate: `${selectedYear}-12-31`,
   });
+  const [deathBenefitFilterMode, setDeathBenefitFilterMode] = useState<'year' | 'range'>('year');
+  const [deathBenefitRange, setDeathBenefitRange] = useState({
+    startDate: `${selectedYear}-01-01`,
+    endDate: `${selectedYear}-12-31`,
+  });
 
   const { data: memberStats, isLoading: loadingMembers } = useQuery({
     queryKey: ['member-stats', selectedYear, selectedSchoolId],
@@ -55,9 +60,18 @@ export default function ReportsPage() {
   });
 
   const { data: deathBenefitReport, isLoading: loadingDeathBenefits } = useQuery({
-    queryKey: ['death-benefit-report', selectedSchoolId, selectedYear],
+    queryKey: [
+      'death-benefit-report',
+      selectedSchoolId,
+      selectedYear,
+      deathBenefitFilterMode,
+      deathBenefitRange,
+    ],
     queryFn: async () => {
-      const params = new URLSearchParams({ year: selectedYear.toString() });
+      const params =
+        deathBenefitFilterMode === 'range'
+          ? new URLSearchParams(deathBenefitRange)
+          : new URLSearchParams({ year: selectedYear.toString() });
       if (selectedSchoolId) params.append('schoolId', selectedSchoolId);
       const response = await api.get(`/reports/death-benefits?${params}`);
       return response.data;
@@ -283,6 +297,59 @@ export default function ReportsPage() {
       {/* Death Benefits Report */}
       {reportType === 'death-benefits' && (
         <div className="space-y-6">
+          {/* Filter mode: by year (default) or by explicit date range */}
+          <div className="card p-4 flex flex-wrap items-center gap-4">
+            <div className="flex gap-2">
+              <button
+                onClick={() => setDeathBenefitFilterMode('year')}
+                className={`px-3 py-1.5 rounded-lg text-sm font-medium ${
+                  deathBenefitFilterMode === 'year'
+                    ? 'bg-primary-500 text-white'
+                    : 'bg-slate-100 text-slate-600'
+                }`}
+              >
+                ตามปี
+              </button>
+              <button
+                onClick={() => setDeathBenefitFilterMode('range')}
+                className={`px-3 py-1.5 rounded-lg text-sm font-medium ${
+                  deathBenefitFilterMode === 'range'
+                    ? 'bg-primary-500 text-white'
+                    : 'bg-slate-100 text-slate-600'
+                }`}
+              >
+                ตามช่วงวันที่
+              </button>
+            </div>
+            {deathBenefitFilterMode === 'range' && (
+              <>
+                <ThaiDatePicker
+                  value={deathBenefitRange.startDate ? dayjs(deathBenefitRange.startDate) : null}
+                  onChange={(date) =>
+                    setDeathBenefitRange({
+                      ...deathBenefitRange,
+                      startDate: date ? date.format('YYYY-MM-DD') : '',
+                    })
+                  }
+                  placeholder="วันเริ่มต้น"
+                  style={{ width: 160 }}
+                />
+                <span className="text-slate-400">ถึง</span>
+                <ThaiDatePicker
+                  value={deathBenefitRange.endDate ? dayjs(deathBenefitRange.endDate) : null}
+                  onChange={(date) =>
+                    setDeathBenefitRange({
+                      ...deathBenefitRange,
+                      endDate: date ? date.format('YYYY-MM-DD') : '',
+                    })
+                  }
+                  placeholder="วันสิ้นสุด"
+                  style={{ width: 160 }}
+                />
+              </>
+            )}
+          </div>
+
           {loadingDeathBenefits ? (
             <div className="flex justify-center py-20">
               <div className="w-8 h-8 border-4 border-primary-500 border-t-transparent rounded-full animate-spin" />
@@ -319,7 +386,7 @@ export default function ReportsPage() {
                 {deathBenefitReport?.claims?.length === 0 ? (
                   <div className="text-center py-10 text-slate-500">
                     <Flower2 className="w-12 h-12 mx-auto text-slate-300 mb-3" />
-                    <p>ไม่มีข้อมูลการแจ้งเสียชีวิตในปีนี้</p>
+                    <p>ไม่มีข้อมูลการแจ้งเสียชีวิตในช่วงเวลานี้</p>
                   </div>
                 ) : (
                   <div className="table-container border-0">
@@ -330,7 +397,9 @@ export default function ReportsPage() {
                           <th>ชื่อสมาชิก</th>
                           <th>โรงเรียน</th>
                           <th>วันที่เสียชีวิต</th>
-                          <th className="text-right">เงินสงเคราะห์</th>
+                          <th className="text-right">ยอดรวมก่อนหัก</th>
+                          <th className="text-right">หักค่าธรรมเนียม</th>
+                          <th className="text-right">เงินสงเคราะห์สุทธิ</th>
                           <th>สถานะ</th>
                         </tr>
                       </thead>
@@ -343,6 +412,8 @@ export default function ReportsPage() {
                             </td>
                             <td className="text-slate-500">{claim.school.name}</td>
                             <td>{formatDate(claim.deathDate)}</td>
+                            <td className="text-right">{formatCurrency(claim.grossAmount)}</td>
+                            <td className="text-right text-red-600">{formatCurrency(claim.feeDeduction)}</td>
                             <td className="text-right font-semibold">
                               {formatCurrency(claim.netToPay)}
                             </td>

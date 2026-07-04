@@ -23,7 +23,12 @@ describe('ReportsService.getMemberProfile access', () => {
     assertMemberSelfAccess: jest.fn(),
     assertSchoolAccess: jest.fn(),
   };
-  const service = new ReportsService(prisma as never, schoolScope as never);
+  const service = new ReportsService(
+    prisma as never,
+    schoolScope as never,
+    {} as never,
+    { log: jest.fn() } as never,
+  );
 
   beforeEach(() => jest.clearAllMocks());
 

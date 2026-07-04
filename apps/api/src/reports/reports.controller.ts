@@ -1,9 +1,18 @@
-import { Controller, Get, Query, Param, UseGuards, Request } from '@nestjs/common';
+import {
+  BadRequestException,
+  Controller,
+  Get,
+  Param,
+  ParseEnumPipe,
+  Query,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
 import { ReportsService } from './reports.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
-import { Role } from '@prisma/client';
+import { Role, ReceiptType, PaymentType } from '@prisma/client';
 import { AllowMemberAccess } from '../auth/decorators/allow-member-access.decorator';
 import { SchoolScopeService, ScopedUser } from '../common/security/school-scope.service';
 
@@ -17,6 +26,14 @@ export class ReportsController {
 
   private scopedSchoolId(user: ScopedUser, schoolId?: string): string | undefined {
     return this.schoolScope.resolveSchoolId(user, schoolId);
+  }
+
+  private parseRequiredDate(value: string | undefined, name: string): Date {
+    const parsed = value ? new Date(value) : undefined;
+    if (!parsed || Number.isNaN(parsed.getTime())) {
+      throw new BadRequestException(`ต้องระบุ ${name} เป็นวันที่ที่ถูกต้อง (YYYY-MM-DD)`);
+    }
+    return parsed;
   }
 
   @Get('dashboard')
@@ -85,11 +102,119 @@ export class ReportsController {
   @Get('death-benefits')
   getDeathBenefitReport(
     @Request() req: { user: ScopedUser },
-    @Query('year') year: number,
+    @Query('year') year?: number,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
     @Query('schoolId') schoolId?: string,
   ) {
     return this.reportsService.getDeathBenefitReport(
-      Number(year),
+      startDate || endDate
+        ? {
+            startDate: this.parseRequiredDate(startDate, 'startDate'),
+            endDate: this.parseRequiredDate(endDate, 'endDate'),
+          }
+        : { year: year ? Number(year) : undefined },
+      this.scopedSchoolId(req.user, schoolId),
+      req.user,
+    );
+  }
+
+  @Get('resignations')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.SCHOOL_ADMIN, Role.FINANCE)
+  getResignationReport(
+    @Request() req: { user: ScopedUser },
+    @Query('startDate') startDate: string,
+    @Query('endDate') endDate: string,
+    @Query('schoolId') schoolId?: string,
+  ) {
+    return this.reportsService.getResignationReport(
+      this.parseRequiredDate(startDate, 'startDate'),
+      this.parseRequiredDate(endDate, 'endDate'),
+      this.scopedSchoolId(req.user, schoolId),
+      req.user,
+    );
+  }
+
+  @Get('receipts-ledger')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.SCHOOL_ADMIN, Role.FINANCE, Role.ACCOUNTING)
+  getReceiptsLedger(
+    @Request() req: { user: ScopedUser },
+    @Query('startDate') startDate: string,
+    @Query('endDate') endDate: string,
+    @Query('schoolId') schoolId?: string,
+    @Query('type', new ParseEnumPipe(ReceiptType, { optional: true })) type?: ReceiptType,
+  ) {
+    return this.reportsService.getReceiptsLedger(
+      this.parseRequiredDate(startDate, 'startDate'),
+      this.parseRequiredDate(endDate, 'endDate'),
+      this.scopedSchoolId(req.user, schoolId),
+      type,
+    );
+  }
+
+  @Get('disbursement-ledger')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.SCHOOL_ADMIN, Role.FINANCE, Role.ACCOUNTING)
+  getDisbursementLedger(
+    @Request() req: { user: ScopedUser },
+    @Query('startDate') startDate: string,
+    @Query('endDate') endDate: string,
+    @Query('schoolId') schoolId?: string,
+    @Query('type', new ParseEnumPipe(PaymentType, { optional: true })) type?: PaymentType,
+  ) {
+    return this.reportsService.getDisbursementLedger(
+      this.parseRequiredDate(startDate, 'startDate'),
+      this.parseRequiredDate(endDate, 'endDate'),
+      this.scopedSchoolId(req.user, schoolId),
+      type,
+      req.user,
+    );
+  }
+
+  @Get('member-registry')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.SCHOOL_ADMIN, Role.FINANCE)
+  getMemberRegistryReport(
+    @Request() req: { user: ScopedUser },
+    @Query('dateField') dateField: 'coverage' | 'applied' | 'recorded',
+    @Query('startDate') startDate: string,
+    @Query('endDate') endDate: string,
+    @Query('schoolId') schoolId?: string,
+  ) {
+    const field = dateField || 'coverage';
+    if (!['coverage', 'applied', 'recorded'].includes(field)) {
+      throw new BadRequestException('dateField ต้องเป็น coverage, applied หรือ recorded');
+    }
+    return this.reportsService.getMemberRegistryReport(
+      field,
+      this.parseRequiredDate(startDate, 'startDate'),
+      this.parseRequiredDate(endDate, 'endDate'),
+      this.scopedSchoolId(req.user, schoolId),
+      req.user,
+    );
+  }
+
+  @Get('member-statement/:memberId')
+  @AllowMemberAccess()
+  getMemberStatement(
+    @Param('memberId') memberId: string,
+    @Request() req: { user: ScopedUser },
+  ) {
+    return this.reportsService.getMemberStatement(memberId, req.user);
+  }
+
+  @Get('period-close-summary/:periodId')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.SCHOOL_ADMIN, Role.FINANCE, Role.ACCOUNTING)
+  getPeriodCloseSummary(
+    @Param('periodId') periodId: string,
+    @Request() req: { user: ScopedUser },
+    @Query('schoolId') schoolId?: string,
+  ) {
+    return this.reportsService.getPeriodCloseSummary(
+      periodId,
       this.scopedSchoolId(req.user, schoolId),
     );
   }

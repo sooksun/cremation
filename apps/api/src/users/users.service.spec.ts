@@ -15,7 +15,7 @@ describe('UsersService member accounts', () => {
       findUnique: jest.fn(),
     },
   };
-  const service = new UsersService(prisma as never);
+  const service = new UsersService(prisma as never, { log: jest.fn() } as never);
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -40,7 +40,7 @@ describe('UsersService member accounts', () => {
 
     await service.create({
       username: 'member001',
-      password: 'securePass1',
+      password: 'securePass1!',
       fullName: 'Test Member',
       role: Role.MEMBER,
       memberId: 'member-1',
@@ -70,7 +70,7 @@ describe('UsersService member accounts', () => {
     await expect(
       service.create({
         username: 'member002',
-        password: 'securePass1',
+        password: 'securePass1!',
         fullName: 'Test Member',
         role: Role.MEMBER,
         memberId: 'member-1',

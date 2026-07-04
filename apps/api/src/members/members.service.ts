@@ -67,6 +67,28 @@ export class MembersService {
       if (actor) {
         this.schoolScope.assertSchoolAccess(actor, schoolId);
       }
+      if (dto.idCardNo) {
+        const duplicate = await this.prisma.associationMember.findFirst({
+          where: { idCardNo: dto.idCardNo },
+          include: { cremationMember: { select: { memberNo: true, status: true } } },
+        });
+        if (duplicate) {
+          const prev = duplicate.cremationMember;
+          if (
+            prev &&
+            (prev.status === MemberStatus.RESIGNED || prev.status === MemberStatus.DECEASED)
+          ) {
+            const reason =
+              prev.status === MemberStatus.RESIGNED ? 'ลาออกไปแล้ว' : 'เสียชีวิตแล้ว';
+            throw new BadRequestException(
+              `เลขบัตรประชาชนนี้เคยเป็นสมาชิกฌาปนกิจ (${prev.memberNo}) และ${reason} — หากต้องการสมัครใหม่ให้เลือกผูกกับสมาชิกสมาคมเดิมแทนการสร้างข้อมูลซ้ำ`,
+            );
+          }
+          throw new BadRequestException(
+            'เลขบัตรประชาชนนี้มีอยู่ในทะเบียนสมาชิกสมาคมแล้ว — เลือกผูกกับสมาชิกสมาคมเดิมแทนการสร้างใหม่',
+          );
+        }
+      }
       const joinDate = new Date(dto.joinDate);
       associationMember = await this.prisma.associationMember.create({
         data: {
@@ -213,6 +235,7 @@ export class MembersService {
 
   async update(id: string, dto: UpdateMemberDto, actor?: ScopedUser) {
     const before = await this.findById(id, actor);
+    this.assertNotLocked(before.status, actor);
 
     const updated = await this.prisma.member.update({
       where: { id },
@@ -278,8 +301,19 @@ export class MembersService {
     });
   }
 
+  // Records of deceased members are locked (their death claim snapshot depends on them);
+  // only ADMIN can correct mistakes.
+  private assertNotLocked(status: MemberStatus, actor?: ScopedUser) {
+    if (status === MemberStatus.DECEASED && actor && actor.role !== Role.ADMIN) {
+      throw new BadRequestException(
+        'ข้อมูลสมาชิกถูกล็อกหลังบันทึกการเสียชีวิต — ต้องให้ผู้ดูแลระบบ (ADMIN) เป็นผู้แก้ไข',
+      );
+    }
+  }
+
   async changeStatus(id: string, newStatus: MemberStatus, date?: string, actor?: ScopedUser) {
     const member = await this.findById(id, actor);
+    this.assertNotLocked(member.status, actor);
     const memberTypeCode = member.associationMember?.memberType?.code;
 
     const updateData: any = {
@@ -354,6 +388,7 @@ export class MembersService {
 
   async remove(id: string, actor?: ScopedUser) {
     const member = await this.findById(id, actor);
+    this.assertNotLocked(member.status, actor);
     const associationMemberId = member.associationMemberId;
 
     await this.prisma.$transaction(async (tx) => {

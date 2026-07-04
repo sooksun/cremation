@@ -1,9 +1,18 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { DeathClaimStatus, MemberStatus, Role, BankTransactionType } from '@prisma/client';
+import {
+  DeathClaimStatus,
+  MemberStatus,
+  Role,
+  BankTransactionType,
+  ReceiptType,
+  PaymentType,
+  AuditAction,
+} from '@prisma/client';
 import { applyIdCardMask, applyNationalIdMask } from '../common/utils/pii.util';
 import { SchoolScopeService, ScopedUser } from '../common/security/school-scope.service';
 import { AccountsService } from '../accounts/accounts.service';
+import { AuditLogService } from '../common/services/audit-log.service';
 
 @Injectable()
 export class ReportsService {
@@ -11,7 +20,26 @@ export class ReportsService {
     private readonly prisma: PrismaService,
     private readonly schoolScope: SchoolScopeService,
     private readonly accountsService: AccountsService,
+    private readonly auditLog: AuditLogService,
   ) {}
+
+  // PRD Section 8: sensitive report generation (PII / financial disclosure) is audit-logged.
+  private async logReportGeneration(
+    actor: ScopedUser | undefined,
+    report: string,
+    schoolId?: string,
+    metadata?: Record<string, string | number | undefined>,
+  ) {
+    if (!actor) return;
+    await this.auditLog.log({
+      userId: actor.id,
+      action: AuditAction.REPORT_GENERATE,
+      entityType: 'Report',
+      entityId: report,
+      schoolId,
+      metadata: JSON.parse(JSON.stringify(metadata ?? {})),
+    });
+  }
 
   // Dashboard summary
   async getDashboard(schoolId?: string, year?: number) {
@@ -354,15 +382,29 @@ export class ReportsService {
     };
   }
 
-  // Death benefit summary
-  async getDeathBenefitReport(year: number, schoolId?: string) {
-    const where: any = {
-      reportedDate: {
-        gte: new Date(`${year}-01-01`),
-        lt: new Date(`${year + 1}-01-01`),
-      },
-    };
+  // Death benefit summary — accepts either a full year OR an explicit date range (PRD gap #4)
+  async getDeathBenefitReport(
+    range: { year?: number; startDate?: Date; endDate?: Date },
+    schoolId?: string,
+    actor?: ScopedUser,
+  ) {
+    const year = range.year || new Date().getFullYear();
+    const reportedDateFilter =
+      range.startDate && range.endDate
+        ? { gte: range.startDate, lte: range.endDate }
+        : {
+            gte: new Date(`${year}-01-01`),
+            lt: new Date(`${year + 1}-01-01`),
+          };
+
+    const where: any = { reportedDate: reportedDateFilter };
     if (schoolId) where.schoolId = schoolId;
+
+    await this.logReportGeneration(actor, 'death-benefits', schoolId, {
+      year: range.year,
+      startDate: range.startDate?.toISOString(),
+      endDate: range.endDate?.toISOString(),
+    });
 
     const claims = await this.prisma.deathClaim.findMany({
       where,
@@ -391,6 +433,13 @@ export class ReportsService {
         .reduce((sum, c) => sum + Number(c.payment!.amount), 0),
       totalFundReserve: claims.reduce((sum, c) => sum + Number(c.associationSupport), 0),
       totalCollected: claims.reduce((sum, c) => sum + Number(c.collectedAmount), 0),
+      // gross amount available before other deductions, and the fee/deduction total — mirrors
+      // the legacy manual's death-notification report columns (1.6: gross / fee / net)
+      grossTotal: claims.reduce(
+        (sum, c) => sum + Number(c.totalContribution) + Number(c.associationSupport),
+        0,
+      ),
+      feeTotal: claims.reduce((sum, c) => sum + Number(c.otherDeductions), 0),
       overdueCollection: claims.filter(
         (c) =>
           !c.payment &&
@@ -405,7 +454,347 @@ export class ReportsService {
       ).length,
     };
 
-    return { summary, claims };
+    return {
+      summary,
+      claims: claims.map((c) => ({
+        ...c,
+        grossAmount: Number(c.totalContribution) + Number(c.associationSupport),
+        feeDeduction: Number(c.otherDeductions),
+      })),
+    };
+  }
+
+  // Resignation report (PRD gap #5)
+  async getResignationReport(
+    startDate: Date,
+    endDate: Date,
+    schoolId: string | undefined,
+    actor: ScopedUser,
+  ) {
+    const where: any = {
+      status: MemberStatus.RESIGNED,
+      resignDate: { gte: startDate, lte: endDate },
+    };
+    if (schoolId) where.schoolId = schoolId;
+
+    await this.logReportGeneration(actor, 'resignations', schoolId, {
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
+    });
+
+    const members = await this.prisma.member.findMany({
+      where,
+      include: {
+        school: { select: { name: true } },
+        associationMember: {
+          select: { firstName: true, lastName: true, idCardNo: true, associationMemberNo: true },
+        },
+      },
+      orderBy: { resignDate: 'asc' },
+    });
+
+    const byReason = new Map<string, number>();
+    for (const m of members) {
+      const reason = m.membershipEndReason ?? 'ไม่ระบุ';
+      byReason.set(reason, (byReason.get(reason) ?? 0) + 1);
+    }
+
+    return {
+      period: { startDate, endDate },
+      summary: {
+        totalResigned: members.length,
+        byReason: [...byReason.entries()].map(([reason, count]) => ({ reason, count })),
+      },
+      resignations: members.map((m) => {
+        const am = m.associationMember;
+        return applyIdCardMask(
+          {
+            id: m.id,
+            memberNo: m.memberNo,
+            associationMemberNo: am?.associationMemberNo,
+            fullName: am ? `${am.firstName} ${am.lastName}` : '',
+            idCardNo: am?.idCardNo,
+            school: m.school.name,
+            resignDate: m.resignDate,
+            membershipEndReason: m.membershipEndReason,
+          },
+          actor.role,
+        );
+      }),
+    };
+  }
+
+  // Receipts ledger report (PRD gap #6 — receipts half)
+  async getReceiptsLedger(
+    startDate: Date,
+    endDate: Date,
+    schoolId?: string,
+    type?: ReceiptType,
+  ) {
+    const where: any = { date: { gte: startDate, lte: endDate } };
+    if (schoolId) where.schoolId = schoolId;
+    if (type) where.type = type;
+
+    const [receipts, byType] = await Promise.all([
+      this.prisma.receipt.findMany({
+        where,
+        include: { school: { select: { name: true } }, bankAccount: { select: { bankName: true } } },
+        orderBy: { date: 'asc' },
+      }),
+      this.prisma.receipt.groupBy({ by: ['type'], where, _sum: { amount: true }, _count: true }),
+    ]);
+
+    return {
+      period: { startDate, endDate },
+      summary: {
+        totalAmount: receipts.reduce((sum, r) => sum + Number(r.amount), 0),
+        count: receipts.length,
+        byType: byType.map((t) => ({ type: t.type, count: t._count, amount: Number(t._sum.amount || 0) })),
+      },
+      receipts: receipts.map((r) => ({
+        id: r.id,
+        receiptNo: r.receiptNo,
+        date: r.date,
+        type: r.type,
+        description: r.description,
+        amount: Number(r.amount),
+        school: r.school?.name,
+        bankAccount: r.bankAccount?.bankName,
+      })),
+    };
+  }
+
+  // Disbursement (payment voucher) ledger report (PRD gap #6 — payments half)
+  async getDisbursementLedger(
+    startDate: Date,
+    endDate: Date,
+    schoolId?: string,
+    type?: PaymentType,
+    actor?: ScopedUser,
+  ) {
+    const where: any = { date: { gte: startDate, lte: endDate } };
+    if (schoolId) where.schoolId = schoolId;
+    if (type) where.type = type;
+
+    await this.logReportGeneration(actor, 'disbursement-ledger', schoolId, {
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
+      type,
+    });
+
+    const [payments, byType] = await Promise.all([
+      this.prisma.paymentVoucher.findMany({
+        where,
+        include: { school: { select: { name: true } }, bankAccount: { select: { bankName: true } } },
+        orderBy: { date: 'asc' },
+      }),
+      this.prisma.paymentVoucher.groupBy({ by: ['type'], where, _sum: { amount: true }, _count: true }),
+    ]);
+
+    return {
+      period: { startDate, endDate },
+      summary: {
+        totalAmount: payments.reduce((sum, p) => sum + Number(p.amount), 0),
+        count: payments.length,
+        byType: byType.map((t) => ({ type: t.type, count: t._count, amount: Number(t._sum.amount || 0) })),
+      },
+      payments: payments.map((p) => ({
+        id: p.id,
+        voucherNo: p.voucherNo,
+        date: p.date,
+        type: p.type,
+        description: p.description,
+        amount: Number(p.amount),
+        school: p.school?.name,
+        bankAccount: p.bankAccount?.bankName,
+      })),
+    };
+  }
+
+  // Member registry / application report — dual ID, selectable date field (PRD gaps #1 + #2,
+  // combined into one flexible report rather than 4 near-duplicate legacy variants)
+  async getMemberRegistryReport(
+    dateField: 'coverage' | 'applied' | 'recorded',
+    startDate: Date,
+    endDate: Date,
+    schoolId: string | undefined,
+    actor: ScopedUser,
+  ) {
+    const fieldMap = {
+      coverage: 'joinDate',
+      applied: 'applicationSubmittedAt',
+      recorded: 'createdAt',
+    } as const;
+    const column = fieldMap[dateField];
+
+    const where: any = { [column]: { gte: startDate, lte: endDate } };
+    if (schoolId) where.schoolId = schoolId;
+
+    const members = await this.prisma.member.findMany({
+      where,
+      include: {
+        school: { select: { id: true, name: true } },
+        associationMember: {
+          select: { firstName: true, lastName: true, idCardNo: true, associationMemberNo: true, birthDate: true },
+        },
+      },
+      orderBy: [{ school: { name: 'asc' } }, { memberNo: 'asc' }],
+    });
+
+    const bySchool = new Map<string, { school: { id: string; name: string }; members: any[] }>();
+    for (const m of members) {
+      const entry = bySchool.get(m.schoolId) ?? { school: m.school, members: [] };
+      const am = m.associationMember;
+      entry.members.push(
+        applyIdCardMask(
+          {
+            id: m.id,
+            memberNo: m.memberNo,
+            associationMemberNo: am?.associationMemberNo,
+            fullName: am ? `${am.firstName} ${am.lastName}` : '',
+            idCardNo: am?.idCardNo,
+            birthDate: am?.birthDate,
+            joinDate: m.joinDate,
+            applicationSubmittedAt: m.applicationSubmittedAt,
+          },
+          actor.role,
+        ),
+      );
+      bySchool.set(m.schoolId, entry);
+    }
+
+    return {
+      dateField,
+      period: { startDate, endDate },
+      summary: { total: members.length },
+      bySchool: [...bySchool.values()],
+    };
+  }
+
+  // Member statement / "passbook" substitute — transaction history with running paid total.
+  // PRD gap #3, scoped per Section 5 Option A: NOT a prepaid-balance ledger, just a statement
+  // derived from existing MemberContribution/DeathBenefitPayment data.
+  async getMemberStatement(memberId: string, actor: ScopedUser) {
+    const member = await this.prisma.member.findUnique({
+      where: { id: memberId },
+      include: {
+        school: true,
+        associationMember: true,
+        contributions: {
+          include: { period: true },
+          orderBy: [{ period: { year: 'asc' } }, { period: { month: 'asc' } }],
+        },
+        deathClaims: { include: { payment: true }, orderBy: { reportedDate: 'asc' } },
+      },
+    });
+    if (!member) return null;
+
+    this.schoolScope.assertMemberSelfAccess(actor, memberId);
+    this.schoolScope.assertSchoolAccess(actor, member.schoolId);
+
+    const am = member.associationMember;
+
+    const rows: { date: Date; description: string; paid: number; received: number }[] = [];
+    for (const c of member.contributions) {
+      if (Number(c.paidAmount) > 0) {
+        rows.push({
+          date: c.paidDate ?? c.createdAt,
+          description: `เงินสงเคราะห์ + ค่าบำรุง งวด ${c.period.month}/${c.period.year + 543}`,
+          paid: Number(c.paidAmount),
+          received: 0,
+        });
+      }
+    }
+    for (const dc of member.deathClaims) {
+      if (dc.payment) {
+        rows.push({
+          date: dc.payment.payDate,
+          description: `รับเงินสงเคราะห์ศพ (${dc.claimNo})`,
+          paid: 0,
+          received: Number(dc.payment.amount),
+        });
+      }
+    }
+    rows.sort((a, b) => a.date.getTime() - b.date.getTime());
+
+    let runningTotal = 0;
+    const statement = rows.map((r) => {
+      runningTotal += r.paid - r.received;
+      return { ...r, runningTotal };
+    });
+
+    return {
+      member: {
+        id: member.id,
+        memberNo: member.memberNo,
+        fullName: am ? `${am.firstName} ${am.lastName}` : '',
+        school: member.school.name,
+        joinDate: member.joinDate,
+      },
+      statement,
+      summary: {
+        totalPaid: rows.reduce((s, r) => s + r.paid, 0),
+        totalReceived: rows.reduce((s, r) => s + r.received, 0),
+      },
+    };
+  }
+
+  // Period-close summary/audit report — per-member + per-school rollup (PRD gap #8)
+  async getPeriodCloseSummary(periodId: string, schoolId?: string) {
+    const period = await this.prisma.contributionPeriod.findUnique({ where: { id: periodId } });
+    if (!period) return null;
+
+    const where: any = { periodId };
+    if (schoolId) where.schoolId = schoolId;
+
+    const contributions = await this.prisma.memberContribution.findMany({
+      where,
+      include: {
+        member: {
+          select: { memberNo: true, associationMember: { select: { firstName: true, lastName: true } } },
+        },
+        school: { select: { id: true, name: true } },
+      },
+      orderBy: [{ school: { name: 'asc' } }, { member: { memberNo: 'asc' } }],
+    });
+
+    const bySchool = new Map<
+      string,
+      { school: { id: string; name: string }; memberCount: number; totalDue: number; totalPaid: number }
+    >();
+    for (const c of contributions) {
+      const entry = bySchool.get(c.schoolId) ?? {
+        school: c.school,
+        memberCount: 0,
+        totalDue: 0,
+        totalPaid: 0,
+      };
+      entry.memberCount += 1;
+      entry.totalDue += Number(c.totalAmount);
+      entry.totalPaid += Number(c.paidAmount);
+      bySchool.set(c.schoolId, entry);
+    }
+
+    return {
+      period,
+      summary: {
+        memberCount: contributions.length,
+        totalDue: contributions.reduce((s, c) => s + Number(c.totalAmount), 0),
+        totalPaid: contributions.reduce((s, c) => s + Number(c.paidAmount), 0),
+      },
+      bySchool: [...bySchool.values()],
+      contributions: contributions.map((c) => ({
+        id: c.id,
+        memberNo: c.member.memberNo,
+        fullName: c.member.associationMember
+          ? `${c.member.associationMember.firstName} ${c.member.associationMember.lastName}`
+          : '',
+        school: c.school.name,
+        totalAmount: Number(c.totalAmount),
+        paidAmount: Number(c.paidAmount),
+        isArrears: c.isArrears,
+      })),
+    };
   }
 
   async getBoardMonthlyReport(year: number, month: number, schoolId?: string) {

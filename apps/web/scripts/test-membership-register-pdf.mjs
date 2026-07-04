@@ -28,7 +28,7 @@ const THAI_MONTHS = [
 const BENEFICIARY_FIELDS = {
   nameX: 118, relationshipX: 438.2, nationalIdX: 170.9, houseX: 441.5, mooX: 504.5,
   roadX: 103, soiX: 201.3, subdistrictX: 298.1, districtX: 424.9, provinceX: 95.6,
-  zipX: 236.5, phoneX: 398.6, contactX: 176, contactPhoneX: 400.9, lineSpacing: 21,
+  zipX: 256.5, phoneX: 398.6, contactX: 176, contactPhoneX: 400.9, lineSpacing: 21,
 };
 
 const TEMPLATE_COORDS = {
@@ -45,11 +45,11 @@ const TEMPLATE_COORDS = {
       yTop: 233.9,
       digitCentersX: [201.4, 225.5, 237.5, 249.5, 261.4, 285.4, 297.4, 309.4, 321.4, 333.3, 357.3, 369.2, 393.2],
     },
-    registeredAddress1: { yTop: 265.4, houseNo: 184, moo: 258, road: 322, soi: 420, subdistrict: 510 },
-    registeredAddress2: { yTop: 286.4, district: 105, province: 205, zip: 334, phone: 438 },
+    registeredAddress1: { yTop: 265.4, houseNo: 160, moo: 236.5, road: 283.1, soi: 396.3, subdistrict: 481.9 },
+    registeredAddress2: { yTop: 286.4, district: 82.2, province: 182.3, zip: 296.2, phone: 402.9 },
     maritalStatus: { yTop: 308.1, singleX: 108, marriedX: 178, spouseX: 317.1 },
-    contactAddress1: { yTop: 371, houseNo: 215, moo: 280, road: 325, soi: 430, subdistrict: 510 },
-    contactAddress2: { yTop: 392, district: 105, province: 205, zip: 334, phone: 410 },
+    contactAddress1: { yTop: 371, houseNo: 183.2, moo: 254.3, road: 296.4, soi: 403.2, subdistrict: 483 },
+    contactAddress2: { yTop: 392, district: 82.2, province: 177.9, zip: 296.2, phone: 373.8 },
     bloodRelatives: { nameX: 118, relationshipX: 438.2, yTops: [475.7, 496.7, 517.8, 538.6, 559.6, 580.6, 601.5] },
     beneficiaries: { yTops: [695.9, 76.8, 181.6] },
     signature: { nameX: 300.2, nameYTop: 328.4, dateX: 362, dateYTop: 349.4 },
@@ -67,11 +67,11 @@ const TEMPLATE_COORDS = {
       yTop: 236.9,
       digitCentersX: [223.3, 247.3, 259.3, 271.3, 283.3, 307.3, 319.3, 331.3, 343.3, 355.2, 379.1, 391, 415],
     },
-    registeredAddress1: { yTop: 264.5, houseNo: 184, moo: 258, road: 322, soi: 420, subdistrict: 510 },
-    registeredAddress2: { yTop: 285.5, district: 105, province: 205, zip: 334, phone: 438 },
+    registeredAddress1: { yTop: 264.5, houseNo: 160, moo: 236.5, road: 283.1, soi: 396.3, subdistrict: 481.9 },
+    registeredAddress2: { yTop: 285.5, district: 83.4, province: 185.5, zip: 307, phone: 412.9 },
     maritalStatus: { yTop: 307.3, singleX: 108, marriedX: 178, spouseX: 317.1 },
-    contactAddress1: { yTop: 370.1, houseNo: 215, moo: 280, road: 325, soi: 430, subdistrict: 510 },
-    contactAddress2: { yTop: 391, district: 105, province: 205, zip: 334, phone: 410 },
+    contactAddress1: { yTop: 370.1, houseNo: 182.6, moo: 253.5, road: 295.3, soi: 399.9, subdistrict: 480.2 },
+    contactAddress2: { yTop: 391, district: 82.2, province: 177.9, zip: 296.2, phone: 373.8 },
     bloodRelatives: { nameX: 118, relationshipX: 438.2, yTops: [474.9, 495.9, 516.9, 537.8, 558.8, 579.8, 600.7] },
     beneficiaries: { yTops: [695, 76.8, 181.6] },
     signature: { nameX: 300.2, nameYTop: 328.4, dateX: 362, dateYTop: 349.4 },
@@ -84,15 +84,17 @@ const TEMPLATES = {
 };
 
 function sampleForm(type) {
+  // Worst-case: real-world rural addresses often repeat the same long village name across
+  // road/soi/subdistrict/district (e.g. "บ้านพญาไพร") — this is what overlapped before the fix.
   const addr = (suffix) => ({
-    houseNo: `99/${suffix}`,
+    houseNo: `222`,
     moo: `${suffix}`,
-    road: `ถนนทดสอบ${suffix}`,
-    soi: `ซอย${suffix}`,
-    subdistrict: `ต.ทดสอบ${suffix}`,
-    district: `อ.เมือง`,
+    road: `บ้านพญาไพร`,
+    soi: `บ้านพญาไพร`,
+    subdistrict: `บ้านพญาไพร`,
+    district: `บ้านพญาไพร`,
     province: 'เชียงราย',
-    zip: `5700${suffix}`,
+    zip: `56779${suffix}`,
     phone: `081234567${suffix}`,
   });
 
@@ -159,15 +161,21 @@ function formatFullThaiDate(iso) {
   return `${d} ${THAI_MONTHS[m - 1]} ${y + 543}`;
 }
 
+function truncate(text, maxChars) {
+  if (!text) return '';
+  if (!maxChars || text.length <= maxChars) return text;
+  return `${text.slice(0, maxChars - 1)}…`;
+}
+
 function drawText(page, font, text, pos) {
-  if (!text) return;
+  const value = truncate(text, pos.maxChars);
+  if (!value) return;
   const size = pos.size ?? DEFAULT_SIZE;
-  page.drawText(text, {
+  page.drawText(value, {
     x: pos.x + OFFSET_X,
     y: pos.y,
     size,
     font,
-
   });
 }
 
@@ -219,18 +227,18 @@ async function buildPdf(data) {
 
   const drawAddr1 = (page, addr, c) => {
     const y = toPdfY(page, c.yTop);
-    drawText(page, font, addr.houseNo, { x: c.houseNo, y });
-    drawText(page, font, addr.moo, { x: c.moo, y });
-    if (c.road) drawText(page, font, addr.road, { x: c.road, y });
-    if (c.soi) drawText(page, font, addr.soi, { x: c.soi, y });
-    drawText(page, font, addr.subdistrict, { x: c.subdistrict, y });
+    drawText(page, font, addr.houseNo, { x: c.houseNo, y, maxChars: 6 });
+    drawText(page, font, addr.moo, { x: c.moo, y, maxChars: 4 });
+    if (c.road) drawText(page, font, addr.road, { x: c.road, y, maxChars: 13 });
+    if (c.soi) drawText(page, font, addr.soi, { x: c.soi, y, maxChars: 9 });
+    drawText(page, font, addr.subdistrict, { x: c.subdistrict, y, maxChars: 8 });
   };
   const drawAddr2 = (page, addr, c) => {
     const y = toPdfY(page, c.yTop);
-    drawText(page, font, addr.district, { x: c.district, y });
-    drawText(page, font, addr.province, { x: c.province, y });
-    drawText(page, font, addr.zip, { x: c.zip, y });
-    drawText(page, font, addr.phone, { x: c.phone, y });
+    drawText(page, font, addr.district, { x: c.district, y, maxChars: 10 });
+    drawText(page, font, addr.province, { x: c.province, y, maxChars: 10 });
+    drawText(page, font, addr.zip, { x: c.zip, y, maxChars: 8 });
+    drawText(page, font, addr.phone, { x: c.phone, y, maxChars: 12 });
   };
 
   drawAddr1(page1, data.registeredAddress, coords.registeredAddress1);

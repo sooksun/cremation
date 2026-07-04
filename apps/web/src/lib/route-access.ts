@@ -38,6 +38,9 @@ export function isPathAllowedForRole(
     if (memberId && pathname === `/members/${memberId}/profile`) {
       return true;
     }
+    if (memberId && pathname === `/reports/member-statement/${memberId}`) {
+      return true;
+    }
     return /^\/receipts\/[^/]+$/.test(pathname) && pathname !== '/receipts/new';
   }
 

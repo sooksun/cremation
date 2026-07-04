@@ -12,7 +12,7 @@ import { exportElementToPdf } from '@/lib/export-pdf';
 import { showSuccess, showError } from '@/lib/toast';
 
 export default function FinancialStatementsPage() {
-  const { selectedYear } = useAuthStore();
+  const { selectedYear, selectedSchoolId } = useAuthStore();
   const [asOfDate, setAsOfDate] = useState(dayjs().format('YYYY-MM-DD'));
   const [plRange, setPlRange] = useState({
     startDate: `${selectedYear}-01-01`,

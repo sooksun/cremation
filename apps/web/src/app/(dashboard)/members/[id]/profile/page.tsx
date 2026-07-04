@@ -187,6 +187,9 @@ export default function MemberProfilePage() {
             {data.member.fullName} • เลขสมาชิก {data.member.memberNo}
           </p>
         </div>
+        <Link href={`/reports/member-statement/${memberId}`} className="ml-auto btn-secondary text-sm">
+          สมุดบัญชีสมาชิก
+        </Link>
       </div>
 
       {/* Summary Cards */}

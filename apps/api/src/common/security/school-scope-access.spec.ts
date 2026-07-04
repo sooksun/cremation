@@ -34,6 +34,7 @@ describe('School scope on ID routes', () => {
       {} as never,
       {} as never,
       schoolScope,
+      { log: jest.fn() } as never,
     );
 
     beforeEach(() => {
@@ -191,7 +192,7 @@ describe('School scope on ID routes', () => {
       },
     };
 
-    const groupsService = new GroupsService(prisma as never, schoolScope);
+    const groupsService = new GroupsService(prisma as never, schoolScope, { log: jest.fn() } as never);
 
     beforeEach(() => {
       prisma.group.findUnique.mockResolvedValue({
@@ -234,6 +235,7 @@ describe('School scope on ID routes', () => {
       {} as never,
       {} as never,
       schoolScope,
+      {} as never,
     );
 
     beforeEach(() => {
@@ -266,6 +268,7 @@ describe('School scope on ID routes', () => {
       {} as never,
       {} as never,
       schoolScope,
+      {} as never,
     );
 
     beforeEach(() => {
@@ -313,6 +316,7 @@ describe('School scope on ID routes', () => {
       {} as never,
       {} as never,
       schoolScope,
+      { log: jest.fn() } as never,
     );
 
     beforeEach(() => {

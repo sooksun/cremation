@@ -6,7 +6,7 @@ import { motion } from 'framer-motion';
 import { FileText, Eye, Check } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/auth';
-import { showSuccess } from '@/lib/toast';
+import { showSuccess, showError } from '@/lib/toast';
 import dayjs from 'dayjs';
 
 interface Application {

@@ -36,6 +36,7 @@ describe('AuthService', () => {
     service = new AuthService(
       usersService as unknown as UsersService,
       jwtService as unknown as JwtService,
+      { user: { update: jest.fn() } } as never,
     );
   });
 

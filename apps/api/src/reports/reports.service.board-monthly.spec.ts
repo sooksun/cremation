@@ -54,6 +54,8 @@ describe('ReportsService.getBoardMonthlyReport', () => {
     service = new ReportsService(
       prisma as unknown as PrismaService,
       {} as never,
+      {} as never,
+      { log: jest.fn() } as never,
     );
   });
 

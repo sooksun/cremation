@@ -76,6 +76,10 @@ const menuItems = [
       { label: 'รายงานรายวัน', href: '/reports/daily', roles: ['ADMIN', 'SCHOOL_ADMIN', 'FINANCE', 'ACCOUNTING'] },
       { label: 'งบทดลอง (Trial Balance)', href: '/reports/trial-balance', roles: ['ADMIN', 'SCHOOL_ADMIN', 'FINANCE', 'ACCOUNTING'] },
       { label: 'รายงานสมาชิก', href: '/reports', roles: ['ADMIN', 'SCHOOL_ADMIN', 'FINANCE'] },
+      { label: 'รายงานการลาออก', href: '/reports/resignations', roles: ['ADMIN', 'SCHOOL_ADMIN', 'FINANCE'] },
+      { label: 'ทะเบียนสมาชิก (ตามวันที่)', href: '/reports/member-registry', roles: ['ADMIN', 'SCHOOL_ADMIN', 'FINANCE'] },
+      { label: 'รายงานรับชำระ', href: '/reports/receipts-ledger', roles: ['ADMIN', 'SCHOOL_ADMIN', 'FINANCE', 'ACCOUNTING'] },
+      { label: 'รายงานการจ่าย', href: '/reports/disbursement-ledger', roles: ['ADMIN', 'SCHOOL_ADMIN', 'FINANCE', 'ACCOUNTING'] },
     ],
   },
   // ─── 3. งานฌาปนกิจ (กองทุนฌาปนกิจสงเคราะห์) ────────────

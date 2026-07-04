@@ -458,8 +458,6 @@ export default function WelfareRateSettingsPage() {
           </motion.div>
         </div>
       )}
-    </motion.div>
-      )}
 
       {/* Fixed Death Benefit Modal */}
       <AnimatePresence>
