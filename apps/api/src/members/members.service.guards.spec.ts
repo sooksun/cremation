@@ -21,10 +21,18 @@ describe('MembersService guards', () => {
   const prisma = {
     member: {
       findUnique: jest.fn().mockResolvedValue(deceasedMember),
+      findFirst: jest.fn(),
       update: jest.fn(),
     },
     associationMember: {
       findFirst: jest.fn(),
+      update: jest.fn(),
+    },
+    school: {
+      findUnique: jest.fn(),
+    },
+    memberType: {
+      findUnique: jest.fn(),
     },
   };
   const schoolScope = {
@@ -91,12 +99,65 @@ describe('MembersService guards', () => {
       await expect(service.create(dto, actor)).rejects.toThrow(/ลาออก/);
     });
 
+    it('points to the working recovery path (edit the existing member) instead of the dead-end associationMemberId retry', async () => {
+      prisma.associationMember.findFirst.mockResolvedValue({
+        id: 'am-9',
+        cremationMember: { memberNo: 'M099', status: MemberStatus.RESIGNED },
+      });
+
+      let message = '';
+      try {
+        await service.create(dto, actor);
+      } catch (err: any) {
+        message = err.message;
+      }
+
+      expect(message).toContain('M099');
+      expect(message).toContain('แก้ไขสมาชิก');
+      expect(message).not.toContain('ผูกกับสมาชิกสมาคมเดิม');
+    });
+
     it('rejects a new registration when the ID card already exists in the association registry', async () => {
       prisma.associationMember.findFirst.mockResolvedValue({
         id: 'am-9',
         cremationMember: null,
       });
       await expect(service.create(dto, actor)).rejects.toThrow(/มีอยู่ในทะเบียน/);
+    });
+
+    it('scopes the duplicate ID-card check to the target school (no cross-tenant leak)', async () => {
+      prisma.associationMember.findFirst.mockResolvedValue(null);
+      await service.create(dto, actor).catch(() => {});
+      expect(prisma.associationMember.findFirst).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({ schoolId: 'school-1', idCardNo: '1234567890123' }),
+        }),
+      );
+    });
+  });
+
+  describe('importCsv respects the locked-record guard (security fix)', () => {
+    const financeActor = { id: 'u1', role: Role.FINANCE, schoolId: 'school-1' } as never;
+    const csvRow = {
+      memberNo: 'M001',
+      firstName: 'A',
+      lastName: 'B',
+      schoolCode: 'SCH1',
+      memberTypeCode: 'STF',
+      status: 'ACTIVE',
+    } as never;
+
+    it('does not update a deceased member via CSV import for a non-admin actor', async () => {
+      prisma.school.findUnique.mockResolvedValue({ id: 'school-1', code: 'SCH1' });
+      prisma.memberType.findUnique.mockResolvedValue({ id: 'mt-1', code: 'STF' });
+      prisma.member.findFirst.mockResolvedValue(deceasedMember);
+
+      const result = await service.importCsv([csvRow], financeActor);
+
+      expect(prisma.associationMember.update).not.toHaveBeenCalled();
+      expect(prisma.member.update).not.toHaveBeenCalled();
+      expect(result.skipped).toBe(1);
+      expect(result.errors[0]).toContain('ล็อก');
     });
   });
 });

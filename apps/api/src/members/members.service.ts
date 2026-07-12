@@ -69,7 +69,7 @@ export class MembersService {
       }
       if (dto.idCardNo) {
         const duplicate = await this.prisma.associationMember.findFirst({
-          where: { idCardNo: dto.idCardNo },
+          where: { schoolId, idCardNo: dto.idCardNo },
           include: { cremationMember: { select: { memberNo: true, status: true } } },
         });
         if (duplicate) {
@@ -81,7 +81,7 @@ export class MembersService {
             const reason =
               prev.status === MemberStatus.RESIGNED ? 'ลาออกไปแล้ว' : 'เสียชีวิตแล้ว';
             throw new BadRequestException(
-              `เลขบัตรประชาชนนี้เคยเป็นสมาชิกฌาปนกิจ (${prev.memberNo}) และ${reason} — หากต้องการสมัครใหม่ให้เลือกผูกกับสมาชิกสมาคมเดิมแทนการสร้างข้อมูลซ้ำ`,
+              `เลขบัตรประชาชนนี้เคยเป็นสมาชิกฌาปนกิจ (${prev.memberNo}) และ${reason} — หากต้องการให้กลับมาเป็นสมาชิกอีกครั้ง ให้ไปที่หน้าแก้ไขสมาชิกเลขที่ ${prev.memberNo} แล้วเปลี่ยนสถานะกลับเป็นใช้งาน แทนการสร้างสมาชิกใหม่ซ้ำ`,
             );
           }
           throw new BadRequestException(
@@ -500,8 +500,9 @@ export class MembersService {
           if (actor) {
             try {
               this.schoolScope.assertSchoolAccess(actor, existing.schoolId);
-            } catch {
-              results.errors.push(`${row.memberNo}: ไม่มีสิทธิ์แก้ไขสมาชิกโรงเรียนอื่น`);
+              this.assertNotLocked(existing.status, actor);
+            } catch (err: any) {
+              results.errors.push(`${row.memberNo}: ${err.message || 'ไม่มีสิทธิ์แก้ไขสมาชิกโรงเรียนอื่น'}`);
               results.skipped++;
               continue;
             }
