@@ -540,22 +540,89 @@ export class DeathClaimsService {
       throw new BadRequestException('จำนวนเงินจ่ายต้องตรงกับยอดสุทธิที่คำนวณไว้');
     }
 
+    // ลงบัญชีเต็มวงจร (ข้อ 13/16): gross ขาเข้า → net จ่าย → 10% เข้ากองทุน — ใช้ค่า snapshot
+    const gross = Number(claim.totalContribution);
+    const fund = Number(claim.associationSupport);
+    const net = dto.amount !== undefined ? Number(dto.amount) : netToPay;
+    const payDate = new Date(dto.payDate);
+    const bankId = dto.bankAccountId ?? null;
+
+    // เลขเอกสารสร้างนอก transaction (pattern เดียวกับ payments/receipts service)
+    const receiptNo = await this.documentNumberService.generateNumber(DocumentType.RECEIPT);
+    const voucherNo = await this.documentNumberService.generateNumber(
+      DocumentType.PAYMENT_VOUCHER,
+    );
+
     const payment = await this.prisma.$transaction(async (tx) => {
+      const accId = async (code: string) => {
+        const a = await tx.account.findFirst({ where: { code } });
+        if (!a) throw new Error(`ไม่พบบัญชี ${code} — รัน prisma db seed`);
+        return a.id;
+      };
+      const moneyId = bankId ? await accId('102') : await accId('101');
+      const revenueId = await accId('401');
+      const expenseId = await accId('501');
+      const fundId = await accId('301');
+
+      const receipt = await tx.receipt.create({
+        data: {
+          receiptNo,
+          schoolId: claim.schoolId,
+          date: payDate,
+          type: 'DEATH_COLLECTION',
+          description: `เก็บเงินสงเคราะห์ศพ ${claim.claimNo}`,
+          amount: gross,
+          bankAccountId: bankId,
+        },
+      });
+      const voucher = await tx.paymentVoucher.create({
+        data: {
+          voucherNo,
+          schoolId: claim.schoolId,
+          date: payDate,
+          type: 'DEATH_BENEFIT',
+          description: `จ่ายเงินสงเคราะห์ศพ ${claim.claimNo}`,
+          amount: net,
+          bankAccountId: bankId,
+        },
+      });
+
+      const entries = [
+        { accountId: moneyId, date: payDate, description: `รับเงินสงเคราะห์ ${claim.claimNo}`, debit: gross, credit: 0, receiptId: receipt.id },
+        { accountId: revenueId, date: payDate, description: `รายได้สงเคราะห์ ${claim.claimNo}`, debit: 0, credit: gross, receiptId: receipt.id },
+        { accountId: expenseId, date: payDate, description: `จ่ายสงเคราะห์ ${claim.claimNo}`, debit: net, credit: 0, paymentId: voucher.id },
+        { accountId: moneyId, date: payDate, description: `จ่ายสงเคราะห์ ${claim.claimNo}`, debit: 0, credit: net, paymentId: voucher.id },
+        { accountId: revenueId, date: payDate, description: `กันเข้ากองทุน 10% ${claim.claimNo}`, debit: fund, credit: 0, paymentId: voucher.id },
+        { accountId: fundId, date: payDate, description: `กองทุนสะสม 10% ${claim.claimNo}`, debit: 0, credit: fund, paymentId: voucher.id },
+      ];
+      const totalDebit = entries.reduce((s, e) => s + e.debit, 0);
+      const totalCredit = entries.reduce((s, e) => s + e.credit, 0);
+      if (Math.round(totalDebit * 100) !== Math.round(totalCredit * 100)) {
+        throw new Error(
+          `Double-entry violation ใน DeathClaim ${claim.claimNo}: Dr ${totalDebit} != Cr ${totalCredit}`,
+        );
+      }
+      await tx.ledgerEntry.createMany({ data: entries });
+
       const created = await tx.deathBenefitPayment.create({
         data: {
           deathClaimId: id,
-          payDate: new Date(dto.payDate),
+          payDate,
           method: dto.method,
-          bankAccountId: dto.bankAccountId,
-          amount: dto.amount ?? netToPay,
-          voucherId: dto.voucherId,
+          bankAccountId: bankId,
+          amount: net,
+          voucherId: voucher.id,
         },
         include: { deathClaim: true, bankAccount: true, voucher: true },
       });
 
       await tx.deathClaim.update({
         where: { id },
-        data: { status: DeathClaimStatus.PAID },
+        data: {
+          status: DeathClaimStatus.PAID,
+          collectionReceiptId: receipt.id,
+          benefitVoucherId: voucher.id,
+        },
       });
 
       return created;
