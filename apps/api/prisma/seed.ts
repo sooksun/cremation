@@ -250,6 +250,22 @@ async function main() {
     create: { code: '501', name: 'ค่าใช้จ่ายเงินสงเคราะห์ศพ', type: AccountType.EXPENSE },
     update: {},
   });
+  // กองทุนสะสม 10% (ข้อ 13.5.2/16) + แหล่งงบดำเนินงานตามข้อ 13.5
+  await prisma.account.upsert({
+    where: { code: '301' },
+    create: { code: '301', name: 'กองทุนฌาปนกิจสงเคราะห์สะสม', type: AccountType.EQUITY },
+    update: {},
+  });
+  await prisma.account.upsert({
+    where: { code: '403' },
+    create: { code: '403', name: 'ดอกเบี้ยรับ', type: AccountType.INCOME },
+    update: {},
+  });
+  await prisma.account.upsert({
+    where: { code: '404' },
+    create: { code: '404', name: 'เงินบริจาค', type: AccountType.INCOME },
+    update: {},
+  });
 
   console.log('✅ Chart of accounts ready');
 

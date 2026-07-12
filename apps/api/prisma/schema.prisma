@@ -150,6 +150,7 @@ enum ReceiptType {
   BOOK_FEE
   ANNUAL_FEE
   ADVANCE_WELFARE
+  DEATH_COLLECTION
   OTHER
 }
 
@@ -441,6 +442,11 @@ model DeathClaim {
   approverName            String?
   approverSignature       String?                @db.Text
   payment                 DeathBenefitPayment?
+  // เอกสารบัญชีที่ผูกตอนจ่ายจริง (ข้อ 13/16 — เก็บ gross ขาเข้า + จ่าย net ขาออก + กองทุน 10%)
+  collectionReceipt       Receipt?               @relation("ClaimCollectionReceipt", fields: [collectionReceiptId], references: [id])
+  collectionReceiptId     String?                @unique
+  benefitVoucher          PaymentVoucher?        @relation("ClaimBenefitVoucher", fields: [benefitVoucherId], references: [id])
+  benefitVoucherId        String?                @unique
   createdAt               DateTime               @default(now())
   updatedAt               DateTime               @updatedAt
 }
@@ -517,38 +523,40 @@ model LedgerEntry {
 
 // ใบเสร็จรับเงิน - schoolId optional (ระบุได้ถ้าเป็นเงินจากโรงเรียนใดโรงเรียนหนึ่ง)
 model Receipt {
-  id                 String              @id @default(cuid())
-  receiptNo          String              @unique
-  school             School?             @relation(fields: [schoolId], references: [id])
-  schoolId           String? // optional - ระบุโรงเรียนที่ส่งเงินมา (ถ้ามี)
-  date               DateTime
-  type               ReceiptType
-  description        String?
-  amount             Decimal             @db.Decimal(12, 2)
-  bankAccount        BankAccount?        @relation(fields: [bankAccountId], references: [id])
-  bankAccountId      String?
-  memberContribution MemberContribution?
-  ledgerEntries      LedgerEntry[]
-  createdAt          DateTime            @default(now())
-  updatedAt          DateTime            @updatedAt
+  id                   String              @id @default(cuid())
+  receiptNo            String              @unique
+  school               School?             @relation(fields: [schoolId], references: [id])
+  schoolId             String? // optional - ระบุโรงเรียนที่ส่งเงินมา (ถ้ามี)
+  date                 DateTime
+  type                 ReceiptType
+  description          String?
+  amount               Decimal             @db.Decimal(12, 2)
+  bankAccount          BankAccount?        @relation(fields: [bankAccountId], references: [id])
+  bankAccountId        String?
+  memberContribution   MemberContribution?
+  ledgerEntries        LedgerEntry[]
+  deathClaimCollection DeathClaim?         @relation("ClaimCollectionReceipt")
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
 }
 
 // ใบสำคัญจ่าย - schoolId optional (ระบุได้ถ้าจ่ายให้โรงเรียนใดโรงเรียนหนึ่ง)
 model PaymentVoucher {
-  id            String               @id @default(cuid())
-  voucherNo     String               @unique
-  school        School?              @relation(fields: [schoolId], references: [id])
-  schoolId      String? // optional - ระบุโรงเรียนที่เกี่ยวข้อง (ถ้ามี)
-  date          DateTime
-  type          PaymentType
-  description   String?
-  amount        Decimal              @db.Decimal(12, 2)
-  bankAccount   BankAccount?         @relation(fields: [bankAccountId], references: [id])
-  bankAccountId String?
-  ledgerEntries LedgerEntry[]
-  deathBenefit  DeathBenefitPayment?
-  createdAt     DateTime             @default(now())
-  updatedAt     DateTime             @updatedAt
+  id                String               @id @default(cuid())
+  voucherNo         String               @unique
+  school            School?              @relation(fields: [schoolId], references: [id])
+  schoolId          String? // optional - ระบุโรงเรียนที่เกี่ยวข้อง (ถ้ามี)
+  date              DateTime
+  type              PaymentType
+  description       String?
+  amount            Decimal              @db.Decimal(12, 2)
+  bankAccount       BankAccount?         @relation(fields: [bankAccountId], references: [id])
+  bankAccountId     String?
+  ledgerEntries     LedgerEntry[]
+  deathBenefit      DeathBenefitPayment?
+  deathClaimBenefit DeathClaim?          @relation("ClaimBenefitVoucher")
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
 }
 
 model AppSetting {
