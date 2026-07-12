@@ -184,7 +184,11 @@ export class BankAccountsService {
         orderBy: { date: 'asc' },
       }),
       this.prisma.bankTransaction.findMany({
-        where: { bankAccountId: id, ...(startDate && endDate ? { date: dateFilter.date } : {}) },
+        where: {
+          bankAccountId: id,
+          deletedAt: null,
+          ...(startDate && endDate ? { date: dateFilter.date } : {}),
+        },
         orderBy: { date: 'asc' },
       }),
     ]);
@@ -244,11 +248,11 @@ export class BankAccountsService {
         _sum: { amount: true },
       }),
       this.prisma.bankTransaction.aggregate({
-        where: { bankAccountId: id, type: 'DEPOSIT' },
+        where: { bankAccountId: id, type: 'DEPOSIT', deletedAt: null },
         _sum: { amount: true },
       }),
       this.prisma.bankTransaction.aggregate({
-        where: { bankAccountId: id, type: 'WITHDRAWAL' },
+        where: { bankAccountId: id, type: 'WITHDRAWAL', deletedAt: null },
         _sum: { amount: true },
       }),
     ]);
@@ -267,7 +271,7 @@ export class BankAccountsService {
 
   async listManualTransactions(bankAccountId?: string) {
     return this.prisma.bankTransaction.findMany({
-      where: bankAccountId ? { bankAccountId } : undefined,
+      where: bankAccountId ? { bankAccountId, deletedAt: null } : { deletedAt: null },
       include: { bankAccount: true },
       orderBy: { date: 'desc' },
     });
@@ -293,7 +297,7 @@ export class BankAccountsService {
   }
 
   async updateManualTransaction(id: string, dto: UpdateBankTransactionDto) {
-    const txn = await this.prisma.bankTransaction.findUnique({ where: { id } });
+    const txn = await this.prisma.bankTransaction.findFirst({ where: { id, deletedAt: null } });
     if (!txn) {
       throw new NotFoundException('ไม่พบรายการธุรกรรม');
     }
@@ -311,11 +315,15 @@ export class BankAccountsService {
   }
 
   async removeManualTransaction(id: string) {
-    const txn = await this.prisma.bankTransaction.findUnique({ where: { id } });
+    const txn = await this.prisma.bankTransaction.findFirst({ where: { id, deletedAt: null } });
     if (!txn) {
       throw new NotFoundException('ไม่พบรายการธุรกรรม');
     }
-    await this.prisma.bankTransaction.delete({ where: { id } });
+    // soft-delete — เก็บหลักฐาน 10 ปี (ข้อบังคับสมาคม ข้อ 30) แทนลบถาวร
+    await this.prisma.bankTransaction.update({
+      where: { id },
+      data: { deletedAt: new Date() },
+    });
     return { message: 'ลบรายการธุรกรรมสำเร็จ' };
   }
 }

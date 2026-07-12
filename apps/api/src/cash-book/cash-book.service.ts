@@ -34,7 +34,7 @@ export class CashBookService {
 
   async findAll(schoolId?: string, actor?: ScopedUser) {
     const effectiveSchoolId = this.schoolScope.resolveSchoolId(actor as any, schoolId);
-    const where: any = {};
+    const where: any = { deletedAt: null };
     if (effectiveSchoolId) where.schoolId = effectiveSchoolId;
 
     return this.prisma.cashBook.findMany({
@@ -45,8 +45,8 @@ export class CashBookService {
   }
 
   async findById(id: string, actor?: ScopedUser) {
-    const entry = await this.prisma.cashBook.findUnique({
-      where: { id },
+    const entry = await this.prisma.cashBook.findFirst({
+      where: { id, deletedAt: null },
       include: { school: true },
     });
     if (!entry) throw new NotFoundException('ไม่พบรายการเงินสด');
@@ -74,37 +74,55 @@ export class CashBookService {
 
   async remove(id: string, actor?: ScopedUser) {
     await this.findById(id, actor);
-    return this.prisma.cashBook.delete({ where: { id } });
+    // soft-delete — เก็บหลักฐาน 10 ปี (ข้อบังคับสมาคม ข้อ 30) แทนลบถาวร
+    return this.prisma.cashBook.update({
+      where: { id },
+      data: { deletedAt: new Date() },
+    });
   }
 
   // Auto create from receipt/payment if cash
   async createFromReceipt(receipt: any) {
     if (receipt.bankAccountId) return null; // bank, not cash
 
-    return this.prisma.cashBook.create({
-      data: {
-        schoolId: receipt.schoolId,
-        date: receipt.date,
-        type: 'IN',
-        amount: receipt.amount,
-        description: `รับเงินสด ${receipt.receiptNo}`,
-        receiptId: receipt.id,
-      },
-    });
+    const data = {
+      schoolId: receipt.schoolId,
+      date: receipt.date,
+      type: 'IN',
+      amount: receipt.amount,
+      description: `รับเงินสด ${receipt.receiptNo}`,
+      receiptId: receipt.id,
+    };
+    // กัน unique(receiptId) ชนกับแถวที่ soft-deleted — reactivate แทนสร้างใหม่
+    const existing = await this.prisma.cashBook.findFirst({ where: { receiptId: receipt.id } });
+    if (existing) {
+      return this.prisma.cashBook.update({
+        where: { id: existing.id },
+        data: { ...data, deletedAt: null },
+      });
+    }
+    return this.prisma.cashBook.create({ data });
   }
 
   async createFromPayment(payment: any) {
     if (payment.bankAccountId) return null;
 
-    return this.prisma.cashBook.create({
-      data: {
-        schoolId: payment.schoolId,
-        date: payment.date,
-        type: 'OUT',
-        amount: payment.amount,
-        description: `จ่ายเงินสด ${payment.voucherNo}`,
-        paymentId: payment.id,
-      },
-    });
+    const data = {
+      schoolId: payment.schoolId,
+      date: payment.date,
+      type: 'OUT',
+      amount: payment.amount,
+      description: `จ่ายเงินสด ${payment.voucherNo}`,
+      paymentId: payment.id,
+    };
+    // กัน unique(paymentId) ชนกับแถวที่ soft-deleted — reactivate แทนสร้างใหม่
+    const existing = await this.prisma.cashBook.findFirst({ where: { paymentId: payment.id } });
+    if (existing) {
+      return this.prisma.cashBook.update({
+        where: { id: existing.id },
+        data: { ...data, deletedAt: null },
+      });
+    }
+    return this.prisma.cashBook.create({ data });
   }
 }
