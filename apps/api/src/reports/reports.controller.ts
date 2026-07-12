@@ -28,8 +28,10 @@ export class ReportsController {
     return this.schoolScope.resolveSchoolId(user, schoolId);
   }
 
-  private parseRequiredDate(value: string | undefined, name: string): Date {
-    const parsed = value ? new Date(value) : undefined;
+  // endOfDay=true is for endDate bounds: a plain 'YYYY-MM-DD' parses as UTC midnight, which as an
+  // inclusive `lte` bound against full DateTime columns excludes nearly all of that day's records.
+  private parseRequiredDate(value: string | undefined, name: string, endOfDay = false): Date {
+    const parsed = value ? new Date(endOfDay ? `${value}T23:59:59.999Z` : value) : undefined;
     if (!parsed || Number.isNaN(parsed.getTime())) {
       throw new BadRequestException(`ต้องระบุ ${name} เป็นวันที่ที่ถูกต้อง (YYYY-MM-DD)`);
     }
@@ -100,6 +102,8 @@ export class ReportsController {
   }
 
   @Get('death-benefits')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.SCHOOL_ADMIN, Role.FINANCE, Role.ACCOUNTING)
   getDeathBenefitReport(
     @Request() req: { user: ScopedUser },
     @Query('year') year?: number,
@@ -111,7 +115,7 @@ export class ReportsController {
       startDate || endDate
         ? {
             startDate: this.parseRequiredDate(startDate, 'startDate'),
-            endDate: this.parseRequiredDate(endDate, 'endDate'),
+            endDate: this.parseRequiredDate(endDate, 'endDate', true),
           }
         : { year: year ? Number(year) : undefined },
       this.scopedSchoolId(req.user, schoolId),
@@ -130,7 +134,7 @@ export class ReportsController {
   ) {
     return this.reportsService.getResignationReport(
       this.parseRequiredDate(startDate, 'startDate'),
-      this.parseRequiredDate(endDate, 'endDate'),
+      this.parseRequiredDate(endDate, 'endDate', true),
       this.scopedSchoolId(req.user, schoolId),
       req.user,
     );
@@ -148,9 +152,10 @@ export class ReportsController {
   ) {
     return this.reportsService.getReceiptsLedger(
       this.parseRequiredDate(startDate, 'startDate'),
-      this.parseRequiredDate(endDate, 'endDate'),
+      this.parseRequiredDate(endDate, 'endDate', true),
       this.scopedSchoolId(req.user, schoolId),
       type,
+      req.user,
     );
   }
 
@@ -166,7 +171,7 @@ export class ReportsController {
   ) {
     return this.reportsService.getDisbursementLedger(
       this.parseRequiredDate(startDate, 'startDate'),
-      this.parseRequiredDate(endDate, 'endDate'),
+      this.parseRequiredDate(endDate, 'endDate', true),
       this.scopedSchoolId(req.user, schoolId),
       type,
       req.user,
@@ -190,7 +195,7 @@ export class ReportsController {
     return this.reportsService.getMemberRegistryReport(
       field,
       this.parseRequiredDate(startDate, 'startDate'),
-      this.parseRequiredDate(endDate, 'endDate'),
+      this.parseRequiredDate(endDate, 'endDate', true),
       this.scopedSchoolId(req.user, schoolId),
       req.user,
     );

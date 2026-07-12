@@ -9,6 +9,11 @@ const VIEWER_BLOCKED_PREFIXES = [
   '/members/new',
   '/death-claims/new',
   '/settings',
+  '/reports/resignations',
+  '/reports/receipts-ledger',
+  '/reports/disbursement-ledger',
+  '/reports/member-registry',
+  '/reports/period-close-summary',
 ];
 
 const SCHOOL_ADMIN_BLOCKED_PREFIXES = [
@@ -26,7 +31,20 @@ const SCHOOL_ADMIN_BLOCKED_PREFIXES = [
 const ROLE_BLOCKED_PREFIXES: Record<string, string[]> = {
   VIEWER: VIEWER_BLOCKED_PREFIXES,
   SCHOOL_ADMIN: SCHOOL_ADMIN_BLOCKED_PREFIXES,
-  GROUP_LEADER: ['/users', '/schools', '/school-clusters', '/member-types', '/groups', '/accounts', '/settings/welfare-rate'],
+  GROUP_LEADER: [
+    '/users',
+    '/schools',
+    '/school-clusters',
+    '/member-types',
+    '/groups',
+    '/accounts',
+    '/settings/welfare-rate',
+    '/reports/resignations',
+    '/reports/receipts-ledger',
+    '/reports/disbursement-ledger',
+    '/reports/member-registry',
+    '/reports/period-close-summary',
+  ],
 };
 
 export function isPathAllowedForRole(

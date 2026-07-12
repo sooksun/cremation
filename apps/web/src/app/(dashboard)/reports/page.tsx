@@ -22,7 +22,10 @@ import dayjs from 'dayjs';
 import { formatThaiDateShort } from '@/components/ThaiDatePicker';
 
 export default function ReportsPage() {
-  const { selectedSchoolId, selectedYear } = useAuthStore();
+  const { selectedSchoolId, selectedYear, user } = useAuthStore();
+  const canViewDeathBenefits = ['ADMIN', 'SCHOOL_ADMIN', 'FINANCE', 'ACCOUNTING'].includes(
+    user?.role || '',
+  );
   const [reportType, setReportType] = useState<'members' | 'financial' | 'death-benefits'>('members');
   const [dateRange, setDateRange] = useState({
     startDate: `${selectedYear}-01-01`,
@@ -133,17 +136,19 @@ export default function ReportsPage() {
           <DollarSign size={18} />
           สรุปการเงิน
         </button>
-        <button
-          onClick={() => setReportType('death-benefits')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium transition-colors ${
-            reportType === 'death-benefits'
-              ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/25'
-              : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'
-          }`}
-        >
-          <Flower2 size={18} />
-          เงินสงเคราะห์ศพ
-        </button>
+        {canViewDeathBenefits && (
+          <button
+            onClick={() => setReportType('death-benefits')}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium transition-colors ${
+              reportType === 'death-benefits'
+                ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/25'
+                : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'
+            }`}
+          >
+            <Flower2 size={18} />
+            เงินสงเคราะห์ศพ
+          </button>
+        )}
       </div>
 
       {/* Members Report */}
@@ -295,7 +300,7 @@ export default function ReportsPage() {
       )}
 
       {/* Death Benefits Report */}
-      {reportType === 'death-benefits' && (
+      {reportType === 'death-benefits' && canViewDeathBenefits && (
         <div className="space-y-6">
           {/* Filter mode: by year (default) or by explicit date range */}
           <div className="card p-4 flex flex-wrap items-center gap-4">

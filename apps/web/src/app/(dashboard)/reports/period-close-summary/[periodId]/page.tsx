@@ -25,7 +25,7 @@ export default function PeriodCloseSummaryPage() {
   const fmt = (n: number) =>
     new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB' }).format(n);
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, error } = useQuery({
     queryKey: ['period-close-summary', periodId, selectedSchoolId],
     queryFn: async () => {
       const params = new URLSearchParams();
@@ -33,6 +33,7 @@ export default function PeriodCloseSummaryPage() {
       const res = await api.get(`/reports/period-close-summary/${periodId}?${params}`);
       return res.data;
     },
+    retry: false,
   });
 
   const handleExportPdf = async () => {
@@ -54,6 +55,14 @@ export default function PeriodCloseSummaryPage() {
     return (
       <div className="flex justify-center py-20">
         <div className="w-8 h-8 border-4 border-primary-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if ((error as any)?.response?.status === 403) {
+    return (
+      <div className="text-center py-20 text-slate-500">
+        คุณไม่มีสิทธิ์เข้าถึงรายงานสรุปปิดงวดนี้
       </div>
     );
   }

@@ -204,6 +204,15 @@ describe('Critical flow (e2e)', () => {
       .expect(403);
   });
 
+  it('GET /api/reports/death-benefits — viewer cannot access sensitive death-benefit report', async () => {
+    prismaMock.deathClaim.findMany.mockResolvedValue([]);
+
+    await request(app.getHttpServer())
+      .get('/api/reports/death-benefits')
+      .set('Authorization', viewerAuth())
+      .expect(403);
+  });
+
   it('POST /api/member-applications/submit — accepts the registration page payload', async () => {
     const school = { id: 'school-1', name: 'โรงเรียนแม่ฟ้าหลวง', code: 'MFH' };
     prismaMock.school.findMany.mockResolvedValue([school]);
