@@ -375,7 +375,9 @@ model Beneficiary {
   phone         String?
   contactPerson String?
   contactPhone  String?
-  priority      Int // 1,2,3
+  priority      Int // 1,2,3 (ระเบียบ ข้อ 19 — ลำดับผู้รับเงิน)
+
+  @@unique([memberId, priority])
 }
 
 // ผู้ได้รับการคุ้มครองตามระเบียบ ข้อ 14 (คู่สมรส, บิดา-มารดา, บุตร-ธิดา)

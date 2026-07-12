@@ -9,6 +9,9 @@ import {
   IsBoolean,
   ValidateIf,
   MaxLength,
+  IsInt,
+  Min,
+  Max,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { MemberStatus, MembershipClass, ProtectedRelationship } from '@prisma/client';
@@ -27,6 +30,9 @@ class BeneficiaryInput {
   phone?: string;
 
   @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Max(3)
   priority?: number;
 }
 

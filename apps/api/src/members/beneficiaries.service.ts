@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateBeneficiaryDto, UpdateBeneficiaryDto } from './dto/beneficiary.dto';
 import { SchoolScopeService, ScopedUser } from '../common/security/school-scope.service';
@@ -12,6 +12,15 @@ export class BeneficiariesService {
 
   async create(memberId: string, dto: CreateBeneficiaryDto, actor?: ScopedUser) {
     await this.assertMemberAccess(actor, memberId);
+
+    if (dto.priority) {
+      const dup = await this.prisma.beneficiary.findFirst({
+        where: { memberId, priority: dto.priority },
+      });
+      if (dup) {
+        throw new BadRequestException('ลำดับผู้รับเงินซ้ำในสมาชิกรายนี้ (ระเบียบ ข้อ 19)');
+      }
+    }
 
     const count = await this.prisma.beneficiary.count({ where: { memberId } });
 
@@ -34,6 +43,15 @@ export class BeneficiariesService {
     }
 
     await this.assertMemberAccess(actor, beneficiary.memberId);
+
+    if (dto.priority && dto.priority !== beneficiary.priority) {
+      const dup = await this.prisma.beneficiary.findFirst({
+        where: { memberId: beneficiary.memberId, priority: dto.priority, id: { not: id } },
+      });
+      if (dup) {
+        throw new BadRequestException('ลำดับผู้รับเงินซ้ำในสมาชิกรายนี้ (ระเบียบ ข้อ 19)');
+      }
+    }
 
     return this.prisma.beneficiary.update({
       where: { id },

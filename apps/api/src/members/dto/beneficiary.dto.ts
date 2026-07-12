@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsOptional, IsNumber } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsInt, Min, Max } from 'class-validator';
 
 export class CreateBeneficiaryDto {
   @IsString()
@@ -14,7 +14,9 @@ export class CreateBeneficiaryDto {
   phone?: string;
 
   @IsOptional()
-  @IsNumber()
+  @IsInt()
+  @Min(1, { message: 'ลำดับผู้รับเงินต้องอยู่ระหว่าง 1-3' })
+  @Max(3, { message: 'ลำดับผู้รับเงินต้องอยู่ระหว่าง 1-3' })
   priority?: number;
 }
 
@@ -32,7 +34,9 @@ export class UpdateBeneficiaryDto {
   phone?: string;
 
   @IsOptional()
-  @IsNumber()
+  @IsInt()
+  @Min(1, { message: 'ลำดับผู้รับเงินต้องอยู่ระหว่าง 1-3' })
+  @Max(3, { message: 'ลำดับผู้รับเงินต้องอยู่ระหว่าง 1-3' })
   priority?: number;
 }
 
