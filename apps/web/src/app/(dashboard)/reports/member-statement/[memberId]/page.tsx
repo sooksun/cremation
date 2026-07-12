@@ -19,6 +19,8 @@ export default function MemberStatementPage() {
   const fmt = (n: number) =>
     new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB' }).format(n);
   const fmtDate = (d: string) => dayjs(d).format('DD/MM/') + (dayjs(d).year() + 543);
+  const fmtDescription = (r: any) =>
+    r.periodMonth && r.periodYear ? `${r.description} ${r.periodMonth}/${r.periodYear + 543}` : r.description;
 
   const { data, isLoading } = useQuery({
     queryKey: ['member-statement', memberId],
@@ -38,7 +40,7 @@ export default function MemberStatementPage() {
     if (!data) return;
     const rows: any[][] = [['วันที่', 'รายการ', 'จ่าย', 'รับ', 'ยอดสะสม']];
     data.statement.forEach((r: any) =>
-      rows.push([fmtDate(r.date), r.description, r.paid, r.received, r.runningTotal]),
+      rows.push([fmtDate(r.date), fmtDescription(r), r.paid, r.received, r.runningTotal]),
     );
     exportToCsv(`สมุดบัญชี-${data.member.memberNo}`, rows);
   };
@@ -111,7 +113,7 @@ export default function MemberStatementPage() {
                   {data.statement.map((r: any, i: number) => (
                     <tr key={i}>
                       <td>{fmtDate(r.date)}</td>
-                      <td>{r.description}</td>
+                      <td>{fmtDescription(r)}</td>
                       <td className="text-right">{r.paid > 0 ? fmt(r.paid) : '-'}</td>
                       <td className="text-right text-primary-600">{r.received > 0 ? fmt(r.received) : '-'}</td>
                       <td className="text-right font-medium">{fmt(r.runningTotal)}</td>

@@ -19,6 +19,12 @@ const DATE_FIELD_LABEL: Record<DateField, string> = {
   recorded: 'วันที่บันทึกข้อมูล',
 };
 
+const DATE_FIELD_KEY: Record<DateField, string> = {
+  coverage: 'joinDate',
+  applied: 'applicationSubmittedAt',
+  recorded: 'createdAt',
+};
+
 export default function MemberRegistryReportPage() {
   const { selectedSchoolId, selectedYear } = useAuthStore();
   const [dateField, setDateField] = useState<DateField>('coverage');
@@ -49,7 +55,7 @@ export default function MemberRegistryReportPage() {
   const handleExportCsv = () => {
     if (!data) return;
     const rows: any[][] = [
-      ['โรงเรียน', 'เลขฌาปนกิจ', 'เลขทะเบียนสมาคม', 'ชื่อ-นามสกุล', 'วันเกิด', 'วันที่คุ้มครอง'],
+      ['โรงเรียน', 'เลขฌาปนกิจ', 'เลขทะเบียนสมาคม', 'ชื่อ-นามสกุล', 'วันเกิด', DATE_FIELD_LABEL[dateField]],
     ];
     data.bySchool.forEach((group: any) =>
       group.members.forEach((m: any) =>
@@ -59,7 +65,7 @@ export default function MemberRegistryReportPage() {
           m.associationMemberNo || '-',
           m.fullName,
           fmtDate(m.birthDate),
-          fmtDate(m.joinDate),
+          fmtDate(m[DATE_FIELD_KEY[dateField]]),
         ]),
       ),
     );
@@ -139,7 +145,7 @@ export default function MemberRegistryReportPage() {
                       <th>เลขทะเบียนสมาคม</th>
                       <th>ชื่อ-นามสกุล</th>
                       <th>วันเกิด</th>
-                      <th>วันที่คุ้มครอง</th>
+                      <th>{DATE_FIELD_LABEL[dateField]}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -149,7 +155,7 @@ export default function MemberRegistryReportPage() {
                         <td className="font-mono text-sm">{m.associationMemberNo || '-'}</td>
                         <td className="font-medium">{m.fullName}</td>
                         <td>{fmtDate(m.birthDate)}</td>
-                        <td>{fmtDate(m.joinDate)}</td>
+                        <td>{fmtDate(m[DATE_FIELD_KEY[dateField]])}</td>
                       </tr>
                     ))}
                   </tbody>
