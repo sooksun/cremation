@@ -91,4 +91,25 @@ describe('DeathBenefitCalculatorService', () => {
     expect(result.totalContribution).toBe(result.grossCollected);
     expect(result.associationSupport).toBe(result.fundReserve);
   });
+
+  it('fixed committee amount is split 90/10 (not paid in full)', async () => {
+    prisma.member.count.mockResolvedValue(600);
+    prisma.welfareSettings.findFirst.mockResolvedValue({
+      welfareAmountPerCase: 60000,
+      isActive: true,
+      effectiveDate: new Date('2026-01-01'),
+    });
+
+    const result = await service.calculate({
+      claimType: DeathClaimType.MEMBER_DEATH,
+      otherDeductions: 0,
+    });
+
+    expect(result.isFixedAmount).toBe(true);
+    expect(result.grossCollected).toBe(60000);
+    expect(result.fundReserve).toBe(6000); // 10%
+    expect(result.netToPay).toBe(54000); // 90% ไม่ใช่ 60000 เต็ม
+    // snapshot สอดคล้อง: net + fund = gross
+    expect(result.netToPay + result.fundReserve).toBe(result.grossCollected);
+  });
 });

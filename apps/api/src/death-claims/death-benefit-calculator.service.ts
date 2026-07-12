@@ -50,28 +50,27 @@ export class DeathBenefitCalculatorService {
       },
     });
 
-    const grossCollected = payingMemberCount * collectionRate;
-    const fundReserve = Math.round(grossCollected * DEATH_FUND_RESERVE_RATIO * 100) / 100;
-
-    // Check for fixed death benefit amount set by committee (WelfareSettings)
+    // Fixed committee amount (WelfareSettings) แทน "ยอดเก็บรวมต่อศพ" แล้วแบ่ง 90/10
+    // เหมือนโหมดปกติ (ข้อ 16) — ไม่จ่ายเต็มจำนวน เพื่อให้ 10% เข้ากองทุนเสมอ
     const activeFixed = await this.prisma.welfareSettings.findFirst({
       where: { isActive: true },
       orderBy: { effectiveDate: 'desc' },
     });
 
-    let netToPay: number;
+    let grossCollected: number;
     let isFixedAmount = false;
     let fixedAmount: number | undefined;
-
     if (activeFixed) {
-      fixedAmount = Number(activeFixed.welfareAmountPerCase);
-      netToPay = Math.max(0, Math.round(fixedAmount * 100) / 100 - otherDeductions);
+      grossCollected = Math.round(Number(activeFixed.welfareAmountPerCase) * 100) / 100;
       isFixedAmount = true;
+      fixedAmount = grossCollected;
     } else {
-      // Legacy collection-based calculation
-      netToPay =
-        Math.round(grossCollected * DEATH_PAYOUT_RATIO * 100) / 100 - otherDeductions;
+      grossCollected = payingMemberCount * collectionRate;
     }
+
+    const fundReserve = Math.round(grossCollected * DEATH_FUND_RESERVE_RATIO * 100) / 100;
+    const netToPay =
+      Math.round(grossCollected * DEATH_PAYOUT_RATIO * 100) / 100 - otherDeductions;
 
     return {
       claimType,
