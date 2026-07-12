@@ -126,6 +126,42 @@ describe('MemberApplicationsService.submit', () => {
     );
   });
 
+  it('persists registered + contact address as structured fields (art. ใบสมัคร)', async () => {
+    await service.submit({
+      ...baseDto,
+      registeredAddress: {
+        houseNo: '99',
+        moo: '2',
+        subdistrict: 'แม่ฟ้าหลวง',
+        district: 'แม่ฟ้าหลวง',
+        province: 'เชียงราย',
+        zip: '57240',
+      },
+      contactAddress: {
+        houseNo: '10',
+        road: 'พหลโยธิน',
+        province: 'เชียงราย',
+        zip: '57000',
+        phone: '0810000000',
+      },
+    } as never);
+
+    expect(prisma.associationMember.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          registeredHouseNo: '99',
+          registeredSubdistrict: 'แม่ฟ้าหลวง',
+          registeredProvince: 'เชียงราย',
+          registeredZip: '57240',
+          contactHouseNo: '10',
+          contactRoad: 'พหลโยธิน',
+          contactZip: '57000',
+          phone: '0810000000',
+        }),
+      }),
+    );
+  });
+
   it('rejects fuzzy school lookup', async () => {
     await expect(
       service.submit({ ...baseDto, governmentAgency: 'แม่ฟ้าหลวง' } as never),

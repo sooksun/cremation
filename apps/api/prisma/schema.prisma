@@ -268,24 +268,42 @@ model Group {
 
 // สมาชิกสมาคมผู้ประกอบวิชาชีพ (ต้นทางของข้อมูลบุคคล) — บางคนเป็นสมาชิกฌาปนกิจ บางคนไม่เป็น
 model AssociationMember {
-  id                  String     @id @default(cuid())
-  school              School     @relation(fields: [schoolId], references: [id])
-  schoolId            String
-  memberType          MemberType @relation(fields: [memberTypeId], references: [id])
-  memberTypeId        String
-  associationMemberNo String? // เลขสมาชิกสมาคม
-  firstName           String
-  lastName            String
-  idCardNo            String?
-  birthDate           DateTime?
-  address             String?
-  phone               String?
-  position            String?    @db.VarChar(100) // ตำแหน่งในสมาคม
-  associationJoinDate DateTime? // วันที่เป็นสมาชิกสมาคม
-  notes               String?    @db.Text
-  cremationMember     Member? // สมาชิกฌาปนกิจ (ถ้ามี — ทุกคนในฌาปนกิจต้องเป็นสมาชิกสมาคม)
-  createdAt           DateTime   @default(now())
-  updatedAt           DateTime   @updatedAt
+  id                    String     @id @default(cuid())
+  school                School     @relation(fields: [schoolId], references: [id])
+  schoolId              String
+  memberType            MemberType @relation(fields: [memberTypeId], references: [id])
+  memberTypeId          String
+  associationMemberNo   String? // เลขสมาชิกสมาคม
+  firstName             String
+  lastName              String
+  idCardNo              String?
+  birthDate             DateTime?
+  address               String? // derived (สรุปที่อยู่ติดต่อเป็น string — เพื่อ backward-compat การพิมพ์/แสดงผล)
+  phone                 String?
+  // ที่อยู่ทะเบียนราษฎร (structured — ระเบียบ ใบสมัคร ข้อ 3)
+  registeredHouseNo     String?
+  registeredMoo         String?
+  registeredRoad        String?
+  registeredSoi         String?
+  registeredSubdistrict String?
+  registeredDistrict    String?
+  registeredProvince    String?
+  registeredZip         String?
+  // ที่อยู่ที่ติดต่อได้ (structured)
+  contactHouseNo        String?
+  contactMoo            String?
+  contactRoad           String?
+  contactSoi            String?
+  contactSubdistrict    String?
+  contactDistrict       String?
+  contactProvince       String?
+  contactZip            String?
+  position              String?    @db.VarChar(100) // ตำแหน่งในสมาคม
+  associationJoinDate   DateTime? // วันที่เป็นสมาชิกสมาคม
+  notes                 String?    @db.Text
+  cremationMember       Member? // สมาชิกฌาปนกิจ (ถ้ามี — ทุกคนในฌาปนกิจต้องเป็นสมาชิกสมาคม)
+  createdAt             DateTime   @default(now())
+  updatedAt             DateTime   @updatedAt
 }
 
 // สมาชิกฌาปนกิจ — อ้างอิงจากสมาชิกสมาคม (ทุกคนในตารางนี้ต้องเป็นสมาชิกสมาคม)

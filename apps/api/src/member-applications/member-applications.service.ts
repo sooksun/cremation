@@ -43,8 +43,10 @@ export class MemberApplicationsService {
     }
 
     const joinDate = dto.applicationDate ? new Date(dto.applicationDate) : new Date();
-    const address = this.formatAddress(dto.contactAddress ?? dto.registeredAddress);
-    const phone = dto.contactAddress?.phone ?? dto.registeredAddress?.phone;
+    const reg = dto.registeredAddress;
+    const con = dto.contactAddress ?? dto.registeredAddress;
+    const address = this.formatAddress(con); // derived string — คงไว้เพื่อ backward-compat การแสดงผล
+    const phone = con?.phone ?? reg?.phone;
 
     const membershipClass = resolveMembershipClass({
       memberTypeCode,
@@ -70,6 +72,22 @@ export class MemberApplicationsService {
           birthDate: dto.birthDate ? new Date(dto.birthDate) : undefined,
           address,
           phone,
+          registeredHouseNo: reg?.houseNo,
+          registeredMoo: reg?.moo,
+          registeredRoad: reg?.road,
+          registeredSoi: reg?.soi,
+          registeredSubdistrict: reg?.subdistrict,
+          registeredDistrict: reg?.district,
+          registeredProvince: reg?.province,
+          registeredZip: reg?.zip,
+          contactHouseNo: con?.houseNo,
+          contactMoo: con?.moo,
+          contactRoad: con?.road,
+          contactSoi: con?.soi,
+          contactSubdistrict: con?.subdistrict,
+          contactDistrict: con?.district,
+          contactProvince: con?.province,
+          contactZip: con?.zip,
           associationJoinDate: joinDate,
         },
       }));
