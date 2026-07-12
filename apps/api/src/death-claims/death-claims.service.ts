@@ -541,14 +541,23 @@ export class DeathClaimsService {
       throw new BadRequestException('ยอดเก็บเงินยังไม่ครบ ไม่สามารถจ่ายเงินได้');
     }
 
-    const netToPay = Number(claim.netToPay);
+    // #7 ข้อ 16 — คำนวณจำนวนสมาชิกร่วมจ่าย + ยอดสุทธิ/กองทุนใหม่ ณ "วันจ่ายจริง" (payDate)
+    // แทนใช้ค่า snapshot ตอนสร้าง claim (target เก็บเงิน) — ยอดจ่ายจริงต้องสะท้อน ณ วันขอรับ
+    const calc = await this.benefitCalculator.calculate({
+      claimType: claim.claimType,
+      excludeMemberId:
+        claim.claimType === DeathClaimType.MEMBER_DEATH ? claim.memberId : undefined,
+      otherDeductions: Number(claim.otherDeductions ?? 0),
+    });
+
+    const netToPay = calc.netToPay;
     if (dto.amount !== undefined && Number(dto.amount) !== netToPay) {
       throw new BadRequestException('จำนวนเงินจ่ายต้องตรงกับยอดสุทธิที่คำนวณไว้');
     }
 
-    // ลงบัญชีเต็มวงจร (ข้อ 13/16): gross ขาเข้า → net จ่าย → 10% เข้ากองทุน — ใช้ค่า snapshot
-    const gross = Number(claim.totalContribution);
-    const fund = Number(claim.associationSupport);
+    // ลงบัญชีเต็มวงจร (ข้อ 13/16): gross ขาเข้า → net จ่าย → 10% เข้ากองทุน — ใช้ค่าที่คำนวณใหม่ ณ payDate
+    const gross = calc.grossCollected;
+    const fund = calc.fundReserve;
     const net = dto.amount !== undefined ? Number(dto.amount) : netToPay;
     const payDate = new Date(dto.payDate);
     const bankId = dto.bankAccountId ?? null;
@@ -628,6 +637,11 @@ export class DeathClaimsService {
           status: DeathClaimStatus.PAID,
           collectionReceiptId: receipt.id,
           benefitVoucherId: voucher.id,
+          activeMemberCount: calc.payingMemberCount,
+          totalContribution: gross,
+          associationSupport: fund,
+          netToPay: calc.netToPay,
+          welfareRate: calc.collectionRate,
         },
       });
 
