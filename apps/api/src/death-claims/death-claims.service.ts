@@ -357,6 +357,12 @@ export class DeathClaimsService {
         collectedAmount,
         collectionCompletedAt,
         workflowNotes: dto.workflowNotes,
+        ...(dto.condolenceWreathAt !== undefined
+          ? { condolenceWreathAt: new Date(dto.condolenceWreathAt) }
+          : {}),
+        ...(dto.funeralPrayerAt !== undefined
+          ? { funeralPrayerAt: new Date(dto.funeralPrayerAt) }
+          : {}),
       },
       include: {
         ...this.claimInclude,

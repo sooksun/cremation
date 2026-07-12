@@ -81,7 +81,9 @@ describe('death-claim-workflow.constants', () => {
 
       expect(result.collectionChannel).toBe(DeathCollectionChannel.BANK_TRANSFER);
       expect(result.notifyAuthorityDeadline).toBeNull();
-      expect(result.collectionDeadline.getDate()).toBe(23);
+      // ข้อ 13.3.2 — deadline โอนเงินสมทบนับจาก "วันได้รับแจ้ง" (reportedDate 12-10) + 15 = 12-25
+      expect(result.collectionDeadline.getDate()).toBe(25);
+      expect(result.collectionDeadline.getMonth()).toBe(11);
     });
   });
 

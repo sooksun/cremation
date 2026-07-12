@@ -21,8 +21,11 @@ export interface DeathClaimWorkflowDeadlines {
   paymentDeadline: Date;
 }
 
+// ข้อ 17 — เอกสารประกอบการขอรับเงินสงเคราะห์
 const BASE_CHECKLIST: DocumentChecklistItem[] = [
   { key: 'death_certificate', label: 'ใบมรณบัตร', required: true, checked: false },
+  { key: 'deceased_id', label: 'สำเนาบัตร/ทะเบียนบ้านผู้เสียชีวิต (ตราประทับ "ตาย")', required: true, checked: false },
+  { key: 'member_id', label: 'สำเนาบัตรประชาชน/บัตรข้าราชการของสมาชิก', required: true, checked: false },
   { key: 'beneficiary_id', label: 'สำเนาบัตรประชาชนผู้รับเงิน', required: true, checked: false },
   { key: 'bank_book', label: 'สำเนาสมุดบัญชีผู้รับเงิน', required: true, checked: false },
 ];
@@ -82,6 +85,7 @@ export function computeWorkflowDeadlines(params: {
   const channel = resolveCollectionChannel(params);
   const isOrdinary = channel === DeathCollectionChannel.SALARY_DEDUCTION;
 
+  // ข้อ 13.3 / 17 — deadline นับจาก "วันที่ได้รับแจ้ง" (reportedDate) ไม่ใช่วันตาย
   return {
     collectionChannel: channel,
     notifyAuthorityDeadline: isOrdinary
@@ -89,9 +93,9 @@ export function computeWorkflowDeadlines(params: {
       : null,
     collectionDeadline: isOrdinary
       ? nthDayOfNextMonth(params.reportedDate, 5)
-      : addDays(params.deathDate, 15),
-    documentDeadline: nthDayAfterDeathMonth(params.deathDate, 15),
-    paymentDeadline: nthDayAfterDeathMonth(params.deathDate, 30),
+      : addDays(params.reportedDate, 15),
+    documentDeadline: nthDayOfNextMonth(params.reportedDate, 15),
+    paymentDeadline: nthDayOfNextMonth(params.reportedDate, 30),
   };
 }
 

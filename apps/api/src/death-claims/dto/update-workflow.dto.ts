@@ -1,5 +1,6 @@
 import {
   IsBoolean,
+  IsDateString,
   IsNumber,
   IsOptional,
   IsString,
@@ -19,4 +20,13 @@ export class UpdateDeathClaimWorkflowDto {
   @IsOptional()
   @IsString()
   workflowNotes?: string;
+
+  // ข้อ 18 — บันทึกการนำพวงหรีด / ร่วมเป็นเจ้าภาพสวดอภิธรรม
+  @IsOptional()
+  @IsDateString()
+  condolenceWreathAt?: string;
+
+  @IsOptional()
+  @IsDateString()
+  funeralPrayerAt?: string;
 }

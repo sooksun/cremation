@@ -447,6 +447,9 @@ model DeathClaim {
   collectionReceiptId     String?                @unique
   benefitVoucher          PaymentVoucher?        @relation("ClaimBenefitVoucher", fields: [benefitVoucherId], references: [id])
   benefitVoucherId        String?                @unique
+  // ข้อ 18 — การสงเคราะห์ (18.1 พวงหรีด, 18.2 ร่วมเป็นเจ้าภาพสวดอภิธรรม)
+  condolenceWreathAt      DateTime?
+  funeralPrayerAt         DateTime?
   createdAt               DateTime               @default(now())
   updatedAt               DateTime               @updatedAt
 }
