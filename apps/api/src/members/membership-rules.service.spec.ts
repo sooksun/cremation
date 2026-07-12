@@ -127,4 +127,24 @@ describe('MembershipRulesService', () => {
     expect(result).toEqual({ noticeSent: 0, terminated: 0 });
     expect(prisma.member.update).not.toHaveBeenCalled();
   });
+
+  describe('getStatusChangeExtras', () => {
+    it('sets RETIRED reason for RET member resigning with date (art.9.1.3)', () => {
+      const extras = service.getStatusChangeExtras(MemberStatus.RESIGNED, 'RET', '2026-05-01');
+      expect(extras.membershipEndReason).toBe(MembershipEndReason.RETIRED);
+      expect(extras.resignDate).toEqual(new Date('2026-05-01'));
+    });
+
+    it('sets RESIGNED reason for non-RET member resigning with date', () => {
+      const extras = service.getStatusChangeExtras(MemberStatus.RESIGNED, 'STF', '2026-05-01');
+      expect(extras.membershipEndReason).toBe(MembershipEndReason.RESIGNED);
+      expect(extras.resignDate).toEqual(new Date('2026-05-01'));
+    });
+
+    it('sets DECEASED reason with deathDate', () => {
+      const extras = service.getStatusChangeExtras(MemberStatus.DECEASED, 'ORD', '2026-05-01');
+      expect(extras.membershipEndReason).toBe(MembershipEndReason.DECEASED);
+      expect(extras.deathDate).toEqual(new Date('2026-05-01'));
+    });
+  });
 });

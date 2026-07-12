@@ -75,8 +75,12 @@ export class MembershipRulesService {
     const extras: Record<string, unknown> = {};
 
     if (newStatus === MemberStatus.RESIGNED && date) {
+      // ครูเกษียณ (RET) แยกเหตุสิ้นสุดสมาชิกภาพเป็น RETIRED ตามระเบียบ ข้อ 9.1.3
       extras.resignDate = new Date(date);
-      extras.membershipEndReason = MembershipEndReason.RESIGNED;
+      extras.membershipEndReason =
+        memberTypeCode === 'RET'
+          ? MembershipEndReason.RETIRED
+          : MembershipEndReason.RESIGNED;
     } else if (newStatus === MemberStatus.DECEASED && date) {
       extras.deathDate = new Date(date);
       extras.membershipEndReason = MembershipEndReason.DECEASED;
