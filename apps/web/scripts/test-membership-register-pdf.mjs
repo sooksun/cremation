@@ -161,16 +161,26 @@ function formatFullThaiDate(iso) {
   return `${d} ${THAI_MONTHS[m - 1]} ${y + 543}`;
 }
 
-function truncate(text, maxChars) {
-  if (!text) return '';
-  if (!maxChars || text.length <= maxChars) return text;
-  return `${text.slice(0, maxChars - 1)}…`;
+// Mirrors the shrink-before-truncate behavior in src/lib/membership-register-pdf.ts —
+// keep these in sync so this script's PDFs reflect what production actually renders.
+const MIN_SHRINK_RATIO = 0.7;
+
+function fitText(text, maxChars, baseSize) {
+  if (!text) return { text: '', size: baseSize };
+  if (!maxChars || text.length <= maxChars) return { text, size: baseSize };
+
+  const minSize = baseSize * MIN_SHRINK_RATIO;
+  const maxCharsAtMinSize = Math.floor(maxChars / MIN_SHRINK_RATIO);
+  if (text.length <= maxCharsAtMinSize) {
+    return { text, size: Math.max(minSize, (baseSize * maxChars) / text.length) };
+  }
+
+  return { text: `${text.slice(0, maxCharsAtMinSize - 1)}…`, size: minSize };
 }
 
 function drawText(page, font, text, pos) {
-  const value = truncate(text, pos.maxChars);
+  const { text: value, size } = fitText(text, pos.maxChars, pos.size ?? DEFAULT_SIZE);
   if (!value) return;
-  const size = pos.size ?? DEFAULT_SIZE;
   page.drawText(value, {
     x: pos.x + OFFSET_X,
     y: pos.y,
@@ -310,6 +320,25 @@ async function extractTextPositions(pdfPath) {
   return items;
 }
 
+// Position-and-value check for a field prone to truncation: fails if the field is missing
+// OR if what's there isn't the full expected value (i.e. it got silently truncated).
+// Picks the CLOSEST candidate within tolerance (not just the first), since a pre-printed
+// template glyph (e.g. a dotted placeholder line) can otherwise be mistaken for drawn text.
+function checkFullValue(label, expectedValue, expectedPos, items, tolerance = 8) {
+  const targetX = expectedPos.x + OFFSET_X;
+  const candidates = items
+    .filter((i) => Math.abs(i.yTop - expectedPos.yTop) <= tolerance && Math.abs(i.x - targetX) <= tolerance)
+    .sort((a, b) => Math.abs(a.x - targetX) - Math.abs(b.x - targetX));
+  const nearby = candidates[0];
+  if (!nearby) return { label, ok: false, note: 'ไม่พบข้อความในตำแหน่งที่คาด' };
+  const ok = nearby.text === expectedValue;
+  return {
+    label,
+    ok,
+    note: ok ? undefined : `คาด "${expectedValue}" แต่พบ "${nearby.text}" (อาจถูกตัดคำ)`,
+  };
+}
+
 function checkField(label, expected, actual, tolerance = 8) {
   if (!actual) return { label, ok: false, note: 'ไม่พบข้อความใน PDF' };
   const dx = Math.abs(actual.x - (expected.x + OFFSET_X));
@@ -358,6 +387,8 @@ async function verifyPdf(type, pdfPath) {
     // The embedded Thai font maps the tone mark in "ที่" inconsistently in pdf.js.
     checkField('ผู้รับผลประโยชน์ 1', { x: BENEFICIARY_FIELDS.nameX, yTop: coords.beneficiaries.yTops[0] }, find('นายผู้รับผลประโยชน์คนที')),
     checkField('ลายเซ็น', { x: coords.signature.nameX, yTop: coords.signature.nameYTop }, items.filter((i) => i.page === 2 && i.text.includes('นายทดสอบ')).pop()),
+    checkFullValue('ที่อยู่ตำบล (ไม่ถูกตัดคำ)', 'บ้านพญาไพร', { x: coords.registeredAddress1.subdistrict, yTop: coords.registeredAddress1.yTop }, items),
+    checkFullValue('ที่อยู่ซอย (ไม่ถูกตัดคำ)', 'บ้านพญาไพร', { x: coords.registeredAddress1.soi, yTop: coords.registeredAddress1.yTop }, items),
   ];
 
   return checks;

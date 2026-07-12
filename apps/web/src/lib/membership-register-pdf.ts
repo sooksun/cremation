@@ -108,7 +108,7 @@ const BENEFICIARY_FIELDS: BeneficiaryFieldCoords = {
   subdistrictX: 298.1,
   districtX: 424.9,
   provinceX: 95.6,
-  zipX: 256.5,
+  zipX: 236.5,
   phoneX: 398.6,
   contactX: 176,
   contactPhoneX: 400.9,
@@ -137,40 +137,36 @@ const TEMPLATE_COORDS: Record<MembershipType, TemplateCoords> = {
       yTop: 233.9,
       digitCentersX: [201.4, 225.5, 237.5, 249.5, 261.4, 285.4, 297.4, 309.4, 321.4, 333.3, 357.3, 369.2, 393.2],
     },
-    // Address field x-values below are calibrated to start immediately after each printed
-    // label on /doc/ref1-1.pdf (measured via pdf.js text-position extraction), so long place
-    // names truncate (see per-field maxChars in drawAddressLine1/2) instead of overlapping
-    // the next label.
     registeredAddress1: {
       yTop: 265.4,
-      houseNo: 160,
-      moo: 236.5,
-      road: 283.1,
-      soi: 396.3,
-      subdistrict: 481.9,
+      houseNo: 200,
+      moo: 258,
+      road: 300,
+      soi: 400,
+      subdistrict: 486,
     },
     registeredAddress2: {
       yTop: 286.4,
-      district: 82.2,
-      province: 182.3,
-      zip: 296.2,
-      phone: 402.9,
+      district: 95,
+      province: 205,
+      zip: 314,
+      phone: 438,
     },
     maritalStatus: { yTop: 308.1, singleX: 108, marriedX: 178, spouseX: 317.1 },
     contactAddress1: {
       yTop: 371,
-      houseNo: 183.2,
-      moo: 254.3,
-      road: 296.4,
-      soi: 403.2,
-      subdistrict: 483,
+      houseNo: 215,
+      moo: 270,
+      road: 310,
+      soi: 406,
+      subdistrict: 490,
     },
     contactAddress2: {
       yTop: 392,
-      district: 82.2,
-      province: 177.9,
-      zip: 296.2,
-      phone: 373.8,
+      district: 95,
+      province: 205,
+      zip: 314,
+      phone: 410,
     },
     bloodRelatives: {
       nameX: 118,
@@ -196,40 +192,36 @@ const TEMPLATE_COORDS: Record<MembershipType, TemplateCoords> = {
       // Calibrated from ref1-2.pdf vector boxes (yTop ~243, Thai ID 1-4-5-2-1 gaps)
       digitCentersX: [223.3, 247.3, 259.3, 271.3, 283.3, 307.3, 319.3, 331.3, 343.3, 355.2, 379.1, 391, 415],
     },
-    // Address field x-values below are calibrated to start immediately after each printed
-    // label on /doc/ref1-2.pdf (measured via pdf.js text-position extraction), so long place
-    // names truncate (see per-field maxChars in drawAddressLine1/2) instead of overlapping
-    // the next label.
     registeredAddress1: {
       yTop: 264.5,
-      houseNo: 160,
-      moo: 236.5,
-      road: 283.1,
-      soi: 396.3,
-      subdistrict: 481.9,
+      houseNo: 184,
+      moo: 258,
+      road: 322,
+      soi: 420,
+      subdistrict: 510,
     },
     registeredAddress2: {
       yTop: 285.5,
-      district: 83.4,
-      province: 185.5,
-      zip: 307,
-      phone: 412.9,
+      district: 105,
+      province: 205,
+      zip: 334,
+      phone: 438,
     },
     maritalStatus: { yTop: 307.3, singleX: 108, marriedX: 178, spouseX: 317.1 },
     contactAddress1: {
       yTop: 370.1,
-      houseNo: 182.6,
-      moo: 253.5,
-      road: 295.3,
-      soi: 399.9,
-      subdistrict: 480.2,
+      houseNo: 215,
+      moo: 280,
+      road: 325,
+      soi: 430,
+      subdistrict: 510,
     },
     contactAddress2: {
       yTop: 391,
-      district: 82.2,
-      province: 177.9,
-      zip: 296.2,
-      phone: 373.8,
+      district: 105,
+      province: 205,
+      zip: 334,
+      phone: 410,
     },
     bloodRelatives: {
       nameX: 118,
@@ -341,14 +333,12 @@ function drawAddressLine1(
   coords: AddressLine1Coords,
 ) {
   const y = toPdfY(page, coords.yTop);
-  // maxChars sized to the blank space actually available before the next printed label
-  // (measured on ref1-1.pdf/ref1-2.pdf) so long place names truncate instead of overlapping.
   const fields: Array<{ key: keyof AddressFields; x?: number; maxChars: number }> = [
-    { key: 'houseNo', x: coords.houseNo, maxChars: 6 },
-    { key: 'moo', x: coords.moo, maxChars: 4 },
-    { key: 'road', x: coords.road, maxChars: 13 },
-    { key: 'soi', x: coords.soi, maxChars: 9 },
-    { key: 'subdistrict', x: coords.subdistrict, maxChars: 8 },
+    { key: 'houseNo', x: coords.houseNo, maxChars: 14 },
+    { key: 'moo', x: coords.moo, maxChars: 6 },
+    { key: 'road', x: coords.road, maxChars: 18 },
+    { key: 'soi', x: coords.soi, maxChars: 14 },
+    { key: 'subdistrict', x: coords.subdistrict, maxChars: 16 },
   ];
 
   for (const field of fields) {
@@ -364,11 +354,9 @@ function drawAddressLine2(
   coords: AddressLine2Coords,
 ) {
   const y = toPdfY(page, coords.yTop);
-  // maxChars sized to the blank space actually available before the next printed label
-  // (measured on ref1-1.pdf/ref1-2.pdf) so long values truncate instead of overlapping.
-  drawText(page, font, addr.district, { page: 0, x: coords.district, y, maxChars: 10 });
-  drawText(page, font, addr.province, { page: 0, x: coords.province, y, maxChars: 10 });
-  drawText(page, font, addr.zip, { page: 0, x: coords.zip, y, maxChars: 8 });
+  drawText(page, font, addr.district, { page: 0, x: coords.district, y, maxChars: 16 });
+  drawText(page, font, addr.province, { page: 0, x: coords.province, y, maxChars: 12 });
+  drawText(page, font, addr.zip, { page: 0, x: coords.zip, y, maxChars: 10 });
   drawText(page, font, addr.phone, { page: 0, x: coords.phone, y, maxChars: 12 });
 }
 
