@@ -213,6 +213,36 @@ describe('Critical flow (e2e)', () => {
       .expect(403);
   });
 
+  it('POST /api/member-applications/:id/approve — viewer cannot approve applications', async () => {
+    await request(app.getHttpServer())
+      .post('/api/member-applications/m1/approve')
+      .set('Authorization', viewerAuth())
+      .send({})
+      .expect(403);
+  });
+
+  it('POST /api/member-applications/:id/approve — admin approves with certification', async () => {
+    prismaMock.member.findUnique.mockResolvedValue({
+      id: 'm1',
+      schoolId: 'school-1',
+      memberNo: 'M001',
+      applicationSubmittedAt: new Date(),
+    });
+    prismaMock.member.update.mockResolvedValue({ id: 'm1', status: 'ACTIVE' });
+
+    await request(app.getHttpServer())
+      .post('/api/member-applications/m1/approve')
+      .set('Authorization', adminAuth())
+      .send({ directorName: 'ผอ.ทดสอบ' })
+      .expect(201);
+
+    expect(prismaMock.member.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ applicationStatus: 'APPROVED', directorCertifiedName: 'ผอ.ทดสอบ' }),
+      }),
+    );
+  });
+
   it('POST /api/member-applications/submit — accepts the registration page payload', async () => {
     const school = { id: 'school-1', name: 'โรงเรียนแม่ฟ้าหลวง', code: 'MFH' };
     prismaMock.school.findMany.mockResolvedValue([school]);
