@@ -47,6 +47,8 @@ enum AuditAction {
   MEMBER_CREATE
   MEMBER_UPDATE
   MEMBER_STATUS_CHANGE
+  MEMBER_APPLICATION_APPROVE
+  MEMBER_APPLICATION_REJECT
 
   // Period & Sensitive
   CONTRIBUTION_PERIOD_CLOSE
@@ -142,6 +144,12 @@ enum MembershipEndReason {
   RESIGNED
   ARREARS_TERMINATED
   MANUAL
+}
+
+enum ApplicationStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }
 
 enum ReceiptType {
@@ -328,6 +336,18 @@ model Member {
   arrearsNoticeSentAt       DateTime?
   consecutiveArrearsPeriods Int                  @default(0)
   salaryDeduction           Boolean              @default(false) // หักผ่านเงินเดือนจากสำนักงานเขตพื้นที่
+  // การอนุมัติใบสมัคร (ระเบียบ ข้อ 15) — approvedById/approverName เก็บแบบ denormalized เพื่อ audit
+  applicationStatus         ApplicationStatus?
+  approvedById              String?
+  approvedAt                DateTime?
+  approverName              String?
+  directorCertifiedName     String? // คำรับรอง ผอ.
+  directorCertifiedAt       DateTime?
+  committeeCertifiedName    String? // กรรมการรับสมัคร
+  committeeCertifiedAt      DateTime?
+  rejectedById              String?
+  rejectedAt                DateTime?
+  rejectReason              String?
   beneficiaries             Beneficiary[]
   protectedPersons          ProtectedPerson[]
   contributions             MemberContribution[]
