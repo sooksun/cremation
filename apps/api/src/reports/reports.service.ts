@@ -400,13 +400,7 @@ export class ReportsService {
     const where: any = { reportedDate: reportedDateFilter };
     if (schoolId) where.schoolId = schoolId;
 
-    await this.logReportGeneration(actor, 'death-benefits', schoolId, {
-      year: range.year,
-      startDate: range.startDate?.toISOString(),
-      endDate: range.endDate?.toISOString(),
-    });
-
-    const claims = await this.prisma.deathClaim.findMany({
+    const rawClaims = await this.prisma.deathClaim.findMany({
       where,
       include: {
         member: {
@@ -422,6 +416,17 @@ export class ReportsService {
       orderBy: { reportedDate: 'asc' },
     });
 
+    // gross / fee / net breakdown — mirrors the legacy manual's death-notification report
+    // columns (1.6). Both funding modes now share the 90/10 split (art.16): the 10% fund
+    // reserve (associationSupport) is posted to LedgerEntry (account 301) at payment time.
+    // gross - fee always reconciles to net: netToPay = totalContribution - associationSupport
+    //   - otherDeductions, for both collection-based and committee fixed-amount claims.
+    const claims = rawClaims.map((c) => {
+      const feeDeduction = Number(c.associationSupport) + Number(c.otherDeductions);
+      const netToPay = Number(c.netToPay);
+      return { ...c, grossAmount: netToPay + feeDeduction, feeDeduction };
+    });
+
     const now = new Date();
     const summary = {
       totalClaims: claims.length,
@@ -433,13 +438,8 @@ export class ReportsService {
         .reduce((sum, c) => sum + Number(c.payment!.amount), 0),
       totalFundReserve: claims.reduce((sum, c) => sum + Number(c.associationSupport), 0),
       totalCollected: claims.reduce((sum, c) => sum + Number(c.collectedAmount), 0),
-      // gross amount available before other deductions, and the fee/deduction total — mirrors
-      // the legacy manual's death-notification report columns (1.6: gross / fee / net)
-      grossTotal: claims.reduce(
-        (sum, c) => sum + Number(c.totalContribution) + Number(c.associationSupport),
-        0,
-      ),
-      feeTotal: claims.reduce((sum, c) => sum + Number(c.otherDeductions), 0),
+      grossTotal: claims.reduce((sum, c) => sum + c.grossAmount, 0),
+      feeTotal: claims.reduce((sum, c) => sum + c.feeDeduction, 0),
       overdueCollection: claims.filter(
         (c) =>
           !c.payment &&
@@ -454,14 +454,15 @@ export class ReportsService {
       ).length,
     };
 
-    return {
-      summary,
-      claims: claims.map((c) => ({
-        ...c,
-        grossAmount: Number(c.totalContribution) + Number(c.associationSupport),
-        feeDeduction: Number(c.otherDeductions),
-      })),
-    };
+    // Audit-log only after a successful fetch — logging before the query could record a
+    // "report generated" event for a request that actually failed.
+    await this.logReportGeneration(actor, 'death-benefits', schoolId, {
+      year: range.year,
+      startDate: range.startDate?.toISOString(),
+      endDate: range.endDate?.toISOString(),
+    });
+
+    return { summary, claims };
   }
 
   // Resignation report (PRD gap #5)
@@ -476,11 +477,6 @@ export class ReportsService {
       resignDate: { gte: startDate, lte: endDate },
     };
     if (schoolId) where.schoolId = schoolId;
-
-    await this.logReportGeneration(actor, 'resignations', schoolId, {
-      startDate: startDate.toISOString(),
-      endDate: endDate.toISOString(),
-    });
 
     const members = await this.prisma.member.findMany({
       where,
@@ -499,6 +495,13 @@ export class ReportsService {
       byReason.set(reason, (byReason.get(reason) ?? 0) + 1);
     }
 
+    // Audit-log only after a successful fetch — logging before the query could record a
+    // "report generated" event for a request that actually failed.
+    await this.logReportGeneration(actor, 'resignations', schoolId, {
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
+    });
+
     return {
       period: { startDate, endDate },
       summary: {
@@ -516,7 +519,8 @@ export class ReportsService {
             idCardNo: am?.idCardNo,
             school: m.school.name,
             resignDate: m.resignDate,
-            membershipEndReason: m.membershipEndReason,
+            // Consistent with byReason above — same null substitution in both places.
+            membershipEndReason: m.membershipEndReason ?? 'ไม่ระบุ',
           },
           actor.role,
         );
@@ -530,26 +534,41 @@ export class ReportsService {
     endDate: Date,
     schoolId?: string,
     type?: ReceiptType,
+    actor?: ScopedUser,
   ) {
     const where: any = { date: { gte: startDate, lte: endDate } };
     if (schoolId) where.schoolId = schoolId;
     if (type) where.type = type;
 
-    const [receipts, byType] = await Promise.all([
-      this.prisma.receipt.findMany({
+    // Same transaction so byType and the row list read a consistent snapshot.
+    const [receipts, byTypeRaw] = await this.prisma.$transaction(async (tx) => [
+      await tx.receipt.findMany({
         where,
         include: { school: { select: { name: true } }, bankAccount: { select: { bankName: true } } },
         orderBy: { date: 'asc' },
       }),
-      this.prisma.receipt.groupBy({ by: ['type'], where, _sum: { amount: true }, _count: true }),
+      await tx.receipt.groupBy({ by: ['type'], where, _sum: { amount: true }, _count: true }),
     ]);
+
+    const byType = byTypeRaw.map((t) => ({
+      type: t.type,
+      count: t._count,
+      amount: Number(t._sum.amount || 0),
+    }));
+
+    await this.logReportGeneration(actor, 'receipts-ledger', schoolId, {
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
+      type,
+    });
 
     return {
       period: { startDate, endDate },
       summary: {
-        totalAmount: receipts.reduce((sum, r) => sum + Number(r.amount), 0),
-        count: receipts.length,
-        byType: byType.map((t) => ({ type: t.type, count: t._count, amount: Number(t._sum.amount || 0) })),
+        // Derived from byType (not re-reduced from the row list) so the two can never disagree.
+        totalAmount: byType.reduce((sum, t) => sum + t.amount, 0),
+        count: byType.reduce((sum, t) => sum + t.count, 0),
+        byType,
       },
       receipts: receipts.map((r) => ({
         id: r.id,
@@ -576,27 +595,37 @@ export class ReportsService {
     if (schoolId) where.schoolId = schoolId;
     if (type) where.type = type;
 
+    // Same transaction so byType and the row list read a consistent snapshot.
+    const [payments, byTypeRaw] = await this.prisma.$transaction(async (tx) => [
+      await tx.paymentVoucher.findMany({
+        where,
+        include: { school: { select: { name: true } }, bankAccount: { select: { bankName: true } } },
+        orderBy: { date: 'asc' },
+      }),
+      await tx.paymentVoucher.groupBy({ by: ['type'], where, _sum: { amount: true }, _count: true }),
+    ]);
+
+    const byType = byTypeRaw.map((t) => ({
+      type: t.type,
+      count: t._count,
+      amount: Number(t._sum.amount || 0),
+    }));
+
+    // Audit-log only after a successful fetch — logging before the query could record a
+    // "report generated" event for a request that actually failed.
     await this.logReportGeneration(actor, 'disbursement-ledger', schoolId, {
       startDate: startDate.toISOString(),
       endDate: endDate.toISOString(),
       type,
     });
 
-    const [payments, byType] = await Promise.all([
-      this.prisma.paymentVoucher.findMany({
-        where,
-        include: { school: { select: { name: true } }, bankAccount: { select: { bankName: true } } },
-        orderBy: { date: 'asc' },
-      }),
-      this.prisma.paymentVoucher.groupBy({ by: ['type'], where, _sum: { amount: true }, _count: true }),
-    ]);
-
     return {
       period: { startDate, endDate },
       summary: {
-        totalAmount: payments.reduce((sum, p) => sum + Number(p.amount), 0),
-        count: payments.length,
-        byType: byType.map((t) => ({ type: t.type, count: t._count, amount: Number(t._sum.amount || 0) })),
+        // Derived from byType (not re-reduced from the row list) so the two can never disagree.
+        totalAmount: byType.reduce((sum, t) => sum + t.amount, 0),
+        count: byType.reduce((sum, t) => sum + t.count, 0),
+        byType,
       },
       payments: payments.map((p) => ({
         id: p.id,
@@ -641,6 +670,14 @@ export class ReportsService {
       orderBy: [{ school: { name: 'asc' } }, { memberNo: 'asc' }],
     });
 
+    // Audit-log only after a successful fetch — logging before the query could record a
+    // "report generated" event for a request that actually failed.
+    await this.logReportGeneration(actor, 'member-registry', schoolId, {
+      dateField,
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
+    });
+
     const bySchool = new Map<string, { school: { id: string; name: string }; members: any[] }>();
     for (const m of members) {
       const entry = bySchool.get(m.schoolId) ?? { school: m.school, members: [] };
@@ -656,6 +693,7 @@ export class ReportsService {
             birthDate: am?.birthDate,
             joinDate: m.joinDate,
             applicationSubmittedAt: m.applicationSubmittedAt,
+            createdAt: m.createdAt,
           },
           actor.role,
         ),
@@ -694,14 +732,24 @@ export class ReportsService {
 
     const am = member.associationMember;
 
-    const rows: { date: Date; description: string; paid: number; received: number }[] = [];
+    // periodYear/periodMonth stay Gregorian here — apps/web converts to พ.ศ. at the UI boundary.
+    const rows: {
+      date: Date;
+      description: string;
+      paid: number;
+      received: number;
+      periodYear?: number;
+      periodMonth?: number;
+    }[] = [];
     for (const c of member.contributions) {
       if (Number(c.paidAmount) > 0) {
         rows.push({
           date: c.paidDate ?? c.createdAt,
-          description: `เงินสงเคราะห์ + ค่าบำรุง งวด ${c.period.month}/${c.period.year + 543}`,
+          description: 'เงินสงเคราะห์ + ค่าบำรุง งวด',
           paid: Number(c.paidAmount),
           received: 0,
+          periodYear: c.period.year,
+          periodMonth: c.period.month,
         });
       }
     }
@@ -719,7 +767,7 @@ export class ReportsService {
 
     let runningTotal = 0;
     const statement = rows.map((r) => {
-      runningTotal += r.paid - r.received;
+      runningTotal = Math.round((runningTotal + r.paid - r.received) * 100) / 100;
       return { ...r, runningTotal };
     });
 

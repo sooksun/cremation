@@ -10,10 +10,12 @@ describe('DeathClaimsService transactions', () => {
 
   const paidReadyClaim = {
     id: claimId,
+    claimNo: 'DC-2026-0001',
     schoolId,
     status: DeathClaimStatus.READY_TO_PAY,
     collectedAmount: 5000,
     totalContribution: 5000,
+    associationSupport: 500,
     netToPay: 4500,
     documentsComplete: true,
     approvedAt: new Date(),
@@ -30,10 +32,16 @@ describe('DeathClaimsService transactions', () => {
     const txCreate = jest.fn();
     const txClaimUpdate = jest.fn();
 
+    const docNumber = { generateNumber: jest.fn().mockResolvedValue('DOC-TEST') };
+
     const prisma = {
       deathClaim: { findUnique: jest.fn() },
       $transaction: jest.fn(async (fn: (tx: unknown) => Promise<unknown>) =>
         fn({
+          account: { findFirst: jest.fn().mockResolvedValue({ id: 'acc-x' }) },
+          receipt: { create: jest.fn().mockResolvedValue({ id: 'rcpt-1' }) },
+          paymentVoucher: { create: jest.fn().mockResolvedValue({ id: 'vch-1' }) },
+          ledgerEntry: { createMany: jest.fn() },
           deathBenefitPayment: { create: txCreate },
           deathClaim: { update: txClaimUpdate },
         }),
@@ -42,7 +50,7 @@ describe('DeathClaimsService transactions', () => {
 
     const service = new DeathClaimsService(
       prisma as never,
-      {} as never,
+      docNumber as never,
       {} as never,
       schoolScope,
       auditLog as never,
@@ -73,7 +81,11 @@ describe('DeathClaimsService transactions', () => {
       expect(txCreate).toHaveBeenCalled();
       expect(txClaimUpdate).toHaveBeenCalledWith({
         where: { id: claimId },
-        data: { status: DeathClaimStatus.PAID },
+        data: {
+          status: DeathClaimStatus.PAID,
+          collectionReceiptId: 'rcpt-1',
+          benefitVoucherId: 'vch-1',
+        },
       });
     });
 
