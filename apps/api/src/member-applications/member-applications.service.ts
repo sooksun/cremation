@@ -1,7 +1,9 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { MemberStatus } from '@prisma/client';
+import { MemberStatus, ApplicationStatus, AuditAction } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { DocumentNumberService, DocumentType } from '../common/document-number.service';
+import { SchoolScopeService, ScopedUser } from '../common/security/school-scope.service';
+import { AuditLogService } from '../common/services/audit-log.service';
 import { MembershipRulesService } from '../members/membership-rules.service';
 import { ProtectedPersonsService } from '../members/protected-persons.service';
 import { resolveMembershipClass, splitFullName } from '../members/membership.constants';
@@ -18,6 +20,8 @@ export class MemberApplicationsService {
     private readonly documentNumberService: DocumentNumberService,
     private readonly membershipRules: MembershipRulesService,
     private readonly protectedPersons: ProtectedPersonsService,
+    private readonly schoolScope: SchoolScopeService,
+    private readonly auditLog: AuditLogService,
   ) {}
 
   async submit(dto: SubmitApplicationDto) {
@@ -219,11 +223,14 @@ export class MemberApplicationsService {
   }
 
   // Admin: list recent applications (members with application data)
-  async listApplications(schoolId?: string, limit = 20) {
+  async listApplications(schoolId?: string, limit = 20, actor?: ScopedUser) {
+    const scopedSchoolId = actor
+      ? this.schoolScope.resolveSchoolId(actor, schoolId)
+      : schoolId;
     const where: any = {
       applicationSubmittedAt: { not: null },
     };
-    if (schoolId) where.schoolId = schoolId;
+    if (scopedSchoolId) where.schoolId = scopedSchoolId;
 
     return this.prisma.member.findMany({
       where,
@@ -239,7 +246,7 @@ export class MemberApplicationsService {
     });
   }
 
-  async getApplication(id: string) {
+  async getApplication(id: string, actor?: ScopedUser) {
     const member = await this.prisma.member.findUnique({
       where: { id },
       include: {
@@ -252,18 +259,89 @@ export class MemberApplicationsService {
     if (!member || !member.applicationSubmittedAt) {
       throw new BadRequestException('ไม่พบใบสมัคร');
     }
+    if (actor) this.schoolScope.assertSchoolAccess(actor, member.schoolId);
     return member;
   }
 
-  async approveApplication(id: string) {
+  async approveApplication(
+    id: string,
+    actor?: ScopedUser,
+    ipAddress?: string,
+    cert?: { directorName?: string; committeeName?: string },
+  ) {
+    if (!actor) throw new BadRequestException('ไม่พบข้อมูลผู้อนุมัติ');
     const member = await this.prisma.member.findUnique({ where: { id } });
     if (!member || !member.applicationSubmittedAt) {
       throw new BadRequestException('ไม่พบใบสมัคร');
     }
+    this.schoolScope.assertSchoolAccess(actor, member.schoolId);
+
+    const approver = await this.prisma.user.findUnique({
+      where: { id: actor.id },
+      select: { fullName: true },
+    });
+    const now = new Date();
     const updated = await this.prisma.member.update({
       where: { id },
-      data: { status: MemberStatus.ACTIVE },
+      data: {
+        status: MemberStatus.ACTIVE,
+        applicationStatus: ApplicationStatus.APPROVED,
+        approvedById: actor.id,
+        approvedAt: now,
+        approverName: approver?.fullName,
+        directorCertifiedName: cert?.directorName,
+        directorCertifiedAt: cert?.directorName ? now : undefined,
+        committeeCertifiedName: cert?.committeeName,
+        committeeCertifiedAt: cert?.committeeName ? now : undefined,
+      },
+    });
+    await this.auditLog.log({
+      userId: actor.id,
+      action: AuditAction.MEMBER_APPLICATION_APPROVE,
+      entityType: 'Member',
+      entityId: id,
+      schoolId: member.schoolId,
+      metadata: {
+        memberNo: member.memberNo,
+        directorName: cert?.directorName,
+        committeeName: cert?.committeeName,
+      },
+      ipAddress,
     });
     return { message: 'อนุมัติใบสมัครและเปิดใช้งานสมาชิกแล้ว', member: updated };
+  }
+
+  async rejectApplication(
+    id: string,
+    actor?: ScopedUser,
+    ipAddress?: string,
+    reason?: string,
+  ) {
+    if (!actor) throw new BadRequestException('ไม่พบข้อมูลผู้ปฏิเสธ');
+    const member = await this.prisma.member.findUnique({ where: { id } });
+    if (!member || !member.applicationSubmittedAt) {
+      throw new BadRequestException('ไม่พบใบสมัคร');
+    }
+    this.schoolScope.assertSchoolAccess(actor, member.schoolId);
+
+    const updated = await this.prisma.member.update({
+      where: { id },
+      data: {
+        applicationStatus: ApplicationStatus.REJECTED,
+        rejectedById: actor.id,
+        rejectedAt: new Date(),
+        rejectReason: reason,
+      },
+    });
+    await this.auditLog.log({
+      userId: actor.id,
+      action: AuditAction.MEMBER_APPLICATION_REJECT,
+      entityType: 'Member',
+      entityId: id,
+      schoolId: member.schoolId,
+      metadata: { memberNo: member.memberNo, reason },
+      ipAddress,
+    });
+    return { message: 'ปฏิเสธใบสมัครแล้ว', member: updated };
   }
 }
