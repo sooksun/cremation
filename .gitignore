@@ -54,3 +54,6 @@ output/
 # MCP server tool definitions (loaded dynamically per session)
 mcps/
 
+
+# build artifacts / install bundles
+/dist/

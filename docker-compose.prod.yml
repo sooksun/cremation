@@ -16,7 +16,7 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     ports:
-      - "9931:4000"
+      - "9951:4000"
     networks:
       - cremation-net
 
@@ -32,9 +32,28 @@ services:
       NODE_ENV: production
       PORT: 3000
     ports:
-      - "9930:3000"
+      - "9950:3000"
     depends_on:
       - api
+    networks:
+      - cremation-net
+
+  # One-time seed for a fresh install. Uses the Dockerfile.api builder stage
+  # (full source + ts-node) because prisma/seed.ts imports from ../src/*.
+  # Run with: docker compose --profile seed run --rm seed
+  seed:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+      target: builder
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: ${DATABASE_URL}
+    working_dir: /repo
+    command: ["pnpm", "--filter", "@cremation/api", "run", "db:seed"]
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    profiles: ["seed"]
     networks:
       - cremation-net
 

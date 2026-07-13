@@ -12,6 +12,7 @@
 *.sql text eol=lf
 *.yml text eol=lf
 *.yaml text eol=lf
+*.sh text eol=lf
 
 # Ensure Prisma files use lowercase paths
 prisma/** text eol=lf

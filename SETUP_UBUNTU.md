@@ -7,6 +7,7 @@
 
 ## 📋 สารบัญ
 
+0. [🐳 Docker Deploy (Production — แนะนำ)](#0-docker-deploy-production--แนะนำ)
 1. [Prerequisites](#1-prerequisites)
 2. [ติดตั้ง Node.js และ pnpm](#2-ติดตั้ง-nodejs-และ-pnpm)
 3. [ติดตั้ง MySQL](#3-ติดตั้ง-mysql)
@@ -16,6 +17,116 @@
 7. [Run Development Servers](#7-run-development-servers)
 8. [การเข้าถึงระบบ](#8-การเข้าถึงระบบ)
 9. [Troubleshooting](#9-troubleshooting)
+
+---
+
+## 0. 🐳 Docker Deploy (Production — แนะนำ)
+
+Deploy ด้วย Docker บน Ubuntu server ที่ path **`/DATA/AppData/www/cremation`**
+เข้าถึงระบบที่ **`http://192.168.1.4:9950`** (หัวข้อ 1–9 ด้านล่างเป็นแบบ manual dev-install ไม่ใช้ Docker)
+
+### สถาปัตยกรรม
+
+| Service  | Host port | เข้าถึง                        | หมายเหตุ                                   |
+|----------|-----------|-------------------------------|-------------------------------------------|
+| `web`    | 9950:3000 | `http://192.168.1.4:9950`     | Next.js standalone (จุดเข้าหลัก)          |
+| `api`    | 9951:4000 | `http://192.168.1.4:9951/api` | NestJS + Prisma (prefix `/api`)           |
+| `backup` | —         | —                             | mariadb-dump รายวัน → `./backup` เก็บ 14 วัน |
+
+- **Database**: ใช้ MariaDB ที่รันบน host อยู่แล้ว ผ่าน `host.docker.internal:3306` (ไม่ bundle DB ใน compose)
+- **Deploy**: **git clone/pull จาก `main`** ผ่าน SSH deploy key → build image บน server จาก source โดยตรง
+
+### ข้อกำหนดเบื้องต้น (บน server)
+
+- Docker + Docker Compose plugin, Git
+- MariaDB รันบน host และ **bind `0.0.0.0:3306`** (ให้ container ต่อผ่าน host-gateway ได้)
+- **SSH deploy key** สำหรับ clone/pull repo (private)
+
+### 0.1 เตรียม SSH deploy key (ครั้งเดียว)
+
+```bash
+# สร้าง key บน server (ไม่ตั้ง passphrase เพื่อให้ pull อัตโนมัติได้)
+ssh-keygen -t ed25519 -C "cremation-deploy@192.168.1.4" -f ~/.ssh/cremation_deploy -N ""
+
+# แสดง public key แล้วคัดลอกไปเพิ่มที่ GitHub
+cat ~/.ssh/cremation_deploy.pub
+```
+
+เอา public key ไปเพิ่มที่ **GitHub → repo `sooksun/cremation` → Settings → Deploy keys → Add deploy key**
+(อ่านอย่างเดียวพอ ไม่ต้องติ๊ก "Allow write access") — ขั้นนี้ทำผ่านหน้าเว็บ GitHub เอง
+
+ผูก key กับ host github.com:
+
+```bash
+cat >> ~/.ssh/config <<'EOF'
+Host github.com
+  IdentityFile ~/.ssh/cremation_deploy
+  IdentitiesOnly yes
+EOF
+ssh -T git@github.com        # ควรขึ้น "Hi sooksun/cremation! You've successfully authenticated"
+```
+
+### 0.2 ขั้นตอนติดตั้ง (ครั้งแรก)
+
+```bash
+# 1) เตรียม database + user บน host MariaDB (แก้ CHANGE_ME ในไฟล์ก่อน หรือแก้ user ทีหลัง)
+#    (ถ้ายังไม่มี repo บนเครื่อง ให้ clone ก่อนตามข้อ 2 แล้วค่อยรันไฟล์นี้)
+
+# 2) clone จาก main ไปที่ path มาตรฐาน
+sudo mkdir -p /DATA/AppData/www && sudo chown "$USER" /DATA/AppData/www
+git clone -b main git@github.com:sooksun/cremation.git /DATA/AppData/www/cremation
+cd /DATA/AppData/www/cremation
+
+mysql -u root -p < deploy/mariadb-setup.sql   # เตรียม DB (ข้อ 1)
+
+# 3) สร้างไฟล์ env จริง (gitignored) แล้วเติมค่า
+cp .env.production.example .env.production
+nano .env.production
+#   - DATABASE_URL: ใส่รหัส cremation_app ให้ตรงกับที่ตั้งใน mariadb-setup.sql
+#   - JWT_SECRET:   openssl rand -base64 48
+#   - WEB_ORIGIN / NEXT_PUBLIC_API_URL: แก้ IP ถ้าไม่ใช่ 192.168.1.4
+
+# 4) ติดตั้ง (build → up → migrate auto → seed)
+bash deploy/install.sh
+```
+
+เปิด `http://192.168.1.4:9950` แล้ว login admin จาก seed → **เปลี่ยนรหัสทันที**
+
+### อัปเดตเวอร์ชัน
+
+```bash
+cd /DATA/AppData/www/cremation
+bash deploy/update.sh     # git pull → rebuild → restart (migrate auto)
+```
+
+### คำสั่งที่ใช้บ่อย
+
+```bash
+# ตั้ง alias สั้น ๆ
+COMPOSE="docker compose -f docker-compose.prod.yml --env-file .env.production"
+
+$COMPOSE ps                        # สถานะ
+$COMPOSE logs -f api               # log api (migrate/boot errors)
+$COMPOSE logs -f web
+$COMPOSE --profile seed run --rm seed   # seed ซ้ำ (idempotent)
+$COMPOSE up -d --force-recreate --no-deps api   # restart เฉพาะ api
+$COMPOSE down                      # หยุดทั้งหมด (DB บน host ไม่โดนแตะ)
+```
+
+### เมื่อเปลี่ยน IP/port
+
+`NEXT_PUBLIC_API_URL` ถูก **bake เข้า web image ตอน build** — ถ้าเปลี่ยน IP หรือ port ต้อง:
+1. แก้ `.env.production` (`WEB_ORIGIN`, `NEXT_PUBLIC_API_URL`)
+2. `$COMPOSE build web && $COMPOSE up -d --force-recreate web`
+
+### Troubleshooting (Docker)
+
+| อาการ | สาเหตุ / วิธีแก้ |
+|-------|------------------|
+| api restart loop, log `Can't reach database` | MariaDB ไม่ bind 0.0.0.0 หรือ user `cremation_app` ยังไม่ grant ให้ต่อจาก docker subnet (`'%'` / `'172.%'`) |
+| หน้าเว็บโหลดได้แต่ทุก API call ล้ม CORS | `WEB_ORIGIN` ไม่ตรงกับ URL ที่เปิดจริง — แก้แล้ว restart api |
+| กด API แล้ว 404 / เรียกผิด host | `NEXT_PUBLIC_API_URL` เก่าค้างใน web image — rebuild web (ดูหัวข้อด้านบน) |
+| `JWT_SECRET` too short → api boot ไม่ขึ้น | JWT_SECRET ต้อง ≥ 32 ตัวอักษร |
 
 ---
 
