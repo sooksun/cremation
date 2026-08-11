@@ -38,12 +38,17 @@ export async function streamAssistant(
       if (!line) continue;
       const data = line.slice('data:'.length).trim();
       if (data === '[DONE]') return;
+
+      let json: unknown;
       try {
-        const json = JSON.parse(data);
-        if (json.error) throw new Error(json.error);
-        if (typeof json.delta === 'string') onDelta(json.delta);
-      } catch (e) {
-        if (e instanceof Error && e.message && !e.message.startsWith('Unexpected')) throw e;
+        json = JSON.parse(data);
+      } catch {
+        continue; // frame เพี้ยน/ไม่ครบ — ข้าม ไม่ใช่ error ความหมาย
+      }
+      if (json && typeof json === 'object') {
+        const j = json as { error?: string; delta?: string };
+        if (j.error) throw new Error(j.error);
+        if (typeof j.delta === 'string') onDelta(j.delta);
       }
     }
   }
