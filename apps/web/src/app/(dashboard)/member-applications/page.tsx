@@ -8,6 +8,9 @@ import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/auth';
 import { showSuccess, showError } from '@/lib/toast';
 import dayjs from 'dayjs';
+import buddhistEra from 'dayjs/plugin/buddhistEra';
+
+dayjs.extend(buddhistEra);
 
 interface Application {
   id: string;
