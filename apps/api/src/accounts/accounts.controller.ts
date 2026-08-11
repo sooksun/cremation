@@ -31,11 +31,15 @@ export class AccountsController {
   }
 
   @Get()
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.ACCOUNTING)
   findAll(@Query('type') type?: AccountType) {
     return this.accountsService.findAll(type);
   }
 
   @Get('trial-balance')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.SCHOOL_ADMIN, Role.FINANCE, Role.ACCOUNTING)
   getTrialBalance(
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
@@ -47,6 +51,8 @@ export class AccountsController {
   }
 
   @Get('journal')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.SCHOOL_ADMIN, Role.FINANCE, Role.ACCOUNTING)
   getJournal(
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
@@ -58,6 +64,8 @@ export class AccountsController {
   }
 
   @Get('reports/balance-sheet')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.SCHOOL_ADMIN, Role.FINANCE, Role.ACCOUNTING)
   getBalanceSheet(
     @Query('asOfDate') asOfDate?: string,
     @Query('schoolId') schoolId?: string,
@@ -69,6 +77,8 @@ export class AccountsController {
   }
 
   @Get('reports/profit-loss')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.SCHOOL_ADMIN, Role.FINANCE, Role.ACCOUNTING)
   getProfitAndLoss(
     @Query('startDate') startDate: string,
     @Query('endDate') endDate: string,
@@ -91,11 +101,15 @@ export class AccountsController {
   }
 
   @Get(':id')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.ACCOUNTING)
   findOne(@Param('id') id: string) {
     return this.accountsService.findById(id);
   }
 
   @Get(':id/ledger')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.ACCOUNTING)
   getLedger(
     @Param('id') id: string,
     @Query('startDate') startDate?: string,

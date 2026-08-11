@@ -45,7 +45,7 @@ export default function LoginPage() {
         router.push('/dashboard');
       }
     } catch (error: unknown) {
-      showError(getApiErrorMessage(error, 'เข้าสู่ระบบไม่สำเร็จ — ตรวจสอบชื่อผู้ใช้/รหัสผ่าน (admin / 1234)'));
+      showError(getApiErrorMessage(error, 'เข้าสู่ระบบไม่สำเร็จ — ตรวจสอบชื่อผู้ใช้/รหัสผ่าน'));
     } finally {
       setLoading(false);
     }
