@@ -15,6 +15,13 @@ export function validateEnv(): void {
       throw new Error('CORS_ORIGINS or FRONTEND_URL must be set in production');
     }
   }
+
+  const assistantEnabled = process.env.ASSISTANT_ENABLED !== '0';
+  if (process.env.NODE_ENV === 'production' && assistantEnabled && !process.env.OPENROUTER_API_KEY) {
+    throw new Error(
+      'OPENROUTER_API_KEY must be set when ASSISTANT_ENABLED is on (set ASSISTANT_ENABLED=0 to disable the chatbot)',
+    );
+  }
 }
 
 export function getJwtSecret(): string {
