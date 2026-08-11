@@ -8,11 +8,13 @@ export function useAssistantChat() {
   const [isStreaming, setIsStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
+  const sendingRef = useRef(false);
 
   const send = useCallback(
     async (text: string) => {
       const trimmed = text.trim();
-      if (!trimmed || isStreaming) return;
+      if (!trimmed || isStreaming || sendingRef.current) return;
+      sendingRef.current = true;
       setError(null);
 
       const history: AssistantMessage[] = [...messages, { role: 'user', content: trimmed }];
@@ -36,6 +38,9 @@ export function useAssistantChat() {
           abort.signal,
         );
       } catch (e) {
+        if ((e instanceof DOMException && e.name === 'AbortError') || abort.signal.aborted) {
+          return; // ผู้ใช้ยกเลิกเอง (reset) — ไม่ใช่ error
+        }
         const msg = e instanceof Error ? e.message : 'เกิดข้อผิดพลาด';
         setError(msg);
         setMessages((prev) => {
@@ -47,8 +52,9 @@ export function useAssistantChat() {
           return next;
         });
       } finally {
+        sendingRef.current = false;
         setIsStreaming(false);
-        abortRef.current = null;
+        if (abortRef.current === abort) abortRef.current = null;
       }
     },
     [messages, isStreaming],
