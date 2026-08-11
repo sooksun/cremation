@@ -13,6 +13,10 @@ services:
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
       FRONTEND_URL: ${WEB_ORIGIN}
       CORS_ORIGINS: ${WEB_ORIGIN}
+      ASSISTANT_ENABLED: ${ASSISTANT_ENABLED:-1}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      OPENROUTER_MODEL: ${OPENROUTER_MODEL:-google/gemini-2.5-flash}
+      OPENROUTER_APP_TITLE: ${OPENROUTER_APP_TITLE:-}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     ports:

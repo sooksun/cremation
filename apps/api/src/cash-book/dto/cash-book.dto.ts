@@ -21,6 +21,11 @@ export class CreateCashBookDto {
   @IsOptional()
   @IsString()
   paymentId?: string;
+
+  // เฉพาะ ADMIN (schoolId=null) ต้องระบุ — role อื่นใช้ schoolId ของ actor เสมอ (ห้ามเชื่อค่านี้)
+  @IsOptional()
+  @IsString()
+  schoolId?: string;
 }
 
 export class UpdateCashBookDto {

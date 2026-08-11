@@ -30,6 +30,7 @@ import { useAuthStore } from '@/store/auth';
 import { api, type School } from '@/lib/api';
 import { isPathAllowedForRole } from '@/lib/route-access';
 import { canSelectAllSchools, filterSchoolsForUser } from '@/lib/school-scope';
+import { AssistantWidget } from '@/components/assistant/AssistantWidget';
 
 const menuItems = [
   {
@@ -427,6 +428,8 @@ export default function DashboardLayout({
         {/* Page content */}
         <main className="p-4 lg:p-6">{children}</main>
       </div>
+
+      <AssistantWidget />
     </div>
   );
 }

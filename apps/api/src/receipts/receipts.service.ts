@@ -1,14 +1,16 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { DocumentNumberService, DocumentType } from '../common/document-number.service';
 import { CreateReceiptDto } from './dto/create-receipt.dto';
-import { AuditAction, ReceiptType, Role } from '@prisma/client';
+import { AuditAction, Prisma, ReceiptType, Role } from '@prisma/client';
 import { SchoolScopeService, ScopedUser } from '../common/security/school-scope.service';
 import { AuditLogService } from '../common/services/audit-log.service';
 import { CashBookService } from '../cash-book/cash-book.service';
 
 @Injectable()
 export class ReceiptsService {
+  private readonly logger = new Logger(ReceiptsService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly documentNumberService: DocumentNumberService,
@@ -22,26 +24,31 @@ export class ReceiptsService {
       this.schoolScope.assertSchoolAccess(actor, dto.schoolId);
     }
 
+    // เลขเอกสารสร้างนอก transaction (pattern เดียวกับ death-claims.service.ts)
     const receiptNo = await this.documentNumberService.generateNumber(DocumentType.RECEIPT);
 
-    const receipt = await this.prisma.receipt.create({
-      data: {
-        receiptNo,
-        schoolId: dto.schoolId || null,
-        date: new Date(dto.date),
-        type: dto.type,
-        description: dto.description,
-        amount: dto.amount,
-        bankAccountId: dto.bankAccountId,
-      },
-      include: { school: true, bankAccount: true },
+    const receipt = await this.prisma.$transaction(async (tx) => {
+      const created = await tx.receipt.create({
+        data: {
+          receiptNo,
+          schoolId: dto.schoolId || null,
+          date: new Date(dto.date),
+          type: dto.type,
+          description: dto.description,
+          amount: dto.amount,
+          bankAccountId: dto.bankAccountId,
+        },
+        include: { school: true, bankAccount: true },
+      });
+
+      await this.createLedgerEntries(created, tx);
+
+      if (!created.bankAccountId) {
+        await this.cashBook.createFromReceipt(created, tx);
+      }
+
+      return created;
     });
-
-    await this.createLedgerEntries(receipt);
-
-    if (!receipt.bankAccountId) {
-      await this.cashBook.createFromReceipt(receipt);
-    }
 
     if (actor) {
       await this.auditLog.log({
@@ -139,14 +146,22 @@ export class ReceiptsService {
     };
   }
 
-  private async createLedgerEntries(receipt: any) {
+  private async createLedgerEntries(receipt: any, tx: Prisma.TransactionClient = this.prisma) {
     // Get accounts
-    const cashAccount = await this.prisma.account.findFirst({ where: { code: '101' } });
-    const bankAccount = await this.prisma.account.findFirst({ where: { code: '102' } });
-    const welfareRevenue = await this.prisma.account.findFirst({ where: { code: '401' } });
-    const serviceRevenue = await this.prisma.account.findFirst({ where: { code: '402' } });
+    const cashAccount = await tx.account.findFirst({ where: { code: '101' } });
+    const bankAccount = await tx.account.findFirst({ where: { code: '102' } });
+    const welfareRevenue = await tx.account.findFirst({ where: { code: '401' } });
+    const serviceRevenue = await tx.account.findFirst({ where: { code: '402' } });
 
-    if (!cashAccount || !welfareRevenue) return;
+    if (!cashAccount || !welfareRevenue) {
+      const missing = [!cashAccount && '101 (เงินสด)', !welfareRevenue && '401 (รายได้เงินสงเคราะห์)']
+        .filter(Boolean)
+        .join(', ');
+      this.logger.warn(
+        `createLedgerEntries: ไม่พบบัญชี ${missing} — ข้ามการบันทึกบัญชีสำหรับใบเสร็จ ${receipt.receiptNo}`,
+      );
+      return;
+    }
 
     const debitAccountId = receipt.bankAccountId ? bankAccount?.id : cashAccount.id;
     let creditAccountId = welfareRevenue.id;
@@ -183,7 +198,11 @@ export class ReceiptsService {
         throw new Error(`Double-entry violation in Receipt ${receipt.receiptNo}: Debit ${totalDebit} != Credit ${totalCredit}`);
       }
 
-      await this.prisma.ledgerEntry.createMany({ data: entries });
+      await tx.ledgerEntry.createMany({ data: entries });
+    } else {
+      this.logger.warn(
+        `createLedgerEntries: ไม่พบบัญชี 102 (เงินฝากธนาคาร) — ข้ามการบันทึกบัญชีสำหรับใบเสร็จ ${receipt.receiptNo}`,
+      );
     }
   }
 }

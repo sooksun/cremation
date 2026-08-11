@@ -34,6 +34,8 @@ export class SchoolClustersController {
   }
 
   @Get('hierarchy')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
   findHierarchy() {
     return this.schoolClustersService.findHierarchy();
   }

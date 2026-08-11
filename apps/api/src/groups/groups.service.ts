@@ -1,4 +1,9 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateGroupDto } from './dto/create-group.dto';
 import { UpdateGroupDto } from './dto/update-group.dto';
@@ -14,9 +19,28 @@ export class GroupsService {
     private readonly auditLog: AuditLogService,
   ) {}
 
+  private async assertLeaderInSchool(leaderId: string, schoolId: string) {
+    const leader = await this.prisma.member.findUnique({
+      where: { id: leaderId },
+      select: { schoolId: true },
+    });
+
+    if (!leader) {
+      throw new NotFoundException('ไม่พบสมาชิกที่ระบุเป็นหัวหน้ากลุ่ม');
+    }
+
+    if (leader.schoolId !== schoolId) {
+      throw new BadRequestException('หัวหน้ากลุ่มต้องเป็นสมาชิกของโรงเรียนเดียวกัน');
+    }
+  }
+
   async create(dto: CreateGroupDto, actor?: ScopedUser) {
     if (actor) {
       this.schoolScope.assertSchoolAccess(actor, dto.schoolId);
+    }
+
+    if (dto.leaderId) {
+      await this.assertLeaderInSchool(dto.leaderId, dto.schoolId);
     }
 
     const group = await this.prisma.group.create({
@@ -89,6 +113,14 @@ export class GroupsService {
   async update(id: string, dto: UpdateGroupDto, actor?: ScopedUser) {
     await this.findById(id, actor);
     const before = await this.prisma.group.findUnique({ where: { id } });
+
+    if (dto.leaderId) {
+      const targetSchoolId = dto.schoolId ?? before?.schoolId;
+      if (targetSchoolId) {
+        await this.assertLeaderInSchool(dto.leaderId, targetSchoolId);
+      }
+    }
+
     const updated = await this.prisma.group.update({
       where: { id },
       data: dto,

@@ -15,7 +15,8 @@ describe('CashBookService (soft-delete retention, ref2 art.30)', () => {
     },
   };
   const schoolScope = new SchoolScopeService();
-  const service = new CashBookService(prisma as never, schoolScope);
+  const auditLog = { log: jest.fn() };
+  const service = new CashBookService(prisma as never, schoolScope, auditLog as never);
   const actor = { id: 'u1', role: Role.ADMIN, schoolId: null };
 
   beforeEach(() => jest.clearAllMocks());

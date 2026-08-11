@@ -142,15 +142,12 @@ export default function ContributionMatrixPage() {
       return response.data;
     },
     onSuccess: (data) => {
-      console.log('Batch payment success:', data);
-      console.log('Results details:', data.results);
       queryClient.invalidateQueries({ queryKey: ['contribution-matrix'] });
       setStatusChanges(new Map());
       if (data.failed > 0) {
         // แสดงรายละเอียดของรายการที่ล้มเหลว
         const failedItems = data.results?.filter((r: any) => !r.success) || [];
-        console.log('Failed items:', failedItems);
-        
+
         // แยก error messages เพื่อแสดงให้ชัดเจน
         const errorMessages = failedItems.map((r: any) => {
           const errorMsg = r.error || 'ไม่ทราบสาเหตุ';
@@ -289,7 +286,6 @@ export default function ContributionMatrixPage() {
       return;
     }
 
-    console.log('Saving payments:', payments);
     batchPaymentMutation.mutate(payments);
   };
 

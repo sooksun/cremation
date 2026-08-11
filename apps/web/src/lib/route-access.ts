@@ -29,9 +29,61 @@ const SCHOOL_ADMIN_BLOCKED_PREFIXES = [
   '/reports/executive',
 ];
 
+// Derived from the sidebar menu `roles` arrays in app/(dashboard)/layout.tsx:
+// any path whose menu entry's `roles` list omits FINANCE is blocked here.
+// FINANCE has access to money/member-facing modules (groups, bank-accounts,
+// cash-book, association-members, bank, members, contributions, receipts,
+// payments, death-claims, reports, settings/signature) but not admin-only
+// setup screens (users, schools, member-types, accounts, assets,
+// member-applications, welfare-rate, executive overview).
+const FINANCE_BLOCKED_PREFIXES = [
+  '/users',
+  '/school-admins',
+  '/schools',
+  '/school-clusters',
+  '/member-types',
+  '/accounts',
+  '/assets',
+  '/member-applications',
+  '/settings/welfare-rate',
+  '/reports/executive',
+];
+
+// Derived from the sidebar menu `roles` arrays in app/(dashboard)/layout.tsx:
+// any path whose menu entry's `roles` list omits ACCOUNTING is blocked here.
+// ACCOUNTING only has access to accounts, assets, audit-logs, and the
+// shared finance/accounting reports (finance, financial-statements, daily,
+// trial-balance, receipts-ledger, disbursement-ledger, board-monthly) — not
+// member/contribution/payment operations or settings.
+const ACCOUNTING_BLOCKED_PREFIXES = [
+  '/users',
+  '/school-admins',
+  '/schools',
+  '/school-clusters',
+  '/member-types',
+  '/groups',
+  '/bank-accounts',
+  '/cash-book',
+  '/member-applications',
+  '/association-members',
+  '/bank',
+  '/members',
+  '/contributions',
+  '/receipts',
+  '/payments',
+  '/death-claims',
+  '/settings',
+  '/reports/executive',
+  '/reports/resignations',
+  '/reports/member-registry',
+  '/reports/period-close-summary',
+];
+
 const ROLE_BLOCKED_PREFIXES: Record<string, string[]> = {
   VIEWER: VIEWER_BLOCKED_PREFIXES,
   SCHOOL_ADMIN: SCHOOL_ADMIN_BLOCKED_PREFIXES,
+  FINANCE: FINANCE_BLOCKED_PREFIXES,
+  ACCOUNTING: ACCOUNTING_BLOCKED_PREFIXES,
   GROUP_LEADER: [
     '/users',
     '/schools',

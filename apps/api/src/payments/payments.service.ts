@@ -1,14 +1,16 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { DocumentNumberService, DocumentType } from '../common/document-number.service';
 import { CreatePaymentDto } from './dto/create-payment.dto';
-import { AuditAction, PaymentType } from '@prisma/client';
+import { AuditAction, PaymentType, Prisma } from '@prisma/client';
 import { SchoolScopeService, ScopedUser } from '../common/security/school-scope.service';
 import { AuditLogService } from '../common/services/audit-log.service';
 import { CashBookService } from '../cash-book/cash-book.service';
 
 @Injectable()
 export class PaymentsService {
+  private readonly logger = new Logger(PaymentsService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly documentNumberService: DocumentNumberService,
@@ -22,26 +24,31 @@ export class PaymentsService {
       this.schoolScope.assertSchoolAccess(actor, dto.schoolId);
     }
 
+    // เลขเอกสารสร้างนอก transaction (pattern เดียวกับ death-claims.service.ts)
     const voucherNo = await this.documentNumberService.generateNumber(DocumentType.PAYMENT_VOUCHER);
 
-    const payment = await this.prisma.paymentVoucher.create({
-      data: {
-        voucherNo,
-        schoolId: dto.schoolId || null,
-        date: new Date(dto.date),
-        type: dto.type,
-        description: dto.description,
-        amount: dto.amount,
-        bankAccountId: dto.bankAccountId,
-      },
-      include: { school: true, bankAccount: true },
+    const payment = await this.prisma.$transaction(async (tx) => {
+      const created = await tx.paymentVoucher.create({
+        data: {
+          voucherNo,
+          schoolId: dto.schoolId || null,
+          date: new Date(dto.date),
+          type: dto.type,
+          description: dto.description,
+          amount: dto.amount,
+          bankAccountId: dto.bankAccountId,
+        },
+        include: { school: true, bankAccount: true },
+      });
+
+      await this.createLedgerEntries(created, tx);
+
+      if (!created.bankAccountId) {
+        await this.cashBook.createFromPayment(created, tx);
+      }
+
+      return created;
     });
-
-    await this.createLedgerEntries(payment);
-
-    if (!payment.bankAccountId) {
-      await this.cashBook.createFromPayment(payment);
-    }
 
     if (actor) {
       await this.auditLog.log({
@@ -128,13 +135,21 @@ export class PaymentsService {
     };
   }
 
-  private async createLedgerEntries(payment: any) {
+  private async createLedgerEntries(payment: any, tx: Prisma.TransactionClient = this.prisma) {
     // Get accounts
-    const cashAccount = await this.prisma.account.findFirst({ where: { code: '101' } });
-    const bankAccount = await this.prisma.account.findFirst({ where: { code: '102' } });
-    const deathBenefitExpense = await this.prisma.account.findFirst({ where: { code: '501' } });
+    const cashAccount = await tx.account.findFirst({ where: { code: '101' } });
+    const bankAccount = await tx.account.findFirst({ where: { code: '102' } });
+    const deathBenefitExpense = await tx.account.findFirst({ where: { code: '501' } });
 
-    if (!cashAccount || !deathBenefitExpense) return;
+    if (!cashAccount || !deathBenefitExpense) {
+      const missing = [!cashAccount && '101 (เงินสด)', !deathBenefitExpense && '501 (ค่าใช้จ่ายเงินสงเคราะห์ศพ)']
+        .filter(Boolean)
+        .join(', ');
+      this.logger.warn(
+        `createLedgerEntries: ไม่พบบัญชี ${missing} — ข้ามการบันทึกบัญชีสำหรับใบสำคัญจ่าย ${payment.voucherNo}`,
+      );
+      return;
+    }
 
     const creditAccountId = payment.bankAccountId ? bankAccount?.id : cashAccount.id;
     let debitAccountId = deathBenefitExpense.id;
@@ -171,7 +186,11 @@ export class PaymentsService {
         throw new Error(`Double-entry violation in PaymentVoucher ${payment.voucherNo}: Debit ${totalDebit} != Credit ${totalCredit}`);
       }
 
-      await this.prisma.ledgerEntry.createMany({ data: entries });
+      await tx.ledgerEntry.createMany({ data: entries });
+    } else {
+      this.logger.warn(
+        `createLedgerEntries: ไม่พบบัญชี 102 (เงินฝากธนาคาร) — ข้ามการบันทึกบัญชีสำหรับใบสำคัญจ่าย ${payment.voucherNo}`,
+      );
     }
   }
 }

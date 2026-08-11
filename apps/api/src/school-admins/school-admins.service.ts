@@ -12,6 +12,7 @@ import { UpdateSchoolAdminDto } from './dto/update-school-admin.dto';
 import { AuditLogService } from '../common/services/audit-log.service';
 import { AuditAction } from '@prisma/client';
 import { ScopedUser } from '../common/security/school-scope.service';
+import { validateStrongPassword } from '../common/utils/password.util';
 
 export function buildDefaultSchoolAdminUsername(schoolCode: string): string {
   return `admin-${schoolCode.toLowerCase()}`;
@@ -65,6 +66,11 @@ export class SchoolAdminsService {
     });
     if (usernameTaken) {
       throw new ConflictException('ชื่อผู้ใช้นี้ถูกใช้งานแล้ว');
+    }
+
+    const passwordValidation = validateStrongPassword(data.password);
+    if (!passwordValidation.valid) {
+      throw new BadRequestException(passwordValidation.errors.join(', '));
     }
 
     const passwordHash = await bcrypt.hash(data.password, 10);
@@ -168,6 +174,10 @@ export class SchoolAdminsService {
     if (dto.fullName !== undefined) data.fullName = dto.fullName;
     if (dto.username !== undefined) data.username = dto.username;
     if (dto.password) {
+      const passwordValidation = validateStrongPassword(dto.password);
+      if (!passwordValidation.valid) {
+        throw new BadRequestException(passwordValidation.errors.join(', '));
+      }
       data.passwordHash = await bcrypt.hash(dto.password, 10);
     }
 

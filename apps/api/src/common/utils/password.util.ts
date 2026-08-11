@@ -1,4 +1,4 @@
-import { randomBytes } from 'crypto';
+import { randomInt } from 'crypto';
 
 export function generateTemporaryPassword(length = 16): string {
   // Ensure it meets strong password policy: upper, lower, digit, special
@@ -8,20 +8,24 @@ export function generateTemporaryPassword(length = 16): string {
   const special = '!@#$%^&*(),.?":{}|<>_-+=~`[]\\;\'/';
   const all = upper + lower + digits + special;
 
-  let password = '';
+  const chars: string[] = [];
   // Guarantee at least one of each
-  password += upper[Math.floor(Math.random() * upper.length)];
-  password += lower[Math.floor(Math.random() * lower.length)];
-  password += digits[Math.floor(Math.random() * digits.length)];
-  password += special[Math.floor(Math.random() * special.length)];
+  chars.push(upper[randomInt(upper.length)]);
+  chars.push(lower[randomInt(lower.length)]);
+  chars.push(digits[randomInt(digits.length)]);
+  chars.push(special[randomInt(special.length)]);
 
-  const bytes = randomBytes(length - 4);
-  for (let i = 0; i < bytes.length; i++) {
-    password += all[bytes[i] % all.length];
+  for (let i = chars.length; i < length; i++) {
+    chars.push(all[randomInt(all.length)]);
   }
 
-  // Shuffle
-  return password.split('').sort(() => Math.random() - 0.5).join('').slice(0, length);
+  // Fisher-Yates shuffle using a CSPRNG
+  for (let i = chars.length - 1; i > 0; i--) {
+    const j = randomInt(i + 1);
+    [chars[i], chars[j]] = [chars[j], chars[i]];
+  }
+
+  return chars.slice(0, length).join('');
 }
 
 export interface PasswordValidationResult {

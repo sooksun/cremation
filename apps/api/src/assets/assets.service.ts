@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateAssetDto, UpdateAssetDto, RecordDepreciationDto } from './dto/asset.dto';
 import { SchoolScopeService, ScopedUser } from '../common/security/school-scope.service';
@@ -7,6 +7,8 @@ import { AuditAction } from '@prisma/client';
 
 @Injectable()
 export class AssetsService {
+  private readonly logger = new Logger(AssetsService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly schoolScope: SchoolScopeService,
@@ -140,6 +142,19 @@ export class AssetsService {
   async recordDepreciation(id: string, dto: RecordDepreciationDto, actor?: ScopedUser) {
     const asset = await this.findById(id, actor);
     const year = dto.year || new Date().getFullYear();
+    const yearEndDate = new Date(year, 11, 31);
+
+    // Idempotency guard: Asset ไม่มี column เก็บปีล่าสุดที่บันทึกค่าเสื่อม (ห้ามแก้ schema)
+    // จึงเช็คจาก ledger entry ที่เคยสร้างไว้สำหรับสินทรัพย์นี้ในปีเดียวกัน
+    const existingEntry = await this.prisma.ledgerEntry.findFirst({
+      where: {
+        date: yearEndDate,
+        description: `ค่าเสื่อมราคา ${asset.name} ปี ${year}`,
+      },
+    });
+    if (existingEntry) {
+      throw new BadRequestException('บันทึกค่าเสื่อมราคาปีนี้แล้ว');
+    }
 
     const annualDep = dto.amount ?? this.calculateAnnualDepreciation(asset, year);
     if (annualDep <= 0) {
@@ -174,6 +189,13 @@ export class AssetsService {
         ],
       });
       ledgerCreated = true;
+    } else {
+      const missing = [!depExpense && '503 (ค่าเสื่อมราคา)', !accumDepContra && '152 (ค่าเสื่อมราคาสะสม)']
+        .filter(Boolean)
+        .join(', ');
+      this.logger.warn(
+        `recordDepreciation: ไม่พบบัญชี ${missing} — ข้ามการบันทึกบัญชีสำหรับสินทรัพย์ ${asset.name} ปี ${year} (ยังคงอัปเดตยอดสะสมค่าเสื่อมราคาบน Asset)`,
+      );
     }
 
     const updated = await this.prisma.asset.update({

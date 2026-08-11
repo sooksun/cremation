@@ -4,7 +4,7 @@ import { CreateBankAccountDto, UpdateBankAccountDto } from './dto/bank-account.d
 import { CreateBankTransactionDto, UpdateBankTransactionDto } from './dto/bank-transaction.dto';
 import { DocumentNumberService, DocumentType } from '../common/document-number.service';
 import { AuditLogService } from '../common/services/audit-log.service';
-import { AuditAction } from '@prisma/client';
+import { AuditAction, BankTransactionType } from '@prisma/client';
 import { ScopedUser } from '../common/security/school-scope.service';
 
 @Injectable()
@@ -14,6 +14,16 @@ export class BankAccountsService {
     private readonly documentNumberService: DocumentNumberService,
     private readonly auditLog: AuditLogService,
   ) {}
+
+  // ไม่มี AuditAction เฉพาะสำหรับ BankTransaction — ใช้ตัวที่ใกล้เคียงที่สุดตามทิศทางเงิน
+  // (DEPOSIT ~ รับเงิน/RECEIPT, WITHDRAWAL ~ จ่ายเงิน/PAYMENT_VOUCHER) ส่วน operation จริง
+  // (create/update/remove) ระบุใน metadata แทน เนื่องจาก schema ไม่มี action UPDATE/DELETE ของ entity นี้
+  // (pattern เดียวกับ cash-book.service.ts)
+  private resolveBankTransactionAuditAction(type: BankTransactionType): AuditAction {
+    return type === BankTransactionType.WITHDRAWAL
+      ? AuditAction.PAYMENT_VOUCHER_CREATE
+      : AuditAction.RECEIPT_CREATE;
+  }
 
   async create(dto: CreateBankAccountDto, actor?: ScopedUser) {
     // Check if accountNo already exists
@@ -25,15 +35,20 @@ export class BankAccountsService {
       throw new BadRequestException('เลขบัญชีนี้มีในระบบแล้ว');
     }
 
-    // If this is set as default, unset other defaults
+    // unset default ตัวเก่า + สร้างบัญชีใหม่ (ตั้ง default) ต้อง atomic — กัน race ได้ default ซ้ำ 2 บัญชี
+    let account;
     if (dto.isDefault) {
-      await this.prisma.bankAccount.updateMany({
-        where: { isDefault: true },
-        data: { isDefault: false },
-      });
+      const [, created] = await this.prisma.$transaction([
+        this.prisma.bankAccount.updateMany({
+          where: { isDefault: true },
+          data: { isDefault: false },
+        }),
+        this.prisma.bankAccount.create({ data: dto }),
+      ]);
+      account = created;
+    } else {
+      account = await this.prisma.bankAccount.create({ data: dto });
     }
-
-    const account = await this.prisma.bankAccount.create({ data: dto });
 
     if (actor) {
       await this.auditLog.log({
@@ -149,18 +164,20 @@ export class BankAccountsService {
 
   async setDefault(id: string) {
     await this.findById(id);
-    
-    // Unset all defaults
-    await this.prisma.bankAccount.updateMany({
-      where: { isDefault: true },
-      data: { isDefault: false },
-    });
 
-    // Set new default
-    return this.prisma.bankAccount.update({
-      where: { id },
-      data: { isDefault: true, isActive: true },
-    });
+    // Unset all defaults + set new default ต้อง atomic — กัน race ได้ default ซ้ำ 2 บัญชี
+    const [, updated] = await this.prisma.$transaction([
+      this.prisma.bankAccount.updateMany({
+        where: { isDefault: true },
+        data: { isDefault: false },
+      }),
+      this.prisma.bankAccount.update({
+        where: { id },
+        data: { isDefault: true, isActive: true },
+      }),
+    ]);
+
+    return updated;
   }
 
   // Get transactions for bank account
@@ -277,13 +294,13 @@ export class BankAccountsService {
     });
   }
 
-  async createManualTransaction(dto: CreateBankTransactionDto) {
+  async createManualTransaction(dto: CreateBankTransactionDto, actor?: ScopedUser) {
     await this.findById(dto.bankAccountId);
     const transactionNo = await this.documentNumberService.generateNumber(
       DocumentType.BANK_TRANSACTION,
     );
 
-    return this.prisma.bankTransaction.create({
+    const txn = await this.prisma.bankTransaction.create({
       data: {
         transactionNo,
         bankAccountId: dto.bankAccountId,
@@ -294,15 +311,33 @@ export class BankAccountsService {
       },
       include: { bankAccount: true },
     });
+
+    if (actor) {
+      await this.auditLog.log({
+        userId: actor.id,
+        action: this.resolveBankTransactionAuditAction(txn.type),
+        entityType: 'BankTransaction',
+        entityId: txn.id,
+        metadata: {
+          operation: 'create',
+          type: txn.type,
+          amount: Number(txn.amount),
+          bankAccountId: txn.bankAccountId,
+          transactionNo: txn.transactionNo,
+        },
+      });
+    }
+
+    return txn;
   }
 
-  async updateManualTransaction(id: string, dto: UpdateBankTransactionDto) {
+  async updateManualTransaction(id: string, dto: UpdateBankTransactionDto, actor?: ScopedUser) {
     const txn = await this.prisma.bankTransaction.findFirst({ where: { id, deletedAt: null } });
     if (!txn) {
       throw new NotFoundException('ไม่พบรายการธุรกรรม');
     }
 
-    return this.prisma.bankTransaction.update({
+    const updated = await this.prisma.bankTransaction.update({
       where: { id },
       data: {
         date: dto.date ? new Date(dto.date) : undefined,
@@ -312,9 +347,27 @@ export class BankAccountsService {
       },
       include: { bankAccount: true },
     });
+
+    if (actor) {
+      await this.auditLog.log({
+        userId: actor.id,
+        action: this.resolveBankTransactionAuditAction(updated.type),
+        entityType: 'BankTransaction',
+        entityId: updated.id,
+        metadata: {
+          operation: 'update',
+          type: updated.type,
+          amount: Number(updated.amount),
+          bankAccountId: updated.bankAccountId,
+          transactionNo: updated.transactionNo,
+        },
+      });
+    }
+
+    return updated;
   }
 
-  async removeManualTransaction(id: string) {
+  async removeManualTransaction(id: string, actor?: ScopedUser) {
     const txn = await this.prisma.bankTransaction.findFirst({ where: { id, deletedAt: null } });
     if (!txn) {
       throw new NotFoundException('ไม่พบรายการธุรกรรม');
@@ -324,6 +377,23 @@ export class BankAccountsService {
       where: { id },
       data: { deletedAt: new Date() },
     });
+
+    if (actor) {
+      await this.auditLog.log({
+        userId: actor.id,
+        action: this.resolveBankTransactionAuditAction(txn.type),
+        entityType: 'BankTransaction',
+        entityId: id,
+        metadata: {
+          operation: 'remove',
+          type: txn.type,
+          amount: Number(txn.amount),
+          bankAccountId: txn.bankAccountId,
+          transactionNo: txn.transactionNo,
+        },
+      });
+    }
+
     return { message: 'ลบรายการธุรกรรมสำเร็จ' };
   }
 }
