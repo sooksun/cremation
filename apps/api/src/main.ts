@@ -59,14 +59,13 @@ async function bootstrap() {
 
   app.enableCors({
     origin: (origin, callback) => {
-      if (!origin) {
-        if (isProduction) {
-          return callback(new Error('Not allowed by CORS'));
-        }
-        return callback(null, true);
-      }
-
-      if (corsOrigins.includes(origin)) {
+      // Requests with no Origin header (same-origin browser fetches through a
+      // reverse proxy, curl, health checks, server-to-server calls) aren't
+      // meaningfully protected by a CORS check anyway — Origin is a
+      // browser-enforced signal, and a non-browser client can send any value
+      // (or none) regardless. Real protection here is the httpOnly/sameSite
+      // strict auth cookie plus per-route guards, not this check.
+      if (!origin || corsOrigins.includes(origin)) {
         return callback(null, true);
       }
 
