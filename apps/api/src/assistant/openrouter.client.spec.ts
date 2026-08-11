@@ -51,4 +51,24 @@ describe('OpenRouterClient.streamChat', () => {
       /openrouter/i,
     );
   });
+
+  it('cancels the underlying stream when the consumer stops early', async () => {
+    let cancelled = false;
+    const enc = new TextEncoder();
+    const body = new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.enqueue(enc.encode('data: {"choices":[{"delta":{"content":"A"}}]}\n\n'));
+      },
+      cancel() {
+        cancelled = true;
+      },
+    });
+    const fakeFetch = jest.fn().mockResolvedValue(new Response(body, { status: 200 }));
+    const client = new OpenRouterClient(fakeFetch as unknown as typeof fetch);
+    const gen = client.streamChat({ apiKey: 'k', model: 'm', messages: [] });
+    const first = await gen.next();
+    expect(first.value).toBe('A');
+    await gen.return(undefined as never);
+    expect(cancelled).toBe(true);
+  });
 });
