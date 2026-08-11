@@ -52,8 +52,11 @@ export class BankAccountsController {
   @Post('transactions')
   @UseGuards(RolesGuard)
   @Roles(Role.ADMIN, Role.SCHOOL_ADMIN, Role.FINANCE)
-  createManualTransaction(@Body() dto: CreateBankTransactionDto) {
-    return this.bankAccountsService.createManualTransaction(dto);
+  createManualTransaction(
+    @Body() dto: CreateBankTransactionDto,
+    @Request() req: { user: ScopedUser },
+  ) {
+    return this.bankAccountsService.createManualTransaction(dto, req.user);
   }
 
   @Patch('transactions/:txnId')
@@ -62,15 +65,16 @@ export class BankAccountsController {
   updateManualTransaction(
     @Param('txnId') txnId: string,
     @Body() dto: UpdateBankTransactionDto,
+    @Request() req: { user: ScopedUser },
   ) {
-    return this.bankAccountsService.updateManualTransaction(txnId, dto);
+    return this.bankAccountsService.updateManualTransaction(txnId, dto, req.user);
   }
 
   @Delete('transactions/:txnId')
   @UseGuards(RolesGuard)
   @Roles(Role.ADMIN, Role.SCHOOL_ADMIN, Role.FINANCE)
-  removeManualTransaction(@Param('txnId') txnId: string) {
-    return this.bankAccountsService.removeManualTransaction(txnId);
+  removeManualTransaction(@Param('txnId') txnId: string, @Request() req: { user: ScopedUser }) {
+    return this.bankAccountsService.removeManualTransaction(txnId, req.user);
   }
 
   @Get(':id')

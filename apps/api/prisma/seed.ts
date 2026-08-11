@@ -266,6 +266,31 @@ async function main() {
     create: { code: '404', name: 'เงินบริจาค', type: AccountType.INCOME },
     update: {},
   });
+  // ค่าเสื่อมราคา (assets.service.ts recordDepreciation ใช้ 503/152 — ไม่มีใน seed เดิม)
+  await prisma.account.upsert({
+    where: { code: '503' },
+    create: { code: '503', name: 'ค่าเสื่อมราคา', type: AccountType.EXPENSE },
+    update: {},
+  });
+  // บัญชีสะสมหักค่าเสื่อมราคา — contra-asset แต่ schema ไม่มี AccountType แยก จึงใช้ ASSET
+  // ให้สอดคล้องกับ convention รหัส 1xx เดิม (101, 102 = ASSET)
+  await prisma.account.upsert({
+    where: { code: '152' },
+    create: { code: '152', name: 'ค่าเสื่อมราคาสะสม', type: AccountType.ASSET },
+    update: {},
+  });
+  // ทุนสะสม (accumulated capital)
+  await prisma.account.upsert({
+    where: { code: '310' },
+    create: { code: '310', name: 'ทุนสะสม', type: AccountType.EQUITY },
+    update: {},
+  });
+  // สรุปรายได้-ค่าใช้จ่าย / กำไรสะสม (income summary / retained earnings — บัญชีปิดงวด)
+  await prisma.account.upsert({
+    where: { code: '399' },
+    create: { code: '399', name: 'สรุปรายได้-ค่าใช้จ่าย (กำไรสะสม)', type: AccountType.EQUITY },
+    update: {},
+  });
 
   console.log('✅ Chart of accounts ready');
 

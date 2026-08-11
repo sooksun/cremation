@@ -1154,29 +1154,48 @@ export class ReportsService {
       }),
     );
 
-    // เงินค้างจ่าย
-    const pendingPayments = await this.prisma.deathClaim.findMany({
-      where: {
-        ...(schoolId ? { schoolId } : {}),
-        payment: null,
-        status: { not: DeathClaimStatus.PAID },
-      },
-      include: {
-        member: { include: { associationMember: true, school: true } },
-        school: true,
-      },
-      orderBy: { paymentDeadline: 'asc' },
-    });
+    // เงินค้างจ่าย — where เดียวกันใช้ทั้ง count/sum (ทั้งตาราง) และ list (top 10 สำหรับแสดงผล)
+    // เดิม findMany ทั้งตาราง (พร้อม include member/school) แล้วมา .length/.reduce/.filter/.slice ใน JS
+    const pendingPaymentsWhere = {
+      ...(schoolId ? { schoolId } : {}),
+      payment: null,
+      status: { not: DeathClaimStatus.PAID },
+    };
 
-    // สมาชิกค้างชำระ
-    const arrearsMembers = await this.prisma.memberContribution.findMany({
-      where: {
-        ...(schoolId ? { schoolId } : {}),
-        isArrears: true,
-        paidAmount: { equals: 0 },
-      },
-      include: { member: true, school: true, period: true },
-    });
+    const [
+      pendingPaymentsCount,
+      pendingPaymentsAgg,
+      pendingApprovalCount,
+      pendingPayments,
+      arrearsCount,
+    ] = await Promise.all([
+      this.prisma.deathClaim.count({ where: pendingPaymentsWhere }),
+      this.prisma.deathClaim.aggregate({ where: pendingPaymentsWhere, _sum: { netToPay: true } }),
+      this.prisma.deathClaim.count({
+        where: {
+          ...pendingPaymentsWhere,
+          status: DeathClaimStatus.READY_TO_PAY,
+          approvedAt: null,
+        },
+      }),
+      this.prisma.deathClaim.findMany({
+        where: pendingPaymentsWhere,
+        include: {
+          member: { include: { associationMember: true, school: true } },
+          school: true,
+        },
+        orderBy: { paymentDeadline: 'asc' },
+        take: 10,
+      }),
+      // สมาชิกค้างชำระ — เดิม findMany ทั้งตารางแต่ใช้แค่ .length
+      this.prisma.memberContribution.count({
+        where: {
+          ...(schoolId ? { schoolId } : {}),
+          isArrears: true,
+          paidAmount: { equals: 0 },
+        },
+      }),
+    ]);
 
     // ดึงอัตราเงินสงเคราะห์ต่อคนจากสมาชิกที่ active
     const activeMembers = await this.prisma.member.count({
@@ -1188,12 +1207,12 @@ export class ReportsService {
         totalMembers: memberStats.reduce((sum, s) => sum + s._count, 0),
         activeMembers: memberStats.find(s => s.status === 'ACTIVE')?._count || 0,
         deathClaimsThisYear: deathClaimsByYear[0]?.totalClaims || 0,
-        pendingPayments: pendingPayments.length,
-        pendingPaymentAmount: pendingPayments.reduce((sum, p) => sum + Number(p.netToPay), 0),
+        pendingPayments: pendingPaymentsCount,
+        pendingPaymentAmount: Number(pendingPaymentsAgg._sum.netToPay || 0),
         welfareRate: 100,
         fundReserveThisYear: deathClaimsByYear[0]?.fundReserve || 0,
-        pendingApproval: pendingPayments.filter((p) => p.status === DeathClaimStatus.READY_TO_PAY && !p.approvedAt).length,
-        arrearsCount: arrearsMembers.length,
+        pendingApproval: pendingApprovalCount,
+        arrearsCount,
       },
       membersByStatus: memberStats.map(s => ({
         status: s.status,
@@ -1209,7 +1228,7 @@ export class ReportsService {
       })),
       deathClaimsTrend: deathClaimsByYear.reverse(),
       monthlyFinance: monthlyFinance.reverse(),
-      pendingPayments: pendingPayments.slice(0, 10),
+      pendingPayments,
     };
   }
 
