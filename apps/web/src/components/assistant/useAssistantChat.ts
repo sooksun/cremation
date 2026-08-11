@@ -18,6 +18,7 @@ export function useAssistantChat() {
       setError(null);
 
       const history: AssistantMessage[] = [...messages, { role: 'user', content: trimmed }];
+      const payload = history.slice(-38); // กัน DTO 40-message cap (เผื่อที่ 2 message)
       setMessages([...history, { role: 'assistant', content: '' }]);
       setIsStreaming(true);
 
@@ -26,7 +27,7 @@ export function useAssistantChat() {
 
       try {
         await streamAssistant(
-          history,
+          payload,
           (delta) => {
             setMessages((prev) => {
               const next = [...prev];
