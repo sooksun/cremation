@@ -35,11 +35,9 @@
     "pnpm": ">=8.0.0"
   },
   "devDependencies": {
-    "@types/node": "^20.19.25",
-    "prisma": "^7.0.1"
+    "@types/node": "^20.19.25"
   },
   "dependencies": {
-    "@prisma/client": "^7.0.1",
     "react-is": "^18.2.0",
     "recharts": "^2.15.0"
   },

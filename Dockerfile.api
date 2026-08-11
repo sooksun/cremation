@@ -18,7 +18,7 @@ RUN pnpm --filter @cremation/api run build
 RUN pnpm deploy --filter @cremation/api --prod /out \
   && mkdir -p /out/prisma \
   && cp -r /repo/apps/api/prisma/. /out/prisma/ \
-  && cd /out && npx --yes prisma@5.7.0 generate --schema=./prisma/schema.prisma
+  && cd /out && npx --yes prisma@5.22.0 generate --schema=./prisma/schema.prisma
 
 FROM node:20-bookworm-slim AS runner
 WORKDIR /app
@@ -34,4 +34,4 @@ COPY --from=builder /out ./
 
 EXPOSE 4000
 
-CMD ["sh", "-c", "npx --yes prisma@5.7.0 migrate deploy --schema=./prisma/schema.prisma && node dist/main.js"]
+CMD ["sh", "-c", "npx --yes prisma@5.22.0 migrate deploy --schema=./prisma/schema.prisma && node dist/main.js"]
