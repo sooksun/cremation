@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, FolderTree, Edit, Trash2, X, Users, Building2 } from 'lucide-react';
+import { Plus, FolderTree, Edit, Trash2, X, Users, Building2, Wand2, AlertTriangle } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { showSuccess, showError, showConfirm } from '@/lib/toast';
 import { api, type School, type Group } from '@/lib/api';
@@ -22,6 +22,12 @@ interface GroupForm {
   code: string;
   name: string;
   leaderId?: string;
+}
+
+interface AutoAssignPreview {
+  totalPending: number;
+  groupsToCreate: number;
+  perSchool: Array<{ schoolName: string; pending: number; willCreateGroup: boolean }>;
 }
 
 export default function GroupsPage() {
@@ -46,6 +52,29 @@ export default function GroupsPage() {
     queryFn: async () => {
       const response = await api.get('/schools');
       return response.data;
+    },
+  });
+
+  const { data: preview } = useQuery<AutoAssignPreview>({
+    queryKey: ['groups-auto-assign-preview', selectedSchoolId],
+    queryFn: async () => {
+      const params = selectedSchoolId ? `?schoolId=${selectedSchoolId}` : '';
+      const response = await api.get(`/groups/auto-assign/preview${params}`);
+      return response.data;
+    },
+  });
+
+  const autoAssignMutation = useMutation({
+    mutationFn: () =>
+      api.post('/groups/auto-assign', selectedSchoolId ? { schoolId: selectedSchoolId } : {}),
+    onSuccess: (res) => {
+      queryClient.invalidateQueries({ queryKey: ['groups'] });
+      queryClient.invalidateQueries({ queryKey: ['groups-auto-assign-preview'] });
+      queryClient.invalidateQueries({ queryKey: ['members'] });
+      showSuccess(res.data?.message || 'จัดกลุ่มสำเร็จ');
+    },
+    onError: (error: any) => {
+      showError(error.response?.data?.message || 'เกิดข้อผิดพลาด');
     },
   });
 
@@ -146,6 +175,76 @@ export default function GroupsPage() {
           เพิ่มกลุ่ม
         </button>
       </div>
+
+      {/* สมาชิกที่ยังไม่เข้ากลุ่ม — เก็บเงินรายเดือนไม่ได้จนกว่าจะจัดกลุ่ม */}
+      {preview && preview.totalPending > 0 && (
+        <div className="card p-5 border-l-4 border-amber-400">
+          <div className="flex flex-col md:flex-row md:items-center gap-4">
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-1">
+                <AlertTriangle size={18} className="text-amber-500 shrink-0" />
+                <h2 className="font-semibold text-slate-900">
+                  มีสมาชิก {preview.totalPending.toLocaleString('th-TH')} คนยังไม่อยู่ในกลุ่มเก็บเงิน
+                </h2>
+              </div>
+              <p className="text-sm text-slate-500">
+                ระบบจะจัดสมาชิกเข้ากลุ่มของโรงเรียนตัวเอง
+                {preview.groupsToCreate > 0 && (
+                  <> และสร้างกลุ่มให้อีก {preview.groupsToCreate} โรงเรียนที่ยังไม่มีกลุ่ม</>
+                )}
+                {' '}— สมาชิกที่ลาออกหรือเสียชีวิตจะไม่ถูกจัดเข้ากลุ่ม
+              </p>
+            </div>
+            <button
+              onClick={() =>
+                showConfirm(
+                  `จัดสมาชิก ${preview.totalPending.toLocaleString('th-TH')} คนเข้ากลุ่มตามโรงเรียนหรือไม่?`,
+                  () => autoAssignMutation.mutate(),
+                )
+              }
+              disabled={autoAssignMutation.isPending}
+              className="btn-primary shrink-0"
+            >
+              <Wand2 size={18} />
+              {autoAssignMutation.isPending ? 'กำลังจัด...' : 'จัดกลุ่มอัตโนมัติ'}
+            </button>
+          </div>
+
+          {preview.perSchool.length > 0 && (
+            <details className="mt-4">
+              <summary className="text-sm text-primary-600 cursor-pointer select-none">
+                ดูรายละเอียดรายโรงเรียน ({preview.perSchool.length} โรงเรียน)
+              </summary>
+              <div className="table-container border-0 mt-3 max-h-72 overflow-y-auto">
+                <table className="table">
+                  <thead>
+                    <tr>
+                      <th>โรงเรียน</th>
+                      <th className="text-center">รอจัดกลุ่ม</th>
+                      <th>กลุ่มปลายทาง</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {preview.perSchool.map((s) => (
+                      <tr key={s.schoolName}>
+                        <td>{s.schoolName}</td>
+                        <td className="text-center">{s.pending}</td>
+                        <td>
+                          {s.willCreateGroup ? (
+                            <span className="badge-info">สร้างกลุ่มใหม่</span>
+                          ) : (
+                            <span className="text-slate-500">ใช้กลุ่มเดิม</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </details>
+          )}
+        </div>
+      )}
 
       {/* Cards Grid */}
       {isLoading ? (

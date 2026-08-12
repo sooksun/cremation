@@ -9,7 +9,14 @@ import { CreateGroupDto } from './dto/create-group.dto';
 import { UpdateGroupDto } from './dto/update-group.dto';
 import { SchoolScopeService, ScopedUser } from '../common/security/school-scope.service';
 import { AuditLogService } from '../common/services/audit-log.service';
-import { AuditAction } from '@prisma/client';
+import { AuditAction, MemberStatus } from '@prisma/client';
+
+// สมาชิกที่สิ้นสุดสมาชิกภาพแล้วไม่ต้องอยู่ในกลุ่มเก็บเงิน
+const COLLECTABLE_STATUSES: MemberStatus[] = [
+  MemberStatus.ACTIVE,
+  MemberStatus.ARREARS,
+  MemberStatus.SUSPENDED,
+];
 
 @Injectable()
 export class GroupsService {
@@ -138,6 +145,166 @@ export class GroupsService {
       });
     }
     return updated;
+  }
+
+  // ชื่อโรงเรียนในระบบยาวมาก (มีชื่อกลุ่มเครือข่ายต่อท้าย) — ตัดให้เหลือแค่ชื่อโรงเรียน
+  private shortSchoolName(name: string) {
+    return name
+      .replace(/^โรงเรียน\s*\.?\s*/, '')
+      .split(/\s+กลุ่มเครือข่าย/)[0]
+      .trim();
+  }
+
+  /** ย้ายสมาชิกที่ระบุเข้ากลุ่มทีเดียวหลายคน */
+  async assignMembers(groupId: string, memberIds: string[], actor?: ScopedUser) {
+    const group = await this.findById(groupId, actor);
+
+    const members = await this.prisma.member.findMany({
+      where: { id: { in: memberIds } },
+      select: { id: true, schoolId: true },
+    });
+
+    if (members.length !== memberIds.length) {
+      throw new NotFoundException('ไม่พบสมาชิกบางรายการที่เลือก');
+    }
+
+    // กลุ่มเก็บเงินสังกัดโรงเรียน — รับเฉพาะสมาชิกโรงเรียนเดียวกัน ไม่งั้นยอดเก็บเงินจะข้ามโรงเรียน
+    const foreign = members.filter((m) => m.schoolId !== group.schoolId);
+    if (foreign.length > 0) {
+      throw new BadRequestException(
+        `มีสมาชิก ${foreign.length} คนไม่ได้สังกัดโรงเรียนเดียวกับกลุ่มนี้`,
+      );
+    }
+
+    const result = await this.prisma.member.updateMany({
+      where: { id: { in: memberIds } },
+      data: { groupId },
+    });
+
+    if (actor) {
+      await this.auditLog.log({
+        userId: actor.id,
+        action: AuditAction.GROUP_UPDATE,
+        entityType: 'Group',
+        entityId: groupId,
+        schoolId: group.schoolId,
+        metadata: { assignedMembers: result.count, memberIds },
+      });
+    }
+
+    return { message: `ย้ายสมาชิก ${result.count} คนเข้ากลุ่มสำเร็จ`, assigned: result.count };
+  }
+
+  /**
+   * จัดสมาชิกที่ยังไม่มีกลุ่มเข้ากลุ่มของโรงเรียนตัวเอง สร้างกลุ่มให้ถ้ายังไม่มี
+   * รันซ้ำได้ — โรงเรียนที่มีกลุ่มอยู่แล้วจะใช้กลุ่มเดิม ไม่สร้างเพิ่ม
+   */
+  async autoAssignBySchool(schoolId?: string, actor?: ScopedUser) {
+    const scopedSchoolId = actor
+      ? this.schoolScope.resolveSchoolId(actor, schoolId)
+      : schoolId;
+    if (scopedSchoolId) {
+      this.schoolScope.assertSchoolAccess(actor as ScopedUser, scopedSchoolId);
+    }
+
+    const pending = await this.prisma.member.findMany({
+      where: {
+        groupId: null,
+        status: { in: COLLECTABLE_STATUSES },
+        ...(scopedSchoolId ? { schoolId: scopedSchoolId } : {}),
+      },
+      select: { id: true, schoolId: true, school: { select: { name: true } } },
+    });
+
+    if (pending.length === 0) {
+      return { message: 'ไม่มีสมาชิกที่ต้องจัดกลุ่ม', groupsCreated: 0, membersAssigned: 0, perSchool: [] };
+    }
+
+    const bySchool = new Map<string, { name: string; memberIds: string[] }>();
+    for (const m of pending) {
+      const entry = bySchool.get(m.schoolId) ?? { name: m.school.name, memberIds: [] };
+      entry.memberIds.push(m.id);
+      bySchool.set(m.schoolId, entry);
+    }
+
+    let groupsCreated = 0;
+    let membersAssigned = 0;
+    const perSchool: Array<{ schoolName: string; groupName: string; assigned: number; createdGroup: boolean }> = [];
+
+    for (const [sid, { name, memberIds }] of bySchool) {
+      let group = await this.prisma.group.findFirst({
+        where: { schoolId: sid },
+        orderBy: { code: 'asc' },
+      });
+
+      let createdGroup = false;
+      if (!group) {
+        group = await this.prisma.group.create({
+          data: { schoolId: sid, code: 'G01', name: `กลุ่ม${this.shortSchoolName(name)} 1` },
+        });
+        groupsCreated += 1;
+        createdGroup = true;
+      }
+
+      const res = await this.prisma.member.updateMany({
+        where: { id: { in: memberIds } },
+        data: { groupId: group.id },
+      });
+      membersAssigned += res.count;
+      perSchool.push({ schoolName: name, groupName: group.name, assigned: res.count, createdGroup });
+    }
+
+    if (actor) {
+      await this.auditLog.log({
+        userId: actor.id,
+        action: AuditAction.GROUP_UPDATE,
+        entityType: 'Group',
+        entityId: scopedSchoolId ?? 'ALL',
+        schoolId: scopedSchoolId,
+        metadata: { autoAssign: true, groupsCreated, membersAssigned },
+      });
+    }
+
+    return {
+      message: `จัดกลุ่มสำเร็จ — สร้างกลุ่มใหม่ ${groupsCreated} กลุ่ม, จัดสมาชิก ${membersAssigned} คน`,
+      groupsCreated,
+      membersAssigned,
+      perSchool,
+    };
+  }
+
+  /** ดูว่าถ้ากด "จัดกลุ่มอัตโนมัติ" จะเกิดอะไรขึ้น โดยยังไม่แก้ข้อมูล */
+  async previewAutoAssign(schoolId?: string, actor?: ScopedUser) {
+    const scopedSchoolId = actor
+      ? this.schoolScope.resolveSchoolId(actor, schoolId)
+      : schoolId;
+
+    const pending = await this.prisma.member.findMany({
+      where: {
+        groupId: null,
+        status: { in: COLLECTABLE_STATUSES },
+        ...(scopedSchoolId ? { schoolId: scopedSchoolId } : {}),
+      },
+      select: { schoolId: true, school: { select: { name: true, _count: { select: { groups: true } } } } },
+    });
+
+    const bySchool = new Map<string, { schoolName: string; pending: number; willCreateGroup: boolean }>();
+    for (const m of pending) {
+      const e = bySchool.get(m.schoolId) ?? {
+        schoolName: m.school.name,
+        pending: 0,
+        willCreateGroup: m.school._count.groups === 0,
+      };
+      e.pending += 1;
+      bySchool.set(m.schoolId, e);
+    }
+
+    const perSchool = [...bySchool.values()].sort((a, b) => a.schoolName.localeCompare(b.schoolName, 'th'));
+    return {
+      totalPending: pending.length,
+      groupsToCreate: perSchool.filter((s) => s.willCreateGroup).length,
+      perSchool,
+    };
   }
 
   async remove(id: string, actor?: ScopedUser) {
