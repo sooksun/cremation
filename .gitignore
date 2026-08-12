@@ -69,3 +69,9 @@ mcps/
 
 # build artifacts / install bundles
 /dist/
+
+# local-only agent notes (server access ฯลฯ) — ห้าม commit
+CLAUDE.local.md
+
+# สำเนา .env production ที่วางไว้ใน docs/ — มี JWT_SECRET/DATABASE_URL/API key จริง
+docs/env-production-*.txt

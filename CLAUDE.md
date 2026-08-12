@@ -131,3 +131,8 @@ Docker/Ubuntu/NPM production deploy conventions (port allocation, Prisma binaryT
 deploy gotchas, NPM proxy host setup) are documented in the global CLAUDE.md and
 [SETUP_UBUNTU.md](SETUP_UBUNTU.md) — consult those before touching `Dockerfile.api`,
 `Dockerfile.web`, or `docker-compose.prod.yml`.
+
+Server access details (SSH host/user/key, real deploy path and ports) live in `CLAUDE.local.md`
+at the repo root — gitignored, since this repository is public. Read it before any deploy or
+log-reading task; the host and ports in `SETUP_UBUNTU.md` are stale. Never copy its contents into
+a tracked file.
