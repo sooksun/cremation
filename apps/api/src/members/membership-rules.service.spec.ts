@@ -146,5 +146,35 @@ describe('MembershipRulesService', () => {
       expect(extras.membershipEndReason).toBe(MembershipEndReason.DECEASED);
       expect(extras.deathDate).toEqual(new Date('2026-05-01'));
     });
+
+    it('lets an explicit TRANSFERRED reason override the inferred RESIGNED', () => {
+      const extras = service.getStatusChangeExtras(
+        MemberStatus.RESIGNED,
+        'REG',
+        '2026-05-01',
+        MembershipEndReason.TRANSFERRED,
+      );
+      expect(extras.membershipEndReason).toBe(MembershipEndReason.TRANSFERRED);
+      expect(extras.resignDate).toEqual(new Date('2026-05-01'));
+    });
+
+    it('keeps DECEASED reason even when a different reason is passed explicitly', () => {
+      const extras = service.getStatusChangeExtras(
+        MemberStatus.DECEASED,
+        'REG',
+        '2026-05-01',
+        MembershipEndReason.TRANSFERRED,
+      );
+      expect(extras.membershipEndReason).toBe(MembershipEndReason.DECEASED);
+    });
+
+    it('clears end-of-membership fields when restoring a member to ACTIVE', () => {
+      const extras = service.getStatusChangeExtras(MemberStatus.ACTIVE, 'REG');
+      expect(extras).toEqual({
+        resignDate: null,
+        deathDate: null,
+        membershipEndReason: null,
+      });
+    });
   });
 });

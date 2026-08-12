@@ -91,6 +91,7 @@ const menuItems = [
       { label: 'ภาพรวมผู้บริหาร', href: '/reports/executive', roles: ['ADMIN'] },
       { label: 'รายงานคณะกรรมการ', href: '/reports/board-monthly', roles: ['ADMIN', 'SCHOOL_ADMIN', 'FINANCE', 'ACCOUNTING'] },
       { label: 'สมาชิกฌาปนกิจ', href: '/members', roles: ['ADMIN', 'SCHOOL_ADMIN', 'FINANCE'] },
+      { label: 'สิ้นสุดสมาชิกภาพ', href: '/members/membership-end', roles: ['ADMIN', 'SCHOOL_ADMIN', 'FINANCE'] },
       { label: 'งวดเงินสงเคราะห์', href: '/contributions/periods', roles: ['ADMIN', 'SCHOOL_ADMIN', 'FINANCE', 'GROUP_LEADER'] },
       { label: 'ตารางการชำระ', href: '/contributions/matrix', roles: ['ADMIN', 'SCHOOL_ADMIN', 'FINANCE', 'GROUP_LEADER'] },
       { label: 'รายการค้างชำระ', href: '/contributions/arrears', roles: ['ADMIN', 'SCHOOL_ADMIN', 'FINANCE'] },

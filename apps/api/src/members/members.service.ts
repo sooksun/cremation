@@ -4,7 +4,7 @@ import { DocumentNumberService, DocumentType } from '../common/document-number.s
 import { CreateMemberDto } from './dto/create-member.dto';
 import { UpdateMemberDto } from './dto/update-member.dto';
 import { MemberCsvRowDto } from './dto/import-members.dto';
-import { MemberStatus, MembershipClass, Prisma, Role } from '@prisma/client';
+import { MemberStatus, MembershipClass, MembershipEndReason, Prisma, Role } from '@prisma/client';
 import { MembershipRulesService } from './membership-rules.service';
 import { ProtectedPersonsService } from './protected-persons.service';
 import { SchoolScopeService, ScopedUser } from '../common/security/school-scope.service';
@@ -27,9 +27,17 @@ export interface MemberQueryParams {
   memberTypeId?: string;
   groupId?: string;
   search?: string;
+  membershipEndReason?: MembershipEndReason;
+  membershipEnded?: boolean;
   page?: number;
   limit?: number;
 }
+
+// สถานะที่ถือว่าสมาชิกภาพสิ้นสุดแล้ว (ระเบียบ ข้อ 9)
+const MEMBERSHIP_ENDED_STATUSES: MemberStatus[] = [
+  MemberStatus.RESIGNED,
+  MemberStatus.DECEASED,
+];
 
 @Injectable()
 export class MembersService {
@@ -165,12 +173,24 @@ export class MembersService {
   }
 
   async findAll(params: MemberQueryParams) {
-    const { schoolId, status, membershipClass, memberTypeId, groupId, search, page = 1, limit = 50 } =
-      params;
+    const {
+      schoolId,
+      status,
+      membershipClass,
+      memberTypeId,
+      groupId,
+      search,
+      membershipEndReason,
+      membershipEnded,
+      page = 1,
+      limit = 50,
+    } = params;
 
     const where: any = {};
     if (schoolId) where.schoolId = schoolId;
     if (status) where.status = status;
+    else if (membershipEnded) where.status = { in: MEMBERSHIP_ENDED_STATUSES };
+    if (membershipEndReason) where.membershipEndReason = membershipEndReason;
     if (membershipClass) where.membershipClass = membershipClass;
     if (groupId) where.groupId = groupId;
     if (memberTypeId) {
@@ -185,11 +205,16 @@ export class MembersService {
       ];
     }
 
+    // รายการที่สิ้นสุดสมาชิกภาพเรียงตามรายการที่บันทึกล่าสุดก่อน — ตรงกับที่ผู้ใช้กำลังตามงาน
+    const orderBy: any = membershipEnded
+      ? [{ updatedAt: 'desc' as const }]
+      : [{ school: { name: 'asc' as const } }, { memberNo: 'asc' as const }];
+
     const [members, total] = await Promise.all([
       this.prisma.member.findMany({
         where,
         include: memberInclude,
-        orderBy: [{ school: { name: 'asc' } }, { memberNo: 'asc' }],
+        orderBy,
         skip: (page - 1) * limit,
         take: limit,
       }),
@@ -311,15 +336,24 @@ export class MembersService {
     }
   }
 
-  async changeStatus(id: string, newStatus: MemberStatus, date?: string, actor?: ScopedUser) {
+  async changeStatus(
+    id: string,
+    newStatus: MemberStatus,
+    date?: string,
+    actor?: ScopedUser,
+    membershipEndReason?: MembershipEndReason,
+  ) {
     const member = await this.findById(id, actor);
     this.assertNotLocked(member.status, actor);
     const memberTypeCode = member.associationMember?.memberType?.code;
 
-    const updateData: any = {
-      status: newStatus,
-      ...this.membershipRules.getStatusChangeExtras(newStatus, memberTypeCode, date),
-    };
+    const extras = this.membershipRules.getStatusChangeExtras(
+      newStatus,
+      memberTypeCode,
+      date,
+      membershipEndReason,
+    );
+    const updateData: any = { status: newStatus, ...extras };
 
     await this.prisma.member.update({
       where: { id },
@@ -335,7 +369,11 @@ export class MembersService {
         entityType: 'Member',
         entityId: id,
         schoolId: member.schoolId,
-        metadata: { from: member.status, to: newStatus },
+        metadata: {
+          from: member.status,
+          to: newStatus,
+          endReason: extras.membershipEndReason ?? null,
+        },
       });
     }
 

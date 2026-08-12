@@ -71,8 +71,17 @@ export class MembershipRulesService {
     newStatus: MemberStatus,
     memberTypeCode?: string,
     date?: string,
+    explicitEndReason?: MembershipEndReason,
   ): Record<string, unknown> {
     const extras: Record<string, unknown> = {};
+
+    // กู้คืนสมาชิกกลับมาปกติ — ล้างร่องรอยการสิ้นสุดสมาชิกภาพทิ้ง ไม่งั้นจะค้างอยู่ในรายการที่ย้ายออก
+    if (newStatus === MemberStatus.ACTIVE) {
+      extras.resignDate = null;
+      extras.deathDate = null;
+      extras.membershipEndReason = null;
+      return extras;
+    }
 
     if (newStatus === MemberStatus.RESIGNED && date) {
       // ครูเกษียณ (RET) แยกเหตุสิ้นสุดสมาชิกภาพเป็น RETIRED ตามระเบียบ ข้อ 9.1.3
@@ -86,6 +95,12 @@ export class MembershipRulesService {
       extras.membershipEndReason = MembershipEndReason.DECEASED;
     } else if (newStatus === MemberStatus.RESIGNED && memberTypeCode === 'RET') {
       extras.membershipEndReason = MembershipEndReason.RETIRED;
+    }
+
+    // เหตุที่ผู้ใช้ระบุเอง (เช่น TRANSFERRED ย้ายออกนอกเขต) ชนะค่าที่อนุมานได้
+    // แต่ห้ามขัดกับข้อเท็จจริงว่าสมาชิกเสียชีวิต
+    if (explicitEndReason && newStatus !== MemberStatus.DECEASED) {
+      extras.membershipEndReason = explicitEndReason;
     }
 
     return extras;

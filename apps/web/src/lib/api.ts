@@ -81,7 +81,7 @@ export interface Member {
   salaryDeduction?: boolean;
   applicationSubmittedAt?: string;
   applicationDeadline?: string;
-  membershipEndReason?: string;
+  membershipEndReason?: MembershipEndReason;
   arrearsNoticeSentAt?: string;
   consecutiveArrearsPeriods?: number;
   school: School;
@@ -129,6 +129,23 @@ export interface Member {
 export const membershipClassLabels: Record<'ORDINARY' | 'CONTRIBUTORY', string> = {
   ORDINARY: 'สมาชิกสามัญ',
   CONTRIBUTORY: 'สมาชิกสมทบ',
+};
+
+export type MembershipEndReason =
+  | 'DECEASED'
+  | 'RETIRED'
+  | 'RESIGNED'
+  | 'TRANSFERRED'
+  | 'ARREARS_TERMINATED'
+  | 'MANUAL';
+
+export const membershipEndReasonLabels: Record<MembershipEndReason, string> = {
+  DECEASED: 'เสียชีวิต',
+  RETIRED: 'เกษียณอายุราชการ',
+  RESIGNED: 'ลาออก',
+  TRANSFERRED: 'ย้ายออกนอกเขต',
+  ARREARS_TERMINATED: 'ขาดส่งเงินสงเคราะห์',
+  MANUAL: 'อื่น ๆ (บันทึกโดยเจ้าหน้าที่)',
 };
 
 export const protectedRelationshipLabels: Record<'SPOUSE' | 'PARENT' | 'CHILD', string> = {

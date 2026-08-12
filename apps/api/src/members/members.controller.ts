@@ -24,7 +24,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { AllowMemberAccess } from '../auth/decorators/allow-member-access.decorator';
-import { Role, MemberStatus, MembershipClass } from '@prisma/client';
+import { Role, MemberStatus, MembershipClass, MembershipEndReason } from '@prisma/client';
 import { ScopedUser } from '../common/security/school-scope.service';
 import {
   maskMemberListResponse,
@@ -61,6 +61,8 @@ export class MembersController {
     @Query('memberTypeId') memberTypeId?: string,
     @Query('groupId') groupId?: string,
     @Query('search') search?: string,
+    @Query('membershipEndReason') membershipEndReason?: MembershipEndReason,
+    @Query('membershipEnded') membershipEnded?: string,
     @Query('page') page?: number,
     @Query('limit') limit?: number,
   ) {
@@ -71,6 +73,8 @@ export class MembersController {
       memberTypeId,
       groupId,
       search,
+      membershipEndReason,
+      membershipEnded: membershipEnded === 'true',
       page: page ? Number(page) : undefined,
       limit: limit ? Number(limit) : undefined,
     };
@@ -138,7 +142,13 @@ export class MembersController {
     @Body() dto: ChangeStatusDto,
     @Request() req: { user: ScopedUser },
   ) {
-    const member = await this.membersService.changeStatus(id, dto.status, dto.date, req.user);
+    const member = await this.membersService.changeStatus(
+      id,
+      dto.status,
+      dto.date,
+      req.user,
+      dto.membershipEndReason,
+    );
     return maskMemberWithAssociation(member, req.user.role);
   }
 
