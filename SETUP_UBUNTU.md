@@ -129,54 +129,12 @@ $COMPOSE logs backup --tail 20     # ต้องเห็น "[backup] done: ..
 ls -lh backup/*.sql.gz             # ไฟล์ปกติ ~90KB+ ถ้าเจอไฟล์ 20 bytes แปลว่าพัง
 ```
 
-**นอกเครื่อง (off-host)** — `backup/offsite.sh` เข้ารหัส dump ด้วย gpg (AES256) แล้วอัปขึ้น
-cloud ผ่าน rclone รันบน **host** ไม่ใช่ใน container เพราะ image `mariadb:11` ไม่มี rclone
-
-ตั้งค่าครั้งเดียว:
-
-```bash
-cd /DATA/AppData/www/cremation
-
-# 1) ผูก remote (เลือก b2 หรือ s3) — ตั้งชื่อ remote ว่า b2
-rclone config
-
-# 2) สร้าง passphrase (ไม่แสดงบนจอ) แล้วล็อกสิทธิ์ไฟล์
-openssl rand -base64 48 > .backup-passphrase
-chmod 600 .backup-passphrase
-
-# 3) เก็บ passphrase ใส่ password manager — ถ้าหาย restore ไม่ได้ตลอดกาล
-cat .backup-passphrase
-
-# 4) ตั้งค่าปลายทาง
-cat > .env.offsite <<'EOF'
-OFFSITE_REMOTE=b2:cremation-backups/db
-OFFSITE_PASSPHRASE_FILE=/DATA/AppData/www/cremation/.backup-passphrase
-OFFSITE_RETAIN_DAYS=90
-EOF
-chmod 600 .env.offsite
-
-# 5) ทดสอบ แล้วตั้ง cron 03:30 ทุกวัน
-bash backup/offsite.sh
-crontab -e   # 30 3 * * * /DATA/AppData/www/cremation/backup/offsite.sh >> /DATA/AppData/www/cremation/backup/offsite.log 2>&1
-```
-
-กู้คืน:
-
-```bash
-bash backup/restore-offsite.sh --list    # ดูรายการบนปลายทาง
-bash backup/restore-offsite.sh           # ดึงไฟล์ล่าสุดมาถอดรหัสไว้ที่ backup/restored/
-```
-
-`.env.offsite`, `.backup-passphrase`, `backup/.encrypted/`, `backup/restored/` ถูก gitignore ไว้
-ห้าม commit — dump มีเลขบัตรประชาชนและ hash รหัสผ่านของสมาชิกทุกคน
-
 ### Troubleshooting (Docker)
 
 | อาการ | สาเหตุ / วิธีแก้ |
 |-------|------------------|
 | api restart loop, log `Can't reach database` | MariaDB ไม่ bind 0.0.0.0 หรือ user `cremation_app` ยังไม่ grant ให้ต่อจาก docker subnet (`'%'` / `'172.%'`) |
 | backup ได้ไฟล์ 20 bytes | dump ล้มแต่ pipeline กลืน error — แก้แล้วใน `backup.sh` ถ้าเจออีกให้ดู log ว่า auth ผ่านไหม และ container `backup` ถือ `DATABASE_URL` ตรงกับ `.env.production` หรือยัง (`update.sh` recreate ให้แล้ว) |
-| `[offsite] FAILED: rclone ยังไม่มี remote` | ยังไม่ได้รัน `rclone config` บน host หรือชื่อ remote ไม่ตรงกับ `OFFSITE_REMOTE` |
 | หน้าเว็บโหลดได้แต่ทุก API call ล้ม CORS | `WEB_ORIGIN` ไม่ตรงกับ URL ที่เปิดจริง — แก้แล้ว restart api |
 | กด API แล้ว 404 / เรียกผิด host | `NEXT_PUBLIC_API_URL` เก่าค้างใน web image — rebuild web (ดูหัวข้อด้านบน) |
 | `JWT_SECRET` too short → api boot ไม่ขึ้น | JWT_SECRET ต้อง ≥ 32 ตัวอักษร |
