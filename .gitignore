@@ -75,3 +75,6 @@ CLAUDE.local.md
 
 # สำเนา .env production ที่วางไว้ใน docs/ — มี JWT_SECRET/DATABASE_URL/API key จริง
 docs/env-production-*.txt
+
+# SDD scratch (ledger/briefs/review packages) — ไม่ commit
+.superpowers/
