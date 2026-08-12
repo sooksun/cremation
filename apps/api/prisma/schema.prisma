@@ -148,6 +148,12 @@ enum MembershipEndReason {
   MANUAL
 }
 
+// สถานะสมาชิกสมาคม (คนละชั้นกับ MemberStatus ของกองทุนฌาปนกิจ)
+enum AssociationMemberStatus {
+  ACTIVE
+  ENDED
+}
+
 enum ApplicationStatus {
   PENDING
   APPROVED
@@ -278,10 +284,10 @@ model Group {
 
 // สมาชิกสมาคมผู้ประกอบวิชาชีพ (ต้นทางของข้อมูลบุคคล) — บางคนเป็นสมาชิกฌาปนกิจ บางคนไม่เป็น
 model AssociationMember {
-  id                    String     @id @default(cuid())
-  school                School     @relation(fields: [schoolId], references: [id])
+  id                    String                  @id @default(cuid())
+  school                School                  @relation(fields: [schoolId], references: [id])
   schoolId              String
-  memberType            MemberType @relation(fields: [memberTypeId], references: [id])
+  memberType            MemberType              @relation(fields: [memberTypeId], references: [id])
   memberTypeId          String
   associationMemberNo   String? // เลขสมาชิกสมาคม
   firstName             String
@@ -308,12 +314,19 @@ model AssociationMember {
   contactDistrict       String?
   contactProvince       String?
   contactZip            String?
-  position              String?    @db.VarChar(100) // ตำแหน่งในสมาคม
+  position              String?                 @db.VarChar(100) // ตำแหน่งในสมาคม
   associationJoinDate   DateTime? // วันที่เป็นสมาชิกสมาคม
-  notes                 String?    @db.Text
+  // สถานะสมาชิกสมาคม — แยกจาก memberType เพราะประเภท (สามัญ/สมทบ/วิสามัญ) คือ "เป็นใคร"
+  // ส่วนสถานะคือ "ยังอยู่ในสมาคมไหม" เช่น ย้ายออกนอกอำเภอแม่ฟ้าหลวง
+  status                AssociationMemberStatus @default(ACTIVE)
+  membershipEndReason   MembershipEndReason?
+  membershipEndDate     DateTime?
+  notes                 String?                 @db.Text
   cremationMember       Member? // สมาชิกฌาปนกิจ (ถ้ามี — ทุกคนในฌาปนกิจต้องเป็นสมาชิกสมาคม)
-  createdAt             DateTime   @default(now())
-  updatedAt             DateTime   @updatedAt
+  createdAt             DateTime                @default(now())
+  updatedAt             DateTime                @updatedAt
+
+  @@index([status])
 }
 
 // สมาชิกฌาปนกิจ — อ้างอิงจากสมาชิกสมาคม (ทุกคนในตารางนี้ต้องเป็นสมาชิกสมาคม)

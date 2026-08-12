@@ -18,7 +18,15 @@ import {
   X,
 } from 'lucide-react';
 import Link from 'next/link';
-import { api, type School, type MemberType } from '@/lib/api';
+import {
+  api,
+  type School,
+  type MemberType,
+  type MembershipEndReason,
+  type AssociationMemberStatus,
+  membershipEndReasonLabels,
+  associationMemberStatusLabels,
+} from '@/lib/api';
 import { useAuthStore } from '@/store/auth';
 import { toast } from 'react-toastify';
 import { showConfirm } from '@/lib/toast';
@@ -41,6 +49,8 @@ interface AssociationMemberRow {
   notes?: string;
   phone?: string;
   idCardNo?: string;
+  status?: AssociationMemberStatus;
+  membershipEndReason?: MembershipEndReason;
   school: { id: string; name: string };
   memberType: { id: string; name: string };
   cremationMember?: {
@@ -304,7 +314,8 @@ export default function AssociationMembersPage() {
                     <th>ชื่อ-นามสกุล</th>
                     <th>โรงเรียน</th>
                     <th>ตำแหน่งในสมาคม</th>
-                    <th>สถานะ</th>
+                    <th>สถานะสมาคม</th>
+                    <th>สถานะฌาปนกิจ</th>
                     <th className="text-right">จัดการ</th>
                   </tr>
                 </thead>
@@ -327,6 +338,19 @@ export default function AssociationMembersPage() {
                       <td className="text-slate-500">{member.school.name}</td>
                       <td className="text-slate-600">
                         {member.position || '-'}
+                      </td>
+                      <td>
+                        {member.status === 'ENDED' ? (
+                          <span className="badge-warning">
+                            {member.membershipEndReason
+                              ? membershipEndReasonLabels[member.membershipEndReason]
+                              : associationMemberStatusLabels.ENDED}
+                          </span>
+                        ) : (
+                          <span className="badge-success">
+                            {associationMemberStatusLabels.ACTIVE}
+                          </span>
+                        )}
                       </td>
                       <td>
                         {member.cremationMember ? (

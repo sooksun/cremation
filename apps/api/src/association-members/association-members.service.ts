@@ -2,7 +2,11 @@ import { Injectable, NotFoundException, ConflictException } from '@nestjs/common
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateAssociationMemberDto } from './dto/create-association-member.dto';
 import { UpdateAssociationMemberDto } from './dto/update-association-member.dto';
-import { MemberStatus } from '@prisma/client';
+import {
+  MemberStatus,
+  AssociationMemberStatus,
+  MembershipEndReason,
+} from '@prisma/client';
 import { SchoolScopeService, ScopedUser } from '../common/security/school-scope.service';
 import { AuditLogService } from '../common/services/audit-log.service';
 import { AuditAction } from '@prisma/client';
@@ -11,6 +15,8 @@ export interface AssociationMemberQueryParams {
   schoolId?: string;
   status?: MemberStatus;
   search?: string;
+  associationStatus?: AssociationMemberStatus;
+  membershipEndReason?: MembershipEndReason;
   page?: number;
   limit?: number;
 }
@@ -66,7 +72,14 @@ export class AssociationMembersService {
   }
 
   async findAll(params: AssociationMemberQueryParams, actor?: ScopedUser) {
-    const { status, search, page = 1, limit = 50 } = params;
+    const {
+      status,
+      search,
+      associationStatus,
+      membershipEndReason,
+      page = 1,
+      limit = 50,
+    } = params;
     const schoolId = actor
       ? this.schoolScope.resolveSchoolId(actor, params.schoolId)
       : params.schoolId;
@@ -76,6 +89,8 @@ export class AssociationMembersService {
     if (status) {
       where.cremationMember = { status };
     }
+    if (associationStatus) where.status = associationStatus;
+    if (membershipEndReason) where.membershipEndReason = membershipEndReason;
     if (search) {
       where.OR = [
         { firstName: { contains: search } },
@@ -168,25 +183,9 @@ export class AssociationMembersService {
       this.schoolScope.assertSchoolAccess(actor, member.schoolId);
     }
 
-    const data: any = {
-      associationMemberNo: dto.associationMemberNo,
-      position: dto.position,
-      associationJoinDate: dto.associationJoinDate
-        ? new Date(dto.associationJoinDate)
-        : undefined,
-      notes: dto.notes,
-    };
-    if (dto.firstName !== undefined) data.firstName = dto.firstName;
-    if (dto.lastName !== undefined) data.lastName = dto.lastName;
-    if (dto.idCardNo !== undefined) data.idCardNo = dto.idCardNo;
-    if (dto.birthDate !== undefined) data.birthDate = new Date(dto.birthDate);
-    if (dto.address !== undefined) data.address = dto.address;
-    if (dto.phone !== undefined) data.phone = dto.phone;
-    if (dto.memberTypeId !== undefined) data.memberTypeId = dto.memberTypeId;
-
     await this.prisma.associationMember.update({
       where: { id: member.associationMemberId },
-      data,
+      data: this.buildUpdateData(dto),
     });
 
     if (actor) {
@@ -208,8 +207,37 @@ export class AssociationMembersService {
     dto: UpdateAssociationMemberDto,
     actor?: ScopedUser,
   ) {
-    await this.findById(associationMemberId, actor);
+    const before = await this.findById(associationMemberId, actor);
 
+    const updated = await this.prisma.associationMember.update({
+      where: { id: associationMemberId },
+      data: this.buildUpdateData(dto),
+      include: {
+        school: true,
+        memberType: true,
+        cremationMember: { include: { group: true } },
+      },
+    });
+
+    if (actor && dto.status && dto.status !== before.status) {
+      await this.auditLog.log({
+        userId: actor.id,
+        action: AuditAction.ASSOCIATION_MEMBER_UPDATE,
+        entityType: 'AssociationMember',
+        entityId: associationMemberId,
+        schoolId: updated.schoolId,
+        metadata: {
+          from: before.status,
+          to: dto.status,
+          endReason: updated.membershipEndReason,
+        },
+      });
+    }
+
+    return updated;
+  }
+
+  private buildUpdateData(dto: UpdateAssociationMemberDto) {
     const data: any = {
       associationMemberNo: dto.associationMemberNo,
       position: dto.position,
@@ -226,15 +254,22 @@ export class AssociationMembersService {
     if (dto.phone !== undefined) data.phone = dto.phone;
     if (dto.memberTypeId !== undefined) data.memberTypeId = dto.memberTypeId;
 
-    return this.prisma.associationMember.update({
-      where: { id: associationMemberId },
-      data,
-      include: {
-        school: true,
-        memberType: true,
-        cremationMember: { include: { group: true } },
-      },
-    });
+    if (dto.status !== undefined) {
+      data.status = dto.status;
+      if (dto.status === AssociationMemberStatus.ENDED) {
+        data.membershipEndReason =
+          dto.membershipEndReason ?? MembershipEndReason.TRANSFERRED;
+        data.membershipEndDate = dto.membershipEndDate
+          ? new Date(dto.membershipEndDate)
+          : new Date();
+      } else {
+        // กลับมาเป็นสมาชิกปกติ — ล้างเหตุและวันที่ทิ้ง ไม่งั้นจะค้างชี้ว่ายังหมดสมาชิกภาพ
+        data.membershipEndReason = null;
+        data.membershipEndDate = null;
+      }
+    }
+
+    return data;
   }
 
   async removeById(associationMemberId: string, actor?: ScopedUser) {

@@ -148,6 +148,23 @@ export const membershipEndReasonLabels: Record<MembershipEndReason, string> = {
   MANUAL: 'อื่น ๆ (บันทึกโดยเจ้าหน้าที่)',
 };
 
+// สถานะสมาชิกสมาคม — คนละชั้นกับสถานะสมาชิกฌาปนกิจ
+export type AssociationMemberStatus = 'ACTIVE' | 'ENDED';
+
+export const associationMemberStatusLabels: Record<AssociationMemberStatus, string> = {
+  ACTIVE: 'ปกติ',
+  ENDED: 'หมดสมาชิกภาพ',
+};
+
+// เหตุที่เลือกได้ในระดับสมาคม (ARREARS_TERMINATED เป็นเรื่องของกองทุนฌาปนกิจเท่านั้น)
+export const ASSOCIATION_END_REASONS: MembershipEndReason[] = [
+  'TRANSFERRED',
+  'RESIGNED',
+  'RETIRED',
+  'DECEASED',
+  'MANUAL',
+];
+
 export const protectedRelationshipLabels: Record<'SPOUSE' | 'PARENT' | 'CHILD', string> = {
   SPOUSE: 'คู่สมรส',
   PARENT: 'บิดา/มารดา',

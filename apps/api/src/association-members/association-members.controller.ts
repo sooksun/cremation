@@ -16,7 +16,12 @@ import { UpdateAssociationMemberDto } from './dto/update-association-member.dto'
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
-import { Role, MemberStatus } from '@prisma/client';
+import {
+  Role,
+  MemberStatus,
+  AssociationMemberStatus,
+  MembershipEndReason,
+} from '@prisma/client';
 import { ScopedUser } from '../common/security/school-scope.service';
 import {
   maskAssociationMemberListResponse,
@@ -46,6 +51,8 @@ export class AssociationMembersController {
     @Query('schoolId') schoolId?: string,
     @Query('status') status?: MemberStatus,
     @Query('search') search?: string,
+    @Query('associationStatus') associationStatus?: AssociationMemberStatus,
+    @Query('membershipEndReason') membershipEndReason?: MembershipEndReason,
     @Query('page') page?: number,
     @Query('limit') limit?: number,
   ) {
@@ -53,6 +60,8 @@ export class AssociationMembersController {
       schoolId,
       status,
       search,
+      associationStatus,
+      membershipEndReason,
       page: page ? Number(page) : undefined,
       limit: limit ? Number(limit) : undefined,
     };

@@ -18,7 +18,17 @@ import {
 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { showSuccess, showError, showConfirm } from '@/lib/toast';
-import { api, type School, type SchoolCluster, type MemberType } from '@/lib/api';
+import {
+  api,
+  type School,
+  type SchoolCluster,
+  type MemberType,
+  type MembershipEndReason,
+  type AssociationMemberStatus,
+  membershipEndReasonLabels,
+  associationMemberStatusLabels,
+  ASSOCIATION_END_REASONS,
+} from '@/lib/api';
 
 interface ClusterForm {
   code: string;
@@ -43,6 +53,9 @@ interface MemberForm {
   position?: string;
   associationMemberNo?: string;
   notes?: string;
+  status?: AssociationMemberStatus;
+  membershipEndReason?: MembershipEndReason | '';
+  membershipEndDate?: string;
 }
 
 interface HierarchyMember {
@@ -84,6 +97,9 @@ interface AssociationMemberRow {
   phone?: string;
   position?: string;
   notes?: string;
+  status?: AssociationMemberStatus;
+  membershipEndReason?: MembershipEndReason;
+  membershipEndDate?: string;
   school: { id: string; name: string; cluster?: { id: string; name: string } };
   memberType: { id: string; name: string };
 }
@@ -103,10 +119,12 @@ export default function SchoolsPage() {
   const [editingMember, setEditingMember] = useState<AssociationMemberRow | null>(null);
   const [clusterFilter, setClusterFilter] = useState('');
   const [schoolFilter, setSchoolFilter] = useState('');
+  const [memberStatusFilter, setMemberStatusFilter] = useState('');
 
   const clusterForm = useForm<ClusterForm>();
   const schoolForm = useForm<SchoolForm>();
   const memberForm = useForm<MemberForm>();
+  const watchMemberStatus = memberForm.watch('status');
 
   const { data: hierarchy, isLoading: hierarchyLoading } = useQuery<HierarchyData>({
     queryKey: ['school-hierarchy'],
@@ -136,10 +154,11 @@ export default function SchoolsPage() {
     data: AssociationMemberRow[];
     meta: { total: number };
   }>({
-    queryKey: ['school-mgmt-members', schoolFilter],
+    queryKey: ['school-mgmt-members', schoolFilter, memberStatusFilter],
     queryFn: async () => {
       const params = new URLSearchParams({ limit: '500' });
       if (schoolFilter) params.append('schoolId', schoolFilter);
+      if (memberStatusFilter) params.append('associationStatus', memberStatusFilter);
       const response = await api.get(`/association-members?${params}`);
       return response.data;
     },
@@ -373,6 +392,11 @@ export default function SchoolsPage() {
         position: member.position || '',
         associationMemberNo: member.associationMemberNo || '',
         notes: member.notes || '',
+        status: member.status || 'ACTIVE',
+        membershipEndReason: member.membershipEndReason || '',
+        membershipEndDate: member.membershipEndDate
+          ? String(member.membershipEndDate).split('T')[0]
+          : '',
       });
     } else {
       setEditingMember(null);
@@ -386,6 +410,9 @@ export default function SchoolsPage() {
         position: '',
         associationMemberNo: '',
         notes: '',
+        status: 'ACTIVE',
+        membershipEndReason: '',
+        membershipEndDate: '',
       });
     }
     setMemberModalOpen(true);
@@ -399,10 +426,17 @@ export default function SchoolsPage() {
 
   const onMemberSubmit = (data: MemberForm) => {
     if (editingMember) {
-      const { schoolId, ...updateData } = data;
+      const { schoolId, membershipEndReason, membershipEndDate, ...rest } = data;
+      const updateData: Partial<MemberForm> = { ...rest };
+      // ส่งเหตุ/วันที่เฉพาะตอนหมดสมาชิกภาพ — ตอนกลับเป็นปกติ backend จะล้างให้เอง
+      if (data.status === 'ENDED') {
+        updateData.membershipEndReason = membershipEndReason || 'TRANSFERRED';
+        if (membershipEndDate) updateData.membershipEndDate = membershipEndDate;
+      }
       updateMemberMutation.mutate({ id: editingMember.id, data: updateData });
     } else {
-      createMemberMutation.mutate(data);
+      const { status, membershipEndReason, membershipEndDate, ...createData } = data;
+      createMemberMutation.mutate(createData as MemberForm);
     }
   };
 
@@ -696,6 +730,7 @@ export default function SchoolsPage() {
               <th>เลขสมาชิก</th>
               <th>ชื่อ-นามสกุล</th>
               <th>ประเภท</th>
+              <th>สถานะ</th>
               <th>โรงเรียน</th>
               <th>กลุ่ม</th>
               <th className="text-right">จัดการ</th>
@@ -709,6 +744,26 @@ export default function SchoolsPage() {
                   {member.firstName} {member.lastName}
                 </td>
                 <td className="text-slate-500">{member.memberType.name}</td>
+                <td>
+                  {member.status === 'ENDED' ? (
+                    <span
+                      className="badge-warning"
+                      title={
+                        member.membershipEndReason
+                          ? membershipEndReasonLabels[member.membershipEndReason]
+                          : undefined
+                      }
+                    >
+                      {member.membershipEndReason
+                        ? membershipEndReasonLabels[member.membershipEndReason]
+                        : associationMemberStatusLabels.ENDED}
+                    </span>
+                  ) : (
+                    <span className="badge-success">
+                      {associationMemberStatusLabels.ACTIVE}
+                    </span>
+                  )}
+                </td>
                 <td>{member.school.name}</td>
                 <td className="text-violet-700">{member.school.cluster?.name || '-'}</td>
                 <td>
@@ -877,6 +932,23 @@ export default function SchoolsPage() {
             <Table2 size={16} />
             ตาราง
           </button>
+        </div>
+      )}
+
+      {manageTab === 'members' && (
+        <div className="w-full md:w-64">
+          <label className="block text-sm font-medium text-slate-700 mb-1">
+            สถานะสมาชิกสมาคม
+          </label>
+          <select
+            value={memberStatusFilter}
+            onChange={(e) => setMemberStatusFilter(e.target.value)}
+            className="input"
+          >
+            <option value="">ทุกสถานะ</option>
+            <option value="ACTIVE">{associationMemberStatusLabels.ACTIVE}</option>
+            <option value="ENDED">{associationMemberStatusLabels.ENDED}</option>
+          </select>
         </div>
       )}
 
@@ -1168,6 +1240,52 @@ export default function SchoolsPage() {
                   <label className="label">หมายเหตุ</label>
                   <textarea {...memberForm.register('notes')} className="input min-h-[60px]" />
                 </div>
+
+                {editingMember && (
+                  <div className="pt-4 border-t border-slate-100 space-y-4">
+                    <div>
+                      <label className="label">สถานะสมาชิกสมาคม</label>
+                      <select {...memberForm.register('status')} className="input">
+                        <option value="ACTIVE">
+                          {associationMemberStatusLabels.ACTIVE}
+                        </option>
+                        <option value="ENDED">
+                          {associationMemberStatusLabels.ENDED}
+                        </option>
+                      </select>
+                      <p className="text-xs text-slate-400 mt-1">
+                        ใช้กับข้าราชการ/บุคลากรที่ย้ายออกนอกอำเภอแม่ฟ้าหลวง — ประเภทสมาชิกเดิมยังคงอยู่
+                      </p>
+                    </div>
+
+                    {watchMemberStatus === 'ENDED' && (
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="label">เหตุหมดสมาชิกภาพ</label>
+                          <select
+                            {...memberForm.register('membershipEndReason')}
+                            className="input"
+                          >
+                            {ASSOCIATION_END_REASONS.map((r) => (
+                              <option key={r} value={r}>
+                                {membershipEndReasonLabels[r]}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="label">วันที่</label>
+                          <input
+                            type="date"
+                            {...memberForm.register('membershipEndDate')}
+                            className="input"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 <div className="flex gap-3 pt-4">
                   <button type="button" onClick={closeMemberModal} className="btn-secondary flex-1">
                     ยกเลิก
