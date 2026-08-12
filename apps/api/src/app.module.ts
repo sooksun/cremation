@@ -10,6 +10,7 @@ import { SchoolsModule } from './schools/schools.module';
 import { SchoolClustersModule } from './school-clusters/school-clusters.module';
 import { MemberTypesModule } from './member-types/member-types.module';
 import { GroupsModule } from './groups/groups.module';
+import { DashboardsModule } from './dashboards/dashboards.module';
 import { MembersModule } from './members/members.module';
 import { ContributionsModule } from './contributions/contributions.module';
 import { DeathClaimsModule } from './death-claims/death-claims.module';
@@ -50,6 +51,7 @@ import { HealthController } from './health.controller';
     SchoolClustersModule,
     MemberTypesModule,
     GroupsModule,
+    DashboardsModule,
     MembersModule,
     ContributionsModule,
     DeathClaimsModule,

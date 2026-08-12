@@ -25,6 +25,7 @@ import {
   Award,
   History,
   Package,
+  TrendingUp,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/auth';
 import { api, type School } from '@/lib/api';
@@ -37,6 +38,17 @@ const menuItems = [
     label: 'หน้าหลัก',
     href: '/dashboard',
     icon: LayoutDashboard,
+  },
+  {
+    label: 'ภาพรวมสมาชิก',
+    href: '/dashboard/members',
+    icon: Users,
+  },
+  {
+    label: 'ภาพรวมการเงิน',
+    href: '/dashboard/finance',
+    icon: TrendingUp,
+    roles: ['ADMIN', 'SCHOOL_ADMIN', 'FINANCE', 'ACCOUNTING'],
   },
   {
     label: 'จัดการผู้ใช้',
