@@ -41,6 +41,14 @@ coverage
 backup/*.sql
 backup/*.sql.gz
 
+# Off-host backup: config, passphrase, encrypted staging, and anything restored.
+# The passphrase is the only thing standing between a leaked dump and 604 national IDs.
+.env.offsite
+.backup-passphrase
+backup/.encrypted/
+backup/restored/
+backup/*.gpg
+
 # === Generated / test data (NEVER commit) ===
 # Large data exports accidentally placed in public/ (public is served without auth)
 apps/web/public/evaluations*.sql
