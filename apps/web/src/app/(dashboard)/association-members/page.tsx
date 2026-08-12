@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useForm } from 'react-hook-form';
 import { motion } from 'framer-motion';
 import {
   Search,
@@ -9,15 +10,18 @@ import {
   ChevronRight,
   Eye,
   Edit,
+  Trash2,
+  Plus,
   UserX,
   Building2,
   BarChart3,
   X,
 } from 'lucide-react';
 import Link from 'next/link';
-import { api } from '@/lib/api';
+import { api, type School, type MemberType } from '@/lib/api';
 import { useAuthStore } from '@/store/auth';
 import { toast } from 'react-toastify';
+import { showConfirm } from '@/lib/toast';
 
 const statusConfig = {
   ACTIVE: { label: 'ปกติ', class: 'badge-success' },
@@ -36,13 +40,26 @@ interface AssociationMemberRow {
   associationJoinDate?: string;
   notes?: string;
   phone?: string;
+  idCardNo?: string;
   school: { id: string; name: string };
-  memberType: { name: string };
+  memberType: { id: string; name: string };
   cremationMember?: {
     id: string;
     memberNo: string;
     status: string;
   } | null;
+}
+
+interface CreateMemberForm {
+  schoolId: string;
+  memberTypeId: string;
+  firstName: string;
+  lastName: string;
+  idCardNo?: string;
+  phone?: string;
+  position?: string;
+  associationMemberNo?: string;
+  notes?: string;
 }
 
 interface AssociationMemberListResponse {
@@ -67,6 +84,20 @@ export default function AssociationMembersPage() {
     position: '',
     associationJoinDate: '',
     notes: '',
+  });
+  const [createModalOpen, setCreateModalOpen] = useState(false);
+  const createForm = useForm<CreateMemberForm>();
+
+  const { data: schools } = useQuery<School[]>({
+    queryKey: ['schools'],
+    queryFn: async () => (await api.get('/schools')).data,
+    enabled: createModalOpen,
+  });
+
+  const { data: memberTypes } = useQuery<MemberType[]>({
+    queryKey: ['member-types'],
+    queryFn: async () => (await api.get('/member-types')).data,
+    enabled: createModalOpen,
   });
 
   const { data, isLoading } = useQuery<AssociationMemberListResponse>({
@@ -114,6 +145,31 @@ export default function AssociationMembersPage() {
     },
   });
 
+  const createMutation = useMutation({
+    mutationFn: async (data: CreateMemberForm) => (await api.post('/association-members', data)).data,
+    onSuccess: () => {
+      toast.success('เพิ่มสมาชิกสมาคมสำเร็จ');
+      setCreateModalOpen(false);
+      createForm.reset();
+      queryClient.invalidateQueries({ queryKey: ['association-members'] });
+    },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.message || 'เกิดข้อผิดพลาด');
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (associationMemberId: string) =>
+      (await api.delete(`/association-members/by-id/${associationMemberId}`)).data,
+    onSuccess: () => {
+      toast.success('ลบสมาชิกสมาคมสำเร็จ');
+      queryClient.invalidateQueries({ queryKey: ['association-members'] });
+    },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.message || 'เกิดข้อผิดพลาด');
+    },
+  });
+
   const openEditModal = (member: AssociationMemberRow) => {
     setEditModal(member);
     setEditForm({
@@ -152,16 +208,38 @@ export default function AssociationMembersPage() {
       className="space-y-6"
     >
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-display font-bold text-slate-900">
-          ทะเบียนสมาชิกสมาคม
-        </h1>
-        <p className="text-slate-500 mt-1">
-          สมาคมผู้ประกอบวิชาชีพผู้บริหาร ครู และบุคลากรทางการศึกษา อำเภอแม่ฟ้าหลวง
-        </p>
-        <p className="text-sm text-slate-400 mt-1">
-          สมาชิกฌาปนกิจสงเคราะห์ทุกคนเป็นสมาชิกของสมาคมนี้
-        </p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-display font-bold text-slate-900">
+            ทะเบียนสมาชิกสมาคม
+          </h1>
+          <p className="text-slate-500 mt-1">
+            สมาคมผู้ประกอบวิชาชีพผู้บริหาร ครู และบุคลากรทางการศึกษา อำเภอแม่ฟ้าหลวง
+          </p>
+          <p className="text-sm text-slate-400 mt-1">
+            สมาชิกฌาปนกิจสงเคราะห์ทุกคนเป็นสมาชิกของสมาคมนี้
+          </p>
+        </div>
+        <button
+          onClick={() => {
+            createForm.reset({
+              schoolId: '',
+              memberTypeId: '',
+              firstName: '',
+              lastName: '',
+              idCardNo: '',
+              phone: '',
+              position: '',
+              associationMemberNo: '',
+              notes: '',
+            });
+            setCreateModalOpen(true);
+          }}
+          className="btn-primary shrink-0"
+        >
+          <Plus size={20} />
+          เพิ่มสมาชิก
+        </button>
       </div>
 
       {/* Filters */}
@@ -285,6 +363,17 @@ export default function AssociationMembersPage() {
                             title="แก้ไขข้อมูลสมาชิกสมาคม"
                           >
                             <Edit size={18} />
+                          </button>
+                          <button
+                            onClick={() =>
+                              showConfirm('ต้องการลบสมาชิกนี้หรือไม่?', () =>
+                                deleteMutation.mutate(member.id),
+                              )
+                            }
+                            className="p-2 rounded-lg hover:bg-red-50 text-slate-500 hover:text-red-600"
+                            title="ลบสมาชิก"
+                          >
+                            <Trash2 size={18} />
                           </button>
                         </div>
                       </td>
@@ -413,6 +502,151 @@ export default function AssociationMembersPage() {
                 {updateMutation.isPending ? 'กำลังบันทึก...' : 'บันทึก'}
               </button>
             </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Create Modal */}
+      {createModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-slate-900">เพิ่มสมาชิกสมาคม</h2>
+              <button
+                onClick={() => setCreateModalOpen(false)}
+                className="p-2 hover:bg-slate-100 rounded-lg"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <form
+              onSubmit={createForm.handleSubmit((data) => createMutation.mutate(data))}
+              className="space-y-4"
+            >
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  โรงเรียน *
+                </label>
+                <select
+                  className="input w-full"
+                  {...createForm.register('schoolId', { required: 'กรุณาเลือกโรงเรียน' })}
+                >
+                  <option value="">เลือกโรงเรียน</option>
+                  {schools?.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.name}
+                    </option>
+                  ))}
+                </select>
+                {createForm.formState.errors.schoolId && (
+                  <p className="text-sm text-red-500 mt-1">
+                    {createForm.formState.errors.schoolId.message}
+                  </p>
+                )}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  ประเภทสมาชิก *
+                </label>
+                <select
+                  className="input w-full"
+                  {...createForm.register('memberTypeId', { required: 'กรุณาเลือกประเภทสมาชิก' })}
+                >
+                  <option value="">เลือกประเภท</option>
+                  {memberTypes?.map((mt) => (
+                    <option key={mt.id} value={mt.id}>
+                      {mt.name}
+                    </option>
+                  ))}
+                </select>
+                {createForm.formState.errors.memberTypeId && (
+                  <p className="text-sm text-red-500 mt-1">
+                    {createForm.formState.errors.memberTypeId.message}
+                  </p>
+                )}
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">ชื่อ *</label>
+                  <input
+                    className="input w-full"
+                    {...createForm.register('firstName', { required: 'กรุณากรอกชื่อ' })}
+                  />
+                  {createForm.formState.errors.firstName && (
+                    <p className="text-sm text-red-500 mt-1">
+                      {createForm.formState.errors.firstName.message}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    นามสกุล *
+                  </label>
+                  <input
+                    className="input w-full"
+                    {...createForm.register('lastName', { required: 'กรุณากรอกนามสกุล' })}
+                  />
+                  {createForm.formState.errors.lastName && (
+                    <p className="text-sm text-red-500 mt-1">
+                      {createForm.formState.errors.lastName.message}
+                    </p>
+                  )}
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  เลขบัตรประชาชน
+                </label>
+                <input className="input w-full" maxLength={13} {...createForm.register('idCardNo')} />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">เบอร์โทร</label>
+                  <input className="input w-full" {...createForm.register('phone')} />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    เลขสมาชิกสมาคม
+                  </label>
+                  <input className="input w-full" {...createForm.register('associationMemberNo')} />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">ตำแหน่ง</label>
+                <input
+                  className="input w-full"
+                  placeholder="เช่น ผู้อำนวยการ, ครู"
+                  {...createForm.register('position')}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">หมายเหตุ</label>
+                <textarea
+                  className="input w-full min-h-[60px]"
+                  {...createForm.register('notes')}
+                />
+              </div>
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setCreateModalOpen(false)}
+                  className="btn-secondary flex-1"
+                >
+                  ยกเลิก
+                </button>
+                <button
+                  type="submit"
+                  disabled={createMutation.isPending}
+                  className="btn-primary flex-1"
+                >
+                  {createMutation.isPending ? 'กำลังบันทึก...' : 'บันทึก'}
+                </button>
+              </div>
+            </form>
           </motion.div>
         </div>
       )}

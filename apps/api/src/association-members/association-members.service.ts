@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateAssociationMemberDto } from './dto/create-association-member.dto';
 import { UpdateAssociationMemberDto } from './dto/update-association-member.dto';
@@ -235,5 +235,65 @@ export class AssociationMembersService {
         cremationMember: { include: { group: true } },
       },
     });
+  }
+
+  async removeById(associationMemberId: string, actor?: ScopedUser) {
+    const row = await this.prisma.associationMember.findUnique({
+      where: { id: associationMemberId },
+      include: {
+        cremationMember: {
+          include: {
+            user: true,
+            _count: {
+              select: {
+                contributions: true,
+                deathClaims: true,
+                beneficiaries: true,
+                protectedPersons: true,
+                leadedGroups: true,
+              },
+            },
+          },
+        },
+      },
+    });
+    if (!row) {
+      throw new NotFoundException('ไม่พบสมาชิกสมาคม');
+    }
+
+    if (actor) {
+      this.schoolScope.assertSchoolAccess(actor, row.schoolId);
+    }
+
+    if (row.cremationMember) {
+      const c = row.cremationMember._count;
+      if (
+        c.contributions > 0 ||
+        c.deathClaims > 0 ||
+        c.beneficiaries > 0 ||
+        c.protectedPersons > 0 ||
+        c.leadedGroups > 0 ||
+        row.cremationMember.user
+      ) {
+        throw new ConflictException(
+          'ไม่สามารถลบสมาชิกนี้ได้ เนื่องจากมีข้อมูลการเงินหรือบัญชีผู้ใช้ที่เกี่ยวข้องอยู่ กรุณาปิดใช้งานสมาชิกแทน',
+        );
+      }
+    }
+
+    await this.prisma.associationMember.delete({ where: { id: associationMemberId } });
+
+    if (actor) {
+      await this.auditLog.log({
+        userId: actor.id,
+        action: AuditAction.ASSOCIATION_MEMBER_DELETE,
+        entityType: 'AssociationMember',
+        entityId: associationMemberId,
+        schoolId: row.schoolId,
+        metadata: { firstName: row.firstName, lastName: row.lastName },
+      });
+    }
+
+    return { message: 'ลบสมาชิกสำเร็จ' };
   }
 }

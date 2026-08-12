@@ -52,6 +52,11 @@ export class SubmitApplicationDto {
   @IsNotEmpty({ message: 'กรุณาระบุส่วนราชการ/โรงเรียน' })
   governmentAgency: string;
 
+  // เลือกจาก dropdown -> ส่ง id ตรง ๆ (resolve แม่นยำ ไม่ต้องเดาจากชื่อ)
+  @IsOptional()
+  @IsString()
+  schoolId?: string;
+
   @IsOptional()
   @IsString()
   memberNo?: string;

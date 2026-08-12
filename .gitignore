@@ -46,6 +46,10 @@ backup/*.sql.gz
 apps/web/public/evaluations*.sql
 apps/web/public/generated_video.mp4
 
+# DB dumps and source PII spreadsheets (real national ID / phone / password hashes)
+prisma/*.sql
+doc/member/
+
 # Test artifacts, temporary logs, dev outputs
 apps/web/test-output/
 terminals/

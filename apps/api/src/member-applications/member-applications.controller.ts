@@ -29,6 +29,13 @@ export class MemberApplicationsController {
     return this.service.submit(dto);
   }
 
+  // Public: รายชื่อโรงเรียนสำหรับ dropdown หน้าใบสมัคร (ประกาศก่อน @Get(':id'))
+  @Get('schools')
+  @Throttle({ default: { limit: 30, ttl: 60000 } })
+  schools() {
+    return this.service.listSchoolsForRegistration();
+  }
+
   @Get()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN, Role.SCHOOL_ADMIN)

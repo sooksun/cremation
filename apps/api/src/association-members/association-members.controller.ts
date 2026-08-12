@@ -3,6 +3,7 @@ import {
   Get,
   Post,
   Patch,
+  Delete,
   Body,
   Param,
   Query,
@@ -94,5 +95,15 @@ export class AssociationMembersController {
   ) {
     const member = await this.associationMembersService.update(memberId, dto, req.user);
     return maskMemberWithAssociation(member, req.user.role);
+  }
+
+  @Delete('by-id/:id')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.SCHOOL_ADMIN)
+  async removeById(
+    @Param('id') associationMemberId: string,
+    @Request() req: { user: ScopedUser },
+  ) {
+    return this.associationMembersService.removeById(associationMemberId, req.user);
   }
 }

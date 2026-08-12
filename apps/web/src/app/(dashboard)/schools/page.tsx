@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { showSuccess, showError, showConfirm } from '@/lib/toast';
-import { api, type School, type SchoolCluster } from '@/lib/api';
+import { api, type School, type SchoolCluster, type MemberType } from '@/lib/api';
 
 interface ClusterForm {
   code: string;
@@ -31,6 +31,18 @@ interface SchoolForm {
   district?: string;
   province?: string;
   clusterId: string;
+}
+
+interface MemberForm {
+  schoolId: string;
+  memberTypeId: string;
+  firstName: string;
+  lastName: string;
+  idCardNo?: string;
+  phone?: string;
+  position?: string;
+  associationMemberNo?: string;
+  notes?: string;
 }
 
 interface HierarchyMember {
@@ -68,8 +80,12 @@ interface AssociationMemberRow {
   firstName: string;
   lastName: string;
   associationMemberNo?: string;
+  idCardNo?: string;
+  phone?: string;
+  position?: string;
+  notes?: string;
   school: { id: string; name: string; cluster?: { id: string; name: string } };
-  memberType: { name: string };
+  memberType: { id: string; name: string };
 }
 
 type ManageTab = 'hierarchy' | 'clusters' | 'schools' | 'members';
@@ -81,13 +97,16 @@ export default function SchoolsPage() {
   const [viewMode, setViewMode] = useState<ViewMode>('table');
   const [clusterModalOpen, setClusterModalOpen] = useState(false);
   const [schoolModalOpen, setSchoolModalOpen] = useState(false);
+  const [memberModalOpen, setMemberModalOpen] = useState(false);
   const [editingCluster, setEditingCluster] = useState<SchoolCluster | null>(null);
   const [editingSchool, setEditingSchool] = useState<School | null>(null);
+  const [editingMember, setEditingMember] = useState<AssociationMemberRow | null>(null);
   const [clusterFilter, setClusterFilter] = useState('');
   const [schoolFilter, setSchoolFilter] = useState('');
 
   const clusterForm = useForm<ClusterForm>();
   const schoolForm = useForm<SchoolForm>();
+  const memberForm = useForm<MemberForm>();
 
   const { data: hierarchy, isLoading: hierarchyLoading } = useQuery<HierarchyData>({
     queryKey: ['school-hierarchy'],
@@ -125,6 +144,14 @@ export default function SchoolsPage() {
       return response.data;
     },
     enabled: manageTab === 'members',
+  });
+
+  const { data: memberTypes } = useQuery<MemberType[]>({
+    queryKey: ['member-types'],
+    queryFn: async () => {
+      const response = await api.get('/member-types');
+      return response.data;
+    },
   });
 
   const schoolOptions = useMemo(() => {
@@ -246,6 +273,36 @@ export default function SchoolsPage() {
     onError: (error: any) => showError(error.response?.data?.message || 'เกิดข้อผิดพลาด'),
   });
 
+  const createMemberMutation = useMutation({
+    mutationFn: (data: MemberForm) => api.post('/association-members', data),
+    onSuccess: () => {
+      invalidateAll();
+      showSuccess('เพิ่มสมาชิกสำเร็จ');
+      closeMemberModal();
+    },
+    onError: (error: any) => showError(error.response?.data?.message || 'เกิดข้อผิดพลาด'),
+  });
+
+  const updateMemberMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<MemberForm> }) =>
+      api.patch(`/association-members/by-id/${id}`, data),
+    onSuccess: () => {
+      invalidateAll();
+      showSuccess('แก้ไขข้อมูลสมาชิกสำเร็จ');
+      closeMemberModal();
+    },
+    onError: (error: any) => showError(error.response?.data?.message || 'เกิดข้อผิดพลาด'),
+  });
+
+  const deleteMemberMutation = useMutation({
+    mutationFn: (id: string) => api.delete(`/association-members/by-id/${id}`),
+    onSuccess: () => {
+      invalidateAll();
+      showSuccess('ลบสมาชิกสำเร็จ');
+    },
+    onError: (error: any) => showError(error.response?.data?.message || 'เกิดข้อผิดพลาด'),
+  });
+
   const openClusterModal = (cluster?: SchoolCluster) => {
     if (cluster) {
       setEditingCluster(cluster);
@@ -300,6 +357,52 @@ export default function SchoolsPage() {
       updateSchoolMutation.mutate({ id: editingSchool.id, data: updateData });
     } else {
       createSchoolMutation.mutate(data);
+    }
+  };
+
+  const openMemberModal = (member?: AssociationMemberRow) => {
+    if (member) {
+      setEditingMember(member);
+      memberForm.reset({
+        schoolId: member.school.id,
+        memberTypeId: member.memberType.id,
+        firstName: member.firstName,
+        lastName: member.lastName,
+        idCardNo: member.idCardNo || '',
+        phone: member.phone || '',
+        position: member.position || '',
+        associationMemberNo: member.associationMemberNo || '',
+        notes: member.notes || '',
+      });
+    } else {
+      setEditingMember(null);
+      memberForm.reset({
+        schoolId: schoolFilter || '',
+        memberTypeId: '',
+        firstName: '',
+        lastName: '',
+        idCardNo: '',
+        phone: '',
+        position: '',
+        associationMemberNo: '',
+        notes: '',
+      });
+    }
+    setMemberModalOpen(true);
+  };
+
+  const closeMemberModal = () => {
+    setMemberModalOpen(false);
+    setEditingMember(null);
+    memberForm.reset();
+  };
+
+  const onMemberSubmit = (data: MemberForm) => {
+    if (editingMember) {
+      const { schoolId, ...updateData } = data;
+      updateMemberMutation.mutate({ id: editingMember.id, data: updateData });
+    } else {
+      createMemberMutation.mutate(data);
     }
   };
 
@@ -595,6 +698,7 @@ export default function SchoolsPage() {
               <th>ประเภท</th>
               <th>โรงเรียน</th>
               <th>กลุ่ม</th>
+              <th className="text-right">จัดการ</th>
             </tr>
           </thead>
           <tbody>
@@ -607,6 +711,26 @@ export default function SchoolsPage() {
                 <td className="text-slate-500">{member.memberType.name}</td>
                 <td>{member.school.name}</td>
                 <td className="text-violet-700">{member.school.cluster?.name || '-'}</td>
+                <td>
+                  <div className="flex justify-end gap-1">
+                    <button
+                      onClick={() => openMemberModal(member)}
+                      className="p-2 rounded-lg hover:bg-slate-100 text-slate-500"
+                    >
+                      <Edit size={18} />
+                    </button>
+                    <button
+                      onClick={() =>
+                        showConfirm('ต้องการลบสมาชิกนี้หรือไม่?', () =>
+                          deleteMemberMutation.mutate(member.id),
+                        )
+                      }
+                      className="p-2 rounded-lg hover:bg-red-50 text-slate-500 hover:text-red-600"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
+                </td>
               </tr>
             ))}
           </tbody>
@@ -635,6 +759,14 @@ export default function SchoolsPage() {
         <button onClick={() => openSchoolModal()} className="btn-primary">
           <Plus size={20} />
           เพิ่มโรงเรียน
+        </button>
+      );
+    }
+    if (manageTab === 'members') {
+      return (
+        <button onClick={() => openMemberModal()} className="btn-primary">
+          <Plus size={20} />
+          เพิ่มสมาชิก
         </button>
       );
     }
@@ -910,6 +1042,140 @@ export default function SchoolsPage() {
                     type="submit"
                     className="btn-primary flex-1"
                     disabled={createSchoolMutation.isPending || updateSchoolMutation.isPending}
+                  >
+                    บันทึก
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {memberModalOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+            onClick={closeMemberModal}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="bg-white rounded-2xl w-full max-w-md p-6 shadow-xl max-h-[90vh] overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-semibold">
+                  {editingMember ? 'แก้ไขสมาชิก' : 'เพิ่มสมาชิก'}
+                </h2>
+                <button onClick={closeMemberModal} className="p-2 hover:bg-slate-100 rounded-lg">
+                  <X size={20} />
+                </button>
+              </div>
+              <form onSubmit={memberForm.handleSubmit(onMemberSubmit)} className="space-y-4">
+                <div>
+                  <label className="label">โรงเรียน *</label>
+                  <select
+                    {...memberForm.register('schoolId', { required: 'กรุณาเลือกโรงเรียน' })}
+                    className="input"
+                    disabled={!!editingMember}
+                  >
+                    <option value="">เลือกโรงเรียน</option>
+                    {schools?.map((school) => (
+                      <option key={school.id} value={school.id}>
+                        {school.name}
+                      </option>
+                    ))}
+                  </select>
+                  {memberForm.formState.errors.schoolId && (
+                    <p className="text-sm text-red-500 mt-1">
+                      {memberForm.formState.errors.schoolId.message}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <label className="label">ประเภทสมาชิก *</label>
+                  <select
+                    {...memberForm.register('memberTypeId', { required: 'กรุณาเลือกประเภทสมาชิก' })}
+                    className="input"
+                  >
+                    <option value="">เลือกประเภท</option>
+                    {memberTypes?.map((mt) => (
+                      <option key={mt.id} value={mt.id}>
+                        {mt.name}
+                      </option>
+                    ))}
+                  </select>
+                  {memberForm.formState.errors.memberTypeId && (
+                    <p className="text-sm text-red-500 mt-1">
+                      {memberForm.formState.errors.memberTypeId.message}
+                    </p>
+                  )}
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="label">ชื่อ *</label>
+                    <input
+                      {...memberForm.register('firstName', { required: 'กรุณากรอกชื่อ' })}
+                      className="input"
+                    />
+                    {memberForm.formState.errors.firstName && (
+                      <p className="text-sm text-red-500 mt-1">
+                        {memberForm.formState.errors.firstName.message}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="label">นามสกุล *</label>
+                    <input
+                      {...memberForm.register('lastName', { required: 'กรุณากรอกนามสกุล' })}
+                      className="input"
+                    />
+                    {memberForm.formState.errors.lastName && (
+                      <p className="text-sm text-red-500 mt-1">
+                        {memberForm.formState.errors.lastName.message}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <div>
+                  <label className="label">เลขบัตรประชาชน</label>
+                  <input {...memberForm.register('idCardNo')} className="input" maxLength={13} />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="label">เบอร์โทร</label>
+                    <input {...memberForm.register('phone')} className="input" />
+                  </div>
+                  <div>
+                    <label className="label">เลขสมาชิกสมาคม</label>
+                    <input {...memberForm.register('associationMemberNo')} className="input" />
+                  </div>
+                </div>
+                <div>
+                  <label className="label">ตำแหน่ง</label>
+                  <input
+                    {...memberForm.register('position')}
+                    className="input"
+                    placeholder="เช่น ผู้อำนวยการ, ครู"
+                  />
+                </div>
+                <div>
+                  <label className="label">หมายเหตุ</label>
+                  <textarea {...memberForm.register('notes')} className="input min-h-[60px]" />
+                </div>
+                <div className="flex gap-3 pt-4">
+                  <button type="button" onClick={closeMemberModal} className="btn-secondary flex-1">
+                    ยกเลิก
+                  </button>
+                  <button
+                    type="submit"
+                    className="btn-primary flex-1"
+                    disabled={createMemberMutation.isPending || updateMemberMutation.isPending}
                   >
                     บันทึก
                   </button>

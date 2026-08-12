@@ -39,6 +39,7 @@ export interface MembershipRegisterForm {
   memberNo: string;
   memberSince: string;
   governmentAgency: string;
+  schoolId: string;
   applicationDate: string;
   fullName: string;
   birthDate: string;
@@ -152,6 +153,7 @@ export function createDefaultForm(type: MembershipType = 'ordinary'): Membership
     memberNo: '',
     memberSince: '',
     governmentAgency: '',
+    schoolId: '',
     applicationDate: new Date().toISOString().split('T')[0],
     fullName: '',
     birthDate: '',
@@ -165,6 +167,72 @@ export function createDefaultForm(type: MembershipType = 'ordinary'): Membership
     beneficiaries: Array.from({ length: 3 }, () => emptyBeneficiary()),
     applicantSignatureName: '',
     applicantSignatureDate: new Date().toISOString().split('T')[0],
+  };
+}
+
+// ข้อมูลตัวอย่างสำหรับกรอกฟอร์มอัตโนมัติ (ใช้ตอน dev เท่านั้น) — 2 โปรไฟล์
+export function createDemoForm(
+  index: number,
+  school?: { id: string; name: string },
+): MembershipRegisterForm {
+  const type: MembershipType = index === 1 ? 'contributory' : 'ordinary';
+  const base = createDefaultForm(type);
+
+  const padBlood = (rows: BloodRelative[]): BloodRelative[] =>
+    Array.from({ length: 7 }, (_, i) => rows[i] ?? { name: '', relationship: '' });
+  const padBene = (rows: Beneficiary[]): Beneficiary[] =>
+    Array.from({ length: 3 }, (_, i) => rows[i] ?? emptyBeneficiary());
+
+  const profiles: Partial<MembershipRegisterForm>[] = [
+    {
+      // สามัญ — หญิง สมรส
+      fullName: 'สมหญิง ใจดี',
+      birthDate: '1986-05-20',
+      age: '40',
+      nationalId: '1100701234567',
+      registeredAddress: { houseNo: '88', moo: '4', road: '', soi: '', subdistrict: 'แม่ฟ้าหลวง', district: 'แม่ฟ้าหลวง', province: 'เชียงราย', zip: '57240', phone: '0810000001' },
+      contactAddress: { houseNo: '88', moo: '4', road: '', soi: '', subdistrict: 'แม่ฟ้าหลวง', district: 'แม่ฟ้าหลวง', province: 'เชียงราย', zip: '57240', phone: '0810000001' },
+      maritalStatus: 'married',
+      spouseName: 'สมชาย ใจดี',
+      bloodRelatives: padBlood([
+        { name: 'นายมี ใจดี', relationship: 'บิดา' },
+        { name: 'นางมา ใจดี', relationship: 'มารดา' },
+        { name: 'สมชาย ใจดี', relationship: 'สามี' },
+        { name: 'เด็กหญิงแก้ว ใจดี', relationship: 'บุตร' },
+      ]),
+      beneficiaries: padBene([
+        { name: 'สมชาย ใจดี', relationship: 'สามี', nationalId: '1100704444444', houseNo: '88', moo: '4', road: '', soi: '', subdistrict: 'แม่ฟ้าหลวง', district: 'แม่ฟ้าหลวง', province: 'เชียงราย', zip: '57240', phone: '0810000009', contactPerson: 'สมชาย ใจดี', contactPhone: '0810000009' },
+      ]),
+      applicantSignatureName: 'นางสมหญิง ใจดี',
+    },
+    {
+      // สมทบ — ชาย โสด
+      fullName: 'ประสิทธิ์ มั่นคง',
+      birthDate: '1979-11-02',
+      age: '46',
+      nationalId: '1100709876543',
+      registeredAddress: { houseNo: '12/3', moo: '7', road: '', soi: '', subdistrict: 'เทอดไทย', district: 'แม่ฟ้าหลวง', province: 'เชียงราย', zip: '57240', phone: '0820000002' },
+      contactAddress: { houseNo: '12/3', moo: '7', road: '', soi: '', subdistrict: 'เทอดไทย', district: 'แม่ฟ้าหลวง', province: 'เชียงราย', zip: '57240', phone: '0820000002' },
+      maritalStatus: 'single',
+      spouseName: '',
+      bloodRelatives: padBlood([
+        { name: 'นายแก่น มั่นคง', relationship: 'บิดา' },
+        { name: 'นางสมปอง มั่นคง', relationship: 'มารดา' },
+        { name: 'ประสงค์ มั่นคง', relationship: 'พี่ชาย' },
+      ]),
+      beneficiaries: padBene([
+        { name: 'นางสมปอง มั่นคง', relationship: 'มารดา', nationalId: '1100705555555', houseNo: '12/3', moo: '7', road: '', soi: '', subdistrict: 'เทอดไทย', district: 'แม่ฟ้าหลวง', province: 'เชียงราย', zip: '57240', phone: '0820000008', contactPerson: 'นางสมปอง มั่นคง', contactPhone: '0820000008' },
+      ]),
+      applicantSignatureName: 'นายประสิทธิ์ มั่นคง',
+    },
+  ];
+
+  const p = profiles[index] ?? profiles[0];
+  return {
+    ...base,
+    ...p,
+    schoolId: school?.id ?? '',
+    governmentAgency: school?.name ?? '',
   };
 }
 

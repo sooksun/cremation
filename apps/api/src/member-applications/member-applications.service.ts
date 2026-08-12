@@ -24,8 +24,19 @@ export class MemberApplicationsService {
     private readonly auditLog: AuditLogService,
   ) {}
 
+  // Public: รายชื่อโรงเรียน active สำหรับ dropdown หน้าใบสมัคร (ไม่ต้อง login)
+  async listSchoolsForRegistration() {
+    return this.prisma.school.findMany({
+      where: { isActive: true },
+      select: { id: true, name: true, code: true },
+      orderBy: { name: 'asc' },
+    });
+  }
+
   async submit(dto: SubmitApplicationDto) {
-    const school = await this.resolveSchoolByAgency(dto.governmentAgency);
+    const school = dto.schoolId
+      ? await this.resolveSchoolById(dto.schoolId)
+      : await this.resolveSchoolByAgency(dto.governmentAgency);
 
     const { firstName, lastName } = splitFullName(dto.fullName);
     const memberTypeCode = dto.type === 'ordinary' ? 'REG' : 'STF';
@@ -177,6 +188,16 @@ export class MemberApplicationsService {
       applicationDeadline: member.applicationDeadline,
       school: member.school.name,
     };
+  }
+
+  private async resolveSchoolById(schoolId: string) {
+    const school = await this.prisma.school.findFirst({
+      where: { id: schoolId, isActive: true },
+    });
+    if (!school) {
+      throw new BadRequestException('ไม่พบโรงเรียนที่เลือกในระบบ');
+    }
+    return school;
   }
 
   private async resolveSchoolByAgency(agency: string) {

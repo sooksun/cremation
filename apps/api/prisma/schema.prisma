@@ -76,6 +76,7 @@ enum AuditAction {
   // Association & PII
   ASSOCIATION_MEMBER_CREATE
   ASSOCIATION_MEMBER_UPDATE
+  ASSOCIATION_MEMBER_DELETE
 
   // Sensitive report generation (PII / financial disclosure)
   REPORT_GENERATE
