@@ -35,7 +35,9 @@ echo "==> rebuild api + web"
 $COMPOSE build api web
 
 echo "==> restart (api รัน 'prisma migrate deploy' ตอน boot)"
-$COMPOSE up -d --force-recreate --no-deps api web
+# backup ต้อง recreate ด้วย ไม่งั้นจะค้าง env เก่า (เช่น DATABASE_URL ที่เปลี่ยนรหัสผ่านแล้ว)
+# จน dump ไม่ผ่านเงียบ ๆ
+$COMPOSE up -d --force-recreate --no-deps api web backup
 
 echo "==> สถานะ"
 $COMPOSE ps
