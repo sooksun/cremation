@@ -159,6 +159,11 @@ export const AMOUNT_HEADER = 'ยอดที่ต้องชำระ';
 /** ค่าที่ถือว่าชำระแล้ว — ตรงกับที่ processPaymentUpload รับมาแต่เดิม */
 const PAID_VALUES = ['ชำระแล้ว', 'ชำระ', 'paid'];
 
+/** ใช้ร่วมกับ controller ตอนรับ body JSON แบบเดิม — อย่าเขียนรายการนี้ซ้ำที่อื่น */
+export function isPaidStatus(value: unknown): boolean {
+  return PAID_VALUES.includes(String(value ?? '').trim());
+}
+
 export interface ParsedPaymentRow {
   /** เลขบรรทัดจริงในไฟล์ (header = 1) */
   rowNo: number;
@@ -215,7 +220,7 @@ export function parsePaymentFile(buffer: Buffer): ParsedPaymentFile {
     const row: ParsedPaymentRow = {
       rowNo: i + 1,
       memberNo,
-      isPaid: PAID_VALUES.includes(status),
+      isPaid: isPaidStatus(status),
       ...(amount !== undefined && Number.isFinite(amount) ? { amount } : {}),
     };
 
@@ -1036,7 +1041,7 @@ Expected: FAIL — constructor รับ argument เดียว และย�
           rows: (body.data ?? []).map((row, index) => ({
             rowNo: index + 2,
             memberNo: String(row['เลขสมาชิก'] ?? '').trim(),
-            isPaid: ['ชำระแล้ว', 'ชำระ', 'paid'].includes(String(row['สถานะ'] ?? '').trim()),
+            isPaid: isPaidStatus(row['สถานะ']),
             amount: row['ยอดที่ต้องชำระ'] ? Number(row['ยอดที่ต้องชำระ']) : undefined,
           })).filter((row) => row.memberNo !== ''),
           duplicates: [],
@@ -1083,7 +1088,7 @@ Expected: FAIL — constructor รับ argument เดียว และย�
 ```ts
 import { UploadedFile, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { parsePaymentFile } from './payment-file.parser';
+import { parsePaymentFile, isPaidStatus } from './payment-file.parser';
 import { PaymentReconciliationService } from './payment-reconciliation.service';
 import { UploadPaymentDto } from './dto/upload-payment.dto';
 ```
