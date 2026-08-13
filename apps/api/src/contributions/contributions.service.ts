@@ -23,6 +23,22 @@ interface SettleContributionResult {
   voidedReceipt: VoidedReceiptInfo | null;
 }
 
+type ContributionLedgerAccounts = {
+  cashAccount: { id: string } | null;
+  bankAccount: { id: string } | null;
+  welfareRevenue: { id: string } | null;
+  serviceRevenue: { id: string } | null;
+};
+
+/**
+ * ผังบัญชีกับบัญชีธนาคารเริ่มต้นเป็นค่าเดียวกันทั้งรอบงาน
+ * งานที่ลงชำระหลายรายการจึงหามาครั้งเดียวแล้วส่งต่อเข้าลูป ไม่ต้องถามฐานข้อมูลซ้ำทุกแถว
+ */
+interface SettlementContext {
+  accounts: ContributionLedgerAccounts;
+  defaultBankAccountId?: string;
+}
+
 // เงินเก็บเป็น Decimal 2 ตำแหน่ง การเทียบยอดจึงต้องเผื่อความคลาดเคลื่อนของ float ไว้ครึ่งสตางค์
 const SETTLEMENT_TOLERANCE = 0.005;
 
@@ -67,6 +83,18 @@ export class ContributionsService {
     const welfareRate = Number(period.welfareRate);
     const serviceFee = this.appSettings.effectiveServiceFee(Number(period.serviceFee), serviceFeeEnabled);
     return { welfareRate, serviceFee, totalAmount: welfareRate + serviceFee, serviceFeeEnabled };
+  }
+
+  /**
+   * หาค่าที่ใช้ร่วมกันทั้งรอบงานมาครั้งเดียว สำหรับงานที่ลงชำระหลายรายการติดกัน
+   * (อัปโหลด Excel / ลงชำระทีละหลายคน) แล้วส่งเข้า settleContribution เป็น context
+   */
+  private async resolveSettlementContext(): Promise<SettlementContext> {
+    const [accounts, defaultBankAccountId] = await Promise.all([
+      this.getContributionLedgerAccounts(),
+      this.getDefaultBankAccountId(),
+    ]);
+    return { accounts, defaultBankAccountId };
   }
 
   private async getContributionLedgerAccounts() {
@@ -277,6 +305,9 @@ export class ContributionsService {
       member: { memberNo: string; associationMember?: { firstName: string; lastName: string } | null };
     },
     params: { amount: number; paidDate?: string | Date | null; receiptId?: string },
+    // งานที่ลงชำระหลายรายการส่งผังบัญชี/บัญชีธนาคารที่หามาแล้วเข้ามาใช้ร่วมกัน
+    // ไม่ส่งมา (ทางลงชำระรายคน) ก็หาเองเหมือนเดิมทุกประการ
+    context?: SettlementContext,
   ): Promise<SettleContributionResult> {
     const amount = Number(params.amount);
 
@@ -348,9 +379,8 @@ export class ContributionsService {
 
     // เลขเอกสารสร้างนอก transaction (DocumentNumberService เปิด transaction ของตัวเองอยู่แล้ว)
     const receiptNo = await this.documentNumberService.generateNumber(DocumentType.RECEIPT);
-    const defaultBankAccountId = await this.getDefaultBankAccountId();
-    const { cashAccount, bankAccount, welfareRevenue, serviceRevenue } =
-      await this.getContributionLedgerAccounts();
+    const { accounts, defaultBankAccountId } = context ?? (await this.resolveSettlementContext());
+    const { cashAccount, bankAccount, welfareRevenue, serviceRevenue } = accounts;
 
     // ผังบัญชีไม่ครบ = ออกใบเสร็จได้แต่ลงบัญชีคู่ไม่ได้ ต้องหยุดตั้งแต่ยังไม่เขียนอะไรลงฐานข้อมูล
     // ไม่ใช่เงียบ ๆ ข้ามการลงบัญชีจนเงินเข้าใบเสร็จแต่ไม่เข้าบัญชี
@@ -718,6 +748,10 @@ export class ContributionsService {
     // ใบเสร็จที่ถูกยกเลิกระหว่างรอบนี้ ต้องตามกลับได้จาก audit log ของรอบเดียวกัน
     const voidedReceipts: VoidedReceiptInfo[] = [];
 
+    // ผังบัญชีกับบัญชีธนาคารเริ่มต้นเหมือนกันทุกแถว หามาครั้งเดียวต่อรอบ
+    // ไม่ใช่แถวละ 6 query (620 แถว = ~3,700 query ที่ถามคำถามเดิมซ้ำ)
+    const settlementContext = await this.resolveSettlementContext();
+
     for (const payment of payments) {
       if (!payment.contributionId) {
         results.push({
@@ -773,11 +807,15 @@ export class ContributionsService {
       }
 
       try {
-        const settled = await this.settleContribution(contribution, {
-          amount: payment.amount,
-          paidDate: payment.paidDate,
-          receiptId: payment.receiptId,
-        });
+        const settled = await this.settleContribution(
+          contribution,
+          {
+            amount: payment.amount,
+            paidDate: payment.paidDate,
+            receiptId: payment.receiptId,
+          },
+          settlementContext,
+        );
         if (settled.voidedReceipt) {
           voidedReceipts.push(settled.voidedReceipt);
         }
@@ -1374,6 +1412,9 @@ export class ContributionsService {
       errors: [] as Array<{ memberNo: string; error: string }>,
     };
 
+    // ผังบัญชีกับบัญชีธนาคารเริ่มต้นเหมือนกันทุกแถวของไฟล์ หามาครั้งเดียวต่อการอัปโหลด
+    const settlementContext = await this.resolveSettlementContext();
+
     // ประมวลผลแต่ละแถว
     for (const row of excelData) {
       try {
@@ -1444,6 +1485,7 @@ export class ContributionsService {
               },
             },
             { amount, paidDate: contribution.paidDate },
+            settlementContext,
           );
 
           results.success++;
