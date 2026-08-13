@@ -145,9 +145,26 @@ export default function ContributionMatrixPage() {
 
   // Mutation สำหรับบันทึกการชำระเงินหลายรายการ
   const batchPaymentMutation = useMutation({
-    mutationFn: async (payments: Array<{ contributionId: string; amount: number; paidDate?: string }>) => {
+    mutationFn: async ({ payments, newRows }: {
+      payments: Array<{ contributionId: string; amount: number; paidDate?: string }>;
+      newRows: Array<{ memberId: string; periodId: string }>;
+    }) => {
+      // ช่องที่ยังไม่มีรายการของงวดนั้น ให้ server สร้างรายการแล้วบันทึกชำระให้
+      const created = await Promise.allSettled(
+        newRows.map((row) => api.post('/contributions/pay-member', row)),
+      );
+      const createdFailed = created.filter((r) => r.status === 'rejected').length;
+
+      if (payments.length === 0) {
+        return { success: newRows.length - createdFailed, failed: createdFailed, results: [] };
+      }
+
       const response = await api.post('/contributions/batch-payment', { payments });
-      return response.data;
+      return {
+        ...response.data,
+        success: (response.data.success ?? 0) + (newRows.length - createdFailed),
+        failed: (response.data.failed ?? 0) + createdFailed,
+      };
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['contribution-matrix'] });
@@ -251,6 +268,8 @@ export default function ContributionMatrixPage() {
 
     // Build payments array from statusChanges
     const payments: Array<{ contributionId: string; amount: number; paidDate?: string }> = [];
+    // ช่องที่ยังไม่มีรายการของงวดนั้น — ให้ server สร้างรายการแล้วบันทึกชำระให้ เหมือนทางอัปโหลด Excel
+    const newRows: Array<{ memberId: string; periodId: string }> = [];
 
     statusChanges.forEach((change, key) => {
       // Find the contribution data
@@ -268,10 +287,11 @@ export default function ContributionMatrixPage() {
               payments.push({
                 contributionId: monthData.contributionId,
                 amount: Number(amount),
-                paidDate: new Date().toISOString().split('T')[0],
               });
             } else {
-              console.warn(`Amount is 0 or invalid for contribution ${monthData.contributionId}, skipping`);
+              // ไม่มียอด (ยังไม่ generate ราคาให้) — ให้ฝั่ง server คิดยอดจากงวดเอง
+              const periodId = matrixData?.periods?.find((p) => p.month === month)?.id;
+              if (periodId) newRows.push({ memberId, periodId });
             }
           } else if (change.status === 'unpaid' || change.status === 'arrears') {
             // Cancel payment (set amount to 0)
@@ -281,20 +301,19 @@ export default function ContributionMatrixPage() {
               amount: 0,
             });
           }
-        } else {
-          console.warn(`No contribution data found for member ${memberId}, month ${month}`);
+        } else if (change.status === 'paid') {
+          const periodId = matrixData?.periods?.find((p) => p.month === month)?.id;
+          if (periodId) newRows.push({ memberId, periodId });
         }
-      } else {
-        console.warn(`Member row not found for memberId: ${memberId}`);
       }
     });
 
-    if (payments.length === 0) {
+    if (payments.length === 0 && newRows.length === 0) {
       showError('ไม่มีรายการที่ต้องบันทึก');
       return;
     }
 
-    batchPaymentMutation.mutate(payments);
+    batchPaymentMutation.mutate({ payments, newRows });
   };
 
   // Status cell component

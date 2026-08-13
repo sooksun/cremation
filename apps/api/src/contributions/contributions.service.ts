@@ -176,6 +176,167 @@ export class ContributionsService {
     return period;
   }
 
+  /**
+   * วันที่ชำระที่ไม่ได้ระบุมา ต้องลงเป็นสิ้นเดือนของงวดนั้น ไม่ใช่วันนี้
+   * ไม่งั้นการคีย์ย้อนหลังจะทำให้ใบเสร็จและบัญชีไปตกเดือนที่คีย์ แล้วรายงานรายเดือนเพี้ยนทั้งชุด
+   */
+  private resolvePaidDate(period: { year: number; month: number }, supplied?: string | Date | null): Date {
+    if (supplied) return new Date(supplied);
+    const now = new Date();
+    if (now.getFullYear() === period.year && now.getMonth() + 1 === period.month) return now;
+    return new Date(period.year, period.month, 0, 23, 59, 59);
+  }
+
+  /**
+   * จุดเดียวที่บันทึกการชำระเงินสมทบ — ใช้ร่วมกันทั้งการลงรายคน การลงทีละหลายคน
+   * และการอัปโหลด Excel เพื่อให้ทั้งสามทางออกใบเสร็จและลงบัญชีเหมือนกันเสมอ
+   */
+  private async settleContribution(
+    contribution: {
+      id: string;
+      schoolId: string;
+      memberId: string;
+      welfareAmount: Decimal | number;
+      serviceAmount: Decimal | number;
+      paidAmount: Decimal | number;
+      receiptId: string | null;
+      period: { year: number; month: number };
+      member: { memberNo: string; associationMember?: { firstName: string; lastName: string } | null };
+    },
+    params: { amount: number; paidDate?: string | Date | null; receiptId?: string },
+  ) {
+    const amount = Number(params.amount);
+
+    if (!amount) {
+      // ยกเลิกการชำระ: กลับไปเป็นค้างชำระ ไม่ใช่ล้างธงทิ้งจนหายจากรายงานค้างชำระ
+      return this.prisma.memberContribution.update({
+        where: { id: contribution.id },
+        data: { paidAmount: 0, paidDate: null, receiptId: null, isArrears: true },
+      });
+    }
+
+    const paidDate = this.resolvePaidDate(contribution.period, params.paidDate);
+    let receiptId = params.receiptId || contribution.receiptId;
+
+    if (!receiptId) {
+      const receiptNo = await this.documentNumberService.generateNumber(DocumentType.RECEIPT);
+      const defaultBankAccountId = await this.getDefaultBankAccountId();
+      const { cashAccount, bankAccount, welfareRevenue, serviceRevenue } =
+        await this.getContributionLedgerAccounts();
+
+      const memberLabel =
+        `${contribution.member.associationMember?.firstName ?? ''} ${contribution.member.associationMember?.lastName ?? ''}`.trim()
+        || contribution.member.memberNo;
+
+      const receipt = await this.prisma.receipt.create({
+        data: {
+          receiptNo,
+          schoolId: contribution.schoolId,
+          date: paidDate,
+          type: ReceiptType.MEMBER_CONTRIBUTION,
+          description: `ชำระเงินสงเคราะห์ประจำเดือน ${contribution.period.month}/${contribution.period.year} - ${memberLabel} (${contribution.member.memberNo})`,
+          amount,
+          ...(defaultBankAccountId ? { bankAccountId: defaultBankAccountId } : {}),
+        },
+      });
+      receiptId = receipt.id;
+
+      if (cashAccount && welfareRevenue && serviceRevenue) {
+        await this.prisma.ledgerEntry.createMany({
+          data: this.buildContributionLedgerEntries({
+            debitAccountId: bankAccount?.id || cashAccount.id,
+            welfareRevenueId: welfareRevenue.id,
+            serviceRevenueId: serviceRevenue.id,
+            paidDate,
+            amount,
+            welfareAmount: Number(contribution.welfareAmount),
+            serviceAmount: Number(contribution.serviceAmount),
+            receiptId: receipt.id,
+            memberLabel,
+          }),
+        });
+      }
+    }
+
+    const updated = await this.prisma.memberContribution.update({
+      where: { id: contribution.id },
+      data: { paidAmount: amount, paidDate, receiptId, isArrears: false },
+    });
+
+    await this.membershipRules.resetArrearsTracking(contribution.memberId);
+    return updated;
+  }
+
+  /**
+   * ลงชำระให้สมาชิกรายคนในงวดที่ระบุ โดยสร้างรายการของงวดให้เองถ้ายังไม่มี
+   * ทางอัปโหลด Excel ทำแบบนี้อยู่แล้ว การลงรายคนจึงต้องทำได้เหมือนกัน
+   * ไม่ใช่กดแล้วเงียบเพราะยังไม่มีแถวในงวดนั้น
+   */
+  async payMemberForPeriod(
+    params: { memberId: string; periodId: string; amount?: number; paidDate?: string },
+    actor?: ScopedUser,
+    ipAddress?: string,
+  ) {
+    const period = await this.prisma.contributionPeriod.findUnique({ where: { id: params.periodId } });
+    if (!period) {
+      throw new NotFoundException('ไม่พบงวด');
+    }
+    this.assertPeriodOpen(period, 'บันทึกการชำระ');
+
+    const member = await this.prisma.member.findUnique({
+      where: { id: params.memberId },
+      select: { id: true, memberNo: true, schoolId: true, associationMember: true },
+    });
+    if (!member) {
+      throw new NotFoundException('ไม่พบสมาชิก');
+    }
+    if (actor) {
+      this.schoolScope.assertSchoolAccess(actor, member.schoolId);
+    }
+
+    const { welfareRate, serviceFee, totalAmount } = await this.resolvePeriodAmounts(period);
+
+    let contribution = await this.prisma.memberContribution.findUnique({
+      where: { memberId_periodId: { memberId: member.id, periodId: period.id } },
+    });
+    if (!contribution) {
+      contribution = await this.prisma.memberContribution.create({
+        data: {
+          memberId: member.id,
+          periodId: period.id,
+          schoolId: member.schoolId,
+          welfareAmount: welfareRate,
+          serviceAmount: serviceFee,
+          totalAmount,
+          paidAmount: 0,
+        },
+      });
+    }
+
+    const result = await this.settleContribution(
+      {
+        ...contribution,
+        period: { year: period.year, month: period.month },
+        member: { memberNo: member.memberNo, associationMember: member.associationMember },
+      },
+      { amount: params.amount ?? Number(contribution.totalAmount), paidDate: params.paidDate },
+    );
+
+    if (actor) {
+      await this.auditLog.log({
+        userId: actor.id,
+        action: AuditAction.CONTRIBUTION_PAYMENT,
+        entityType: 'MemberContribution',
+        entityId: contribution.id,
+        schoolId: member.schoolId,
+        metadata: { memberNo: member.memberNo, periodId: period.id, amount: params.amount },
+        ipAddress,
+      });
+    }
+
+    return result;
+  }
+
   private assertPeriodOpen(period: { isClosed: boolean }, action: string) {
     if (period.isClosed) {
       throw new BadRequestException(`งวดนี้ปิดแล้ว ไม่สามารถ${action}ได้`);
@@ -289,7 +450,7 @@ export class ContributionsService {
       where: { id },
       include: {
         period: true,
-        member: { select: { groupId: true } },
+        member: { select: { groupId: true, memberNo: true, associationMember: true } },
       },
     });
 
@@ -306,14 +467,10 @@ export class ContributionsService {
       await this.schoolScope.assertGroupLeaderCanPay(actor, contribution);
     }
 
-    const result = await this.prisma.memberContribution.update({
-      where: { id },
-      data: {
-        paidAmount: dto.amount,
-        paidDate: new Date(dto.paidDate),
-        receiptId: dto.receiptId,
-        isArrears: false,
-      },
+    const result = await this.settleContribution(contribution, {
+      amount: dto.amount,
+      paidDate: dto.paidDate,
+      receiptId: dto.receiptId,
     });
 
     if (actor) {
@@ -344,9 +501,6 @@ export class ContributionsService {
     if (!payments || payments.length === 0) {
       throw new BadRequestException('ไม่มีรายการที่ต้องบันทึก');
     }
-
-    const defaultBankAccountId = await this.getDefaultBankAccountId();
-    const { cashAccount, bankAccount, welfareRevenue, serviceRevenue } = await this.getContributionLedgerAccounts();
 
     const results: Array<{ contributionId: string; success: boolean; error?: string }> = [];
 
@@ -405,85 +559,11 @@ export class ContributionsService {
       }
 
       try {
-        if (payment.amount === 0 || payment.amount === null || payment.amount === undefined) {
-          await this.prisma.memberContribution.update({
-            where: { id: payment.contributionId },
-            data: {
-              paidAmount: 0,
-              paidDate: null,
-              receiptId: null,
-              isArrears: true,
-            },
-          });
-          results.push({ contributionId: payment.contributionId, success: true });
-          continue;
-        }
-
-        let receiptId = payment.receiptId || contribution.receiptId;
-        const paidDate = payment.paidDate ? new Date(payment.paidDate) : new Date();
-        const amount = Number(payment.amount);
-
-        if (!receiptId) {
-          const receiptNo = await this.documentNumberService.generateNumber(DocumentType.RECEIPT);
-
-          const receiptData: {
-            receiptNo: string;
-            schoolId: string;
-            date: Date;
-            type: ReceiptType;
-            description: string;
-            amount: number;
-            bankAccountId?: string;
-          } = {
-            receiptNo,
-            schoolId: contribution.schoolId,
-            date: paidDate,
-            type: ReceiptType.MEMBER_CONTRIBUTION,
-            description: `ชำระเงินสงเคราะห์ประจำเดือน ${contribution.period.month}/${contribution.period.year} - ${contribution.member.associationMember?.firstName ?? ''} ${contribution.member.associationMember?.lastName ?? ''} (${contribution.member.memberNo})`,
-            amount,
-          };
-
-          if (defaultBankAccountId) {
-            receiptData.bankAccountId = defaultBankAccountId;
-          }
-
-          const receipt = await this.prisma.receipt.create({ data: receiptData });
-          receiptId = receipt.id;
-
-          if (cashAccount && welfareRevenue && serviceRevenue) {
-            const welfareAmount = Number(contribution.welfareAmount);
-            const serviceAmount = Number(contribution.serviceAmount);
-            const memberLabel =
-              `${contribution.member.associationMember?.firstName ?? ''} ${contribution.member.associationMember?.lastName ?? ''}`.trim()
-              || contribution.member.memberNo;
-
-            await this.prisma.ledgerEntry.createMany({
-              data: this.buildContributionLedgerEntries({
-                debitAccountId: bankAccount?.id || cashAccount.id,
-                welfareRevenueId: welfareRevenue.id,
-                serviceRevenueId: serviceRevenue.id,
-                paidDate,
-                amount,
-                welfareAmount,
-                serviceAmount,
-                receiptId: receipt.id,
-                memberLabel,
-              }),
-            });
-          }
-        }
-
-        await this.prisma.memberContribution.update({
-          where: { id: payment.contributionId },
-          data: {
-            paidAmount: amount,
-            paidDate,
-            receiptId: receiptId || null,
-            isArrears: false,
-          },
+        await this.settleContribution(contribution, {
+          amount: payment.amount,
+          paidDate: payment.paidDate,
+          receiptId: payment.receiptId,
         });
-
-        await this.membershipRules.resetArrearsTracking(contribution.memberId);
         results.push({ contributionId: payment.contributionId, success: true });
       } catch (error: any) {
         const errorMessage = error.message || error.code || String(error);
@@ -1133,81 +1213,18 @@ export class ContributionsService {
         // ถ้า status เป็น "ชำระแล้ว" ให้บันทึกการชำระและสร้างใบเสร็จรับเงิน
         if (row.สถานะ === 'ชำระแล้ว' || row.สถานะ === 'ชำระ' || row.สถานะ === 'paid') {
           const amount = row.ยอดที่ต้องชำระ || Number(contribution.totalAmount);
-          const paidDate = contribution.paidDate || new Date();
 
-          // ตรวจสอบว่ามี receiptId อยู่แล้วหรือไม่
-          let receiptId = contribution.receiptId;
-
-          // ถ้ายังไม่มี receiptId ให้สร้าง receipt ใหม่
-          if (!receiptId) {
-            // สร้างใบเสร็จรับเงิน
-            const receiptNo = await this.documentNumberService.generateNumber(DocumentType.RECEIPT);
-            
-            const defaultBankAccountId = await this.getDefaultBankAccountId();
-            const { cashAccount, bankAccount, welfareRevenue, serviceRevenue } = await this.getContributionLedgerAccounts();
-
-            // สร้าง receipt - ไม่ส่ง bankAccountId ถ้าไม่มีหรือไม่ถูกต้อง
-            const receiptData: {
-              receiptNo: string;
-              schoolId: string;
-              date: Date;
-              type: ReceiptType;
-              description: string;
-              amount: number;
-              bankAccountId?: string;
-            } = {
-              receiptNo,
-              schoolId: member.schoolId,
-              date: paidDate,
-              type: ReceiptType.MEMBER_CONTRIBUTION,
-              description: `ชำระเงินสงเคราะห์ประจำเดือน ${month}/${year} - ${member.associationMember?.firstName ?? ''} ${member.associationMember?.lastName ?? ''} (${member.memberNo})`,
-              amount: amount,
-            };
-
-            // เพิ่ม bankAccountId เฉพาะเมื่อมี default bank account และ ID ถูกต้อง
-            if (defaultBankAccountId) {
-              receiptData.bankAccountId = defaultBankAccountId;
-            }
-
-            const receipt = await this.prisma.receipt.create({
-              data: receiptData,
-            });
-
-            receiptId = receipt.id;
-
-            if (cashAccount && welfareRevenue && serviceRevenue) {
-              const debitAccountId = bankAccount?.id || cashAccount.id;
-              const welfareAmount = Number(contribution.welfareAmount);
-              const serviceAmount = Number(contribution.serviceAmount);
-              const memberLabel = `${member.associationMember?.firstName ?? ''} ${member.associationMember?.lastName ?? ''}`.trim()
-                || member.memberNo;
-
-              await this.prisma.ledgerEntry.createMany({
-                data: this.buildContributionLedgerEntries({
-                  debitAccountId,
-                  welfareRevenueId: welfareRevenue.id,
-                  serviceRevenueId: serviceRevenue.id,
-                  paidDate,
-                  amount,
-                  welfareAmount,
-                  serviceAmount,
-                  receiptId: receipt.id,
-                  memberLabel,
-                }),
-              });
-            }
-          }
-
-          // อัปเดต contribution พร้อม receiptId (ถ้ายังไม่มี)
-          await this.prisma.memberContribution.update({
-            where: { id: contribution.id },
-            data: {
-              paidAmount: amount,
-              paidDate: paidDate,
-              receiptId: receiptId,
-              isArrears: false,
+          await this.settleContribution(
+            {
+              ...contribution,
+              period: { year, month },
+              member: {
+                memberNo: member.memberNo,
+                associationMember: member.associationMember,
+              },
             },
-          });
+            { amount, paidDate: contribution.paidDate },
+          );
 
           results.success++;
         } else if (Number(contribution.paidAmount) > 0) {

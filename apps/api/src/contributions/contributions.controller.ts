@@ -113,6 +113,16 @@ export class ContributionsController {
     return this.contributionsService.recordPayment(id, dto, req.user, req.ip);
   }
 
+  @Post('pay-member')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.SCHOOL_ADMIN, Role.FINANCE, Role.GROUP_LEADER)
+  payMemberForPeriod(
+    @Body() dto: { memberId: string; periodId: string; amount?: number; paidDate?: string },
+    @Request() req: { user: ScopedUser; ip?: string },
+  ) {
+    return this.contributionsService.payMemberForPeriod(dto, req.user, req.ip);
+  }
+
   @Post('batch-payment')
   @UseGuards(RolesGuard)
   @Roles(Role.ADMIN, Role.SCHOOL_ADMIN, Role.FINANCE, Role.GROUP_LEADER)
