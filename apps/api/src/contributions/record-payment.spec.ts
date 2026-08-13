@@ -16,6 +16,7 @@ import { AppSettingsService } from '../common/services/app-settings.service';
 describe('ContributionsService.recordPayment — ต้องออกใบเสร็จและลงบัญชีเหมือนทางอื่น', () => {
   let service: ContributionsService;
   let prisma: any;
+  let membershipRules: { resetArrearsTracking: jest.Mock };
 
   const CONTRIBUTION = {
     id: 'c1',
@@ -53,10 +54,12 @@ describe('ContributionsService.recordPayment — ต้องออกใบเ�
       $transaction: jest.fn().mockImplementation((fn: any) => fn(prisma)),
     };
 
+    membershipRules = { resetArrearsTracking: jest.fn() };
+
     service = new ContributionsService(
       prisma as unknown as PrismaService,
       {} as MembersService,
-      { resetArrearsTracking: jest.fn() } as unknown as MembershipRulesService,
+      membershipRules as unknown as MembershipRulesService,
       { generateNumber: jest.fn().mockResolvedValue('R202601-M0001') } as unknown as DocumentNumberService,
       { findDefault: jest.fn().mockResolvedValue({ id: 'bank-1' }) } as unknown as BankAccountsService,
       { assertSchoolAccess: jest.fn(), assertGroupLeaderCanPay: jest.fn() } as unknown as SchoolScopeService,
@@ -138,6 +141,53 @@ describe('ContributionsService.recordPayment — ต้องออกใบเ�
     ).rejects.toThrow(BadRequestException);
 
     expect(prisma.memberContribution.update).not.toHaveBeenCalled();
+  });
+
+  /**
+   * I2: รับไม่ครบยอดเรียกเก็บ = ยังค้างอยู่
+   * ถ้าล้างธงค้างชำระตามยอดที่รับมาเท่าไรก็ได้ สมาชิกจะขึ้นว่า "ชำระแล้ว"
+   * และหลุดจากรายงานค้างชำระ ทั้งที่ยอดรวมของงวดยังขาดอยู่
+   */
+  it('รับไม่ครบยอดที่เรียกเก็บ ต้องยังคงเป็นค้างชำระ', async () => {
+    await service.recordPayment('c1', { amount: 50, paidDate: '2026-01-20' });
+
+    expect(prisma.memberContribution.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ paidAmount: 50, isArrears: true }),
+      }),
+    );
+  });
+
+  it('รับไม่ครบยอดที่เรียกเก็บ ต้องไม่ล้างการนับเดือนค้างชำระของสมาชิก', async () => {
+    await service.recordPayment('c1', { amount: 50, paidDate: '2026-01-20' });
+
+    expect(membershipRules.resetArrearsTracking).not.toHaveBeenCalled();
+  });
+
+  it('รับครบยอดที่เรียกเก็บ ยังต้องล้างการนับเดือนค้างชำระเหมือนเดิม', async () => {
+    await service.recordPayment('c1', { amount: 105, paidDate: '2026-01-20' });
+
+    expect(membershipRules.resetArrearsTracking).toHaveBeenCalledWith('member-1');
+  });
+
+  /**
+   * I3: รับเกินยอดเรียกเก็บ ส่วนเกินจะถูกลงเป็นรายได้เงินสงเคราะห์ทั้งก้อนโดยไม่มีเพดาน
+   * พิมพ์ 2000 แทน 105 จึงออกใบเสร็จ 2,000 บาทและบัญชียังดุล — ต้องปฏิเสธตั้งแต่แรก
+   */
+  it('รับเกินยอดที่เรียกเก็บต้องถูกปฏิเสธ ไม่ใช่ลงส่วนเกินเป็นรายได้เงินสงเคราะห์', async () => {
+    await expect(
+      service.recordPayment('c1', { amount: 2000, paidDate: '2026-01-20' }),
+    ).rejects.toThrow(BadRequestException);
+
+    expect(prisma.receipt.create).not.toHaveBeenCalled();
+    expect(prisma.ledgerEntry.createMany).not.toHaveBeenCalled();
+    expect(prisma.memberContribution.update).not.toHaveBeenCalled();
+  });
+
+  it('ข้อความปฏิเสธยอดเกินต้องบอกทั้งยอดที่รับและยอดที่เรียกเก็บ', async () => {
+    await expect(
+      service.recordPayment('c1', { amount: 2000, paidDate: '2026-01-20' }),
+    ).rejects.toThrow(/2,000\.00.*105\.00/);
   });
 });
 

@@ -23,6 +23,13 @@ interface SettleContributionResult {
   voidedReceipt: VoidedReceiptInfo | null;
 }
 
+// เงินเก็บเป็น Decimal 2 ตำแหน่ง การเทียบยอดจึงต้องเผื่อความคลาดเคลื่อนของ float ไว้ครึ่งสตางค์
+const SETTLEMENT_TOLERANCE = 0.005;
+
+function formatBaht(value: number): string {
+  return value.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
 export interface PaidBySchoolSummary {
   schoolId: string;
   schoolName: string;
@@ -254,6 +261,7 @@ export class ContributionsService {
       memberId: string;
       welfareAmount: Decimal | number;
       serviceAmount: Decimal | number;
+      totalAmount: Decimal | number;
       paidAmount: Decimal | number;
       receiptId: string | null;
       period: { year: number; month: number };
@@ -276,6 +284,20 @@ export class ContributionsService {
     if (amount === 0) {
       return this.cancelContributionSettlement(contribution);
     }
+
+    // ยอดที่รับต้องไม่เกินยอดที่เรียกเก็บ ส่วนเกินจะถูกลงเป็นรายได้เงินสงเคราะห์ทั้งก้อน
+    // (บัญชียังดุลเพราะเดบิตเครดิตขยับพร้อมกัน) พิมพ์ผิดจึงหลุดไปเป็นรายได้จริงโดยไม่มีอะไรทัก
+    const billedTotal = Number(contribution.totalAmount);
+    const hasBilledTotal = Number.isFinite(billedTotal) && billedTotal > 0;
+    if (hasBilledTotal && amount - billedTotal > SETTLEMENT_TOLERANCE) {
+      throw new BadRequestException(
+        `จำนวนเงินที่รับ ${formatBaht(amount)} บาท เกินยอดที่เรียกเก็บ ${formatBaht(billedTotal)} บาท กรุณาตรวจสอบยอดอีกครั้ง`,
+      );
+    }
+
+    // จ่ายไม่ครบยอดที่เรียกเก็บ = ยังค้างอยู่ ห้ามล้างธงค้างชำระ
+    // ไม่งั้นสมาชิกจะขึ้นว่าชำระแล้วและหลุดจากรายงานค้างชำระ ทั้งที่ยอดรวมของงวดยังขาด
+    const coversBilled = !hasBilledTotal || amount - billedTotal >= -SETTLEMENT_TOLERANCE;
 
     const paidDate = this.resolvePaidDate(contribution.period, params.paidDate);
     const existingReceiptId = params.receiptId || contribution.receiptId;
@@ -304,9 +326,11 @@ export class ContributionsService {
       if (!needsReissue) {
         const updated = await this.prisma.memberContribution.update({
           where: { id: contribution.id },
-          data: { paidAmount: amount, paidDate, receiptId: existingReceiptId, isArrears: false },
+          data: { paidAmount: amount, paidDate, receiptId: existingReceiptId, isArrears: !coversBilled },
         });
-        await this.membershipRules.resetArrearsTracking(contribution.memberId);
+        if (coversBilled) {
+          await this.membershipRules.resetArrearsTracking(contribution.memberId);
+        }
         return { contribution: updated, voidedReceipt: null };
       }
 
@@ -370,13 +394,15 @@ export class ContributionsService {
 
       const updated = await tx.memberContribution.update({
         where: { id: contribution.id },
-        data: { paidAmount: amount, paidDate, receiptId: receipt.id, isArrears: false },
+        data: { paidAmount: amount, paidDate, receiptId: receipt.id, isArrears: !coversBilled },
       });
 
       return { contribution: updated, voidedReceipt };
     });
 
-    await this.membershipRules.resetArrearsTracking(contribution.memberId);
+    if (coversBilled) {
+      await this.membershipRules.resetArrearsTracking(contribution.memberId);
+    }
     return result;
   }
 
@@ -664,10 +690,8 @@ export class ContributionsService {
       });
     }
 
-    if (dto.amount > 0) {
-      await this.membershipRules.resetArrearsTracking(contribution.memberId);
-    }
-
+    // settleContribution ล้างการนับเดือนค้างชำระให้แล้วเฉพาะเมื่อจ่ายครบยอด
+    // ห้ามเรียกซ้ำที่นี่ ไม่งั้นการจ่ายไม่ครบจะถูกล้างธงกลับมาอีกทาง
     return result.contribution;
   }
 
