@@ -106,8 +106,7 @@ export default function ReceiptDetailPage() {
       pdf.save(`ใบเสร็จ-${receipt?.receiptNo || 'receipt'}.pdf`);
       
       showSuccess('ดาวน์โหลดใบเสร็จสำเร็จ');
-    } catch (error) {
-      console.error('Error generating PDF:', error);
+    } catch {
       showError('เกิดข้อผิดพลาดในการสร้าง PDF');
     } finally {
       setIsPrinting(false);
@@ -153,6 +152,9 @@ export default function ReceiptDetailPage() {
       ? `${receipt.bankAccount.bankName} ${receipt.bankAccount.accountNo}`
       : undefined,
     receiverName: 'เจ้าหน้าที่การเงิน',
+    // ส่งสถานะยกเลิกเข้าไปในตัวใบเสร็จ เพราะ PDF ที่ออกจากระบบมาจาก ReceiptTemplate เท่านั้น
+    voidedAt: receipt.voidedAt ?? null,
+    voidReason: receipt.voidReason ?? null,
   };
 
   return (
@@ -201,9 +203,13 @@ export default function ReceiptDetailPage() {
         </div>
       </div>
 
-      {/* ใบเสร็จที่ถูกยกเลิกต้องเห็นชัดทั้งบนหน้าจอและตอนพิมพ์ ไม่ให้ถูกใช้เป็นหลักฐานการรับเงิน */}
+      {/*
+        แถบนี้เป็นการเตือนบนหน้าจอเท่านั้น ตอนพิมพ์และตอนทำ PDF ใช้ตราประทับที่อยู่ใน
+        ReceiptTemplate แทน — ถ้าปล่อยแถบนี้ไว้ตอนพิมพ์ มันจะถูก .card { position: absolute; top: 0 }
+        ดันไปทับตัวใบเสร็จ
+      */}
       {receipt.voidedAt && (
-        <div className="card border-2 border-rose-300 bg-rose-50 p-4 text-rose-700">
+        <div className="card border-2 border-rose-300 bg-rose-50 p-4 text-rose-700 print:hidden">
           <p className="font-bold">ใบเสร็จนี้ถูกยกเลิกแล้ว — ไม่ใช่หลักฐานการรับเงิน</p>
           <p className="text-sm mt-1">
             ยกเลิกเมื่อ{' '}
@@ -218,7 +224,7 @@ export default function ReceiptDetailPage() {
       )}
 
       {/* Receipt Preview */}
-      <div className="card p-6 print:p-0 print:shadow-none print:border-0">
+      <div className="card p-6 print:p-0 print:shadow-none print:border-0 receipt-print-area">
         <ReceiptTemplate
           ref={receiptRef} 
           data={receiptData} 
@@ -247,10 +253,12 @@ export default function ReceiptDetailPage() {
           body * {
             visibility: hidden;
           }
-          .card, .card * {
+          /* จำกัดการดันขึ้นหัวกระดาษไว้ที่กล่องใบเสร็จกล่องเดียว
+             ถ้าเหวี่ยง .card ทุกกล่องเป็น absolute top:0 กล่องอื่นบนหน้านี้จะพิมพ์ทับกัน */
+          .receipt-print-area, .receipt-print-area * {
             visibility: visible;
           }
-          .card {
+          .receipt-print-area {
             position: absolute;
             left: 0;
             top: 0;

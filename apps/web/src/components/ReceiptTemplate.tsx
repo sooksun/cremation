@@ -15,6 +15,10 @@ interface ReceiptData {
   bankAccount?: string;
   receiverName?: string;
   receiverSignature?: string;
+  // ใบเสร็จที่ถูกยกเลิกต้องประทับตราอยู่ในตัวใบเสร็จเอง ไม่ใช่แค่แถบเตือนบนหน้าจอ
+  // เพราะ html2canvas จับเฉพาะ element นี้ไปทำ PDF และ PDF คือฉบับที่ออกจากสำนักงาน
+  voidedAt?: string | null;
+  voidReason?: string | null;
 }
 
 interface ReceiptTemplateProps {
@@ -120,15 +124,81 @@ const ReceiptTemplate = forwardRef<HTMLDivElement, ReceiptTemplateProps>(
       OTHER: 'อื่นๆ',
     };
 
+    const isVoided = !!data.voidedAt;
+
     return (
       <div
         ref={ref}
         className="bg-white p-8 max-w-[210mm] mx-auto receipt-template"
-        style={{ 
+        style={{
           fontFamily: 'TH Sarabun New, Sarabun, sans-serif',
           fontSize: '1.5em',
+          // ลายน้ำ "ยกเลิก" วางทับด้วย position: absolute จึงต้องอ้างอิงกล่องนี้เป็นหลัก
+          position: 'relative',
         }}
       >
+        {/*
+          เครื่องหมายยกเลิกทั้งสองชิ้นอยู่ข้างในกล่องที่ ref ชี้อยู่
+          html2canvas จับกล่องนี้ไปทำ PDF ตราประทับจึงติดไปกับไฟล์ที่ส่งออกเสมอ
+        */}
+        {isVoided && (
+          <>
+            <div
+              aria-hidden="true"
+              style={{
+                position: 'absolute',
+                top: 0,
+                right: 0,
+                bottom: 0,
+                left: 0,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                overflow: 'hidden',
+                pointerEvents: 'none',
+                zIndex: 10,
+              }}
+            >
+              <span
+                style={{
+                  transform: 'rotate(-30deg)',
+                  color: 'rgba(220, 38, 38, 0.28)',
+                  border: '10px solid rgba(220, 38, 38, 0.28)',
+                  borderRadius: '1rem',
+                  padding: '0.5rem 2.5rem',
+                  fontSize: '3.2em',
+                  fontWeight: 800,
+                  letterSpacing: '0.15em',
+                  whiteSpace: 'nowrap',
+                  lineHeight: 1.2,
+                }}
+              >
+                ยกเลิก
+              </span>
+            </div>
+
+            <div
+              style={{
+                position: 'relative',
+                zIndex: 11,
+                marginBottom: '1.5rem',
+                padding: '0.75rem 1rem',
+                border: '3px solid #dc2626',
+                borderRadius: '0.5rem',
+                backgroundColor: '#fef2f2',
+                color: '#991b1b',
+                textAlign: 'center',
+              }}
+            >
+              <p style={{ fontWeight: 700 }}>ใบเสร็จนี้ถูกยกเลิกแล้ว — ไม่ใช่หลักฐานการรับเงิน</p>
+              <p style={{ fontSize: '0.8em', marginTop: '0.25rem' }}>
+                ยกเลิกเมื่อ {formatThaiDate(data.voidedAt as string)}
+                {data.voidReason ? ` — เหตุผล: ${data.voidReason}` : ''}
+              </p>
+            </div>
+          </>
+        )}
+
         {/* Header */}
         <div className="text-center mb-6">
           <div className="flex justify-center mb-3">
