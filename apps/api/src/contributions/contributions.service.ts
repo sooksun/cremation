@@ -976,8 +976,10 @@ export class ContributionsService {
   
   /**
    * สร้าง template Excel สำหรับสมาชิกทุกคนที่ยังไม่ตัดสมาชิกภาพ (ACTIVE + ARREARS)
+   * ต้องตัดตามขอบเขตโรงเรียนของผู้เรียกเสมอ — ไฟล์นี้คือต้นทางของรอบ ดาวน์โหลด → เก็บเงิน → อัปโหลด
+   * ถ้า template ครอบทั้งอำเภอ ไฟล์ที่อัปกลับมาก็จะครอบทั้งอำเภอตามไปด้วย
    */
-  async generatePaymentTemplate(year: number, month: number) {
+  async generatePaymentTemplate(year: number, month: number, actor?: ScopedUser) {
     // หา period
     const period = await this.prisma.contributionPeriod.findUnique({
       where: { year_month: { year, month } },
@@ -988,9 +990,11 @@ export class ContributionsService {
     }
 
     // ดึงสมาชิกที่ยังไม่ตัดสมาชิกภาพ (ACTIVE + ARREARS) ไม่ว่าจะหักผ่านเงินเดือนหรือจ่ายเอง
+    const scopedSchoolId = actor ? this.schoolScope.resolveSchoolId(actor) : undefined;
     const members = await this.prisma.member.findMany({
       where: {
         status: { in: [MemberStatus.ACTIVE, MemberStatus.ARREARS] },
+        ...(scopedSchoolId ? { schoolId: scopedSchoolId } : {}),
       },
       include: {
         school: { select: { code: true, name: true } },
@@ -1066,6 +1070,7 @@ export class ContributionsService {
       success: 0,
       failed: 0,
       notFound: 0,
+      alreadyPaid: 0,
       errors: [] as Array<{ memberNo: string; error: string }>,
     };
 
@@ -1205,6 +1210,12 @@ export class ContributionsService {
           });
 
           results.success++;
+        } else if (Number(contribution.paidAmount) > 0) {
+          // ชำระอยู่ก่อนอัปโหลดแล้ว — ตามสเปค §5.2 ต้อง "ไม่ทำอะไร"
+          // ห้ามล้าง paidAmount/paidDate/receiptId เด็ดขาด เพราะใบเสร็จและรายการบัญชี (LedgerEntry)
+          // ที่ออกไปแล้วยังอยู่ ถ้าล้างจะได้บัญชีที่มีรายรับแต่ contribution บอกว่ายังไม่ชำระ
+          // และใบเสร็จกลายเป็นใบลอยที่ไม่มี contribution อ้างถึง
+          results.alreadyPaid++;
         } else {
           // ถ้ายังไม่ชำระ ให้ตั้งเป็น unpaid
           await this.prisma.memberContribution.update({
