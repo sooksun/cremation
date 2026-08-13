@@ -86,6 +86,37 @@ const THAI_MONTHS_FULL = [
   'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม',
 ];
 
+// key = คีย์เดียวกับใน statusChanges เพื่อคืนรายการที่ล้มเหลวกลับไปให้ผู้ใช้กดซ้ำได้
+// label = ชื่อที่อ่านออกสำหรับขึ้น toast ไม่ใช่ id ดิบ ๆ
+interface PaymentRow {
+  contributionId: string;
+  amount: number;
+  key: string;
+  label: string;
+}
+
+interface NewRow {
+  memberId: string;
+  periodId: string;
+  key: string;
+  label: string;
+}
+
+interface SaveFailure {
+  key: string;
+  label: string;
+  error: string;
+}
+
+function extractApiError(error: unknown): string {
+  const response = (error as { response?: { data?: { message?: unknown } } })?.response;
+  const message = response?.data?.message;
+  if (Array.isArray(message)) return message.join(', ');
+  if (typeof message === 'string' && message) return message;
+  const fallback = (error as { message?: string })?.message;
+  return fallback || 'ไม่ทราบสาเหตุ';
+}
+
 export default function ContributionMatrixPage() {
   const queryClient = useQueryClient();
   const { selectedYear, user, selectedSchoolId: globalSchoolId } = useAuthStore();
@@ -146,58 +177,85 @@ export default function ContributionMatrixPage() {
   // Mutation สำหรับบันทึกการชำระเงินหลายรายการ
   const batchPaymentMutation = useMutation({
     mutationFn: async ({ payments, newRows }: {
-      payments: Array<{ contributionId: string; amount: number; paidDate?: string }>;
-      newRows: Array<{ memberId: string; periodId: string }>;
+      payments: PaymentRow[];
+      newRows: NewRow[];
     }) => {
-      // ช่องที่ยังไม่มีรายการของงวดนั้น ให้ server สร้างรายการแล้วบันทึกชำระให้
-      const created = await Promise.allSettled(
-        newRows.map((row) => api.post('/contributions/pay-member', row)),
-      );
-      const createdFailed = created.filter((r) => r.status === 'rejected').length;
+      const failures: SaveFailure[] = [];
+      const succeededKeys: string[] = [];
 
-      if (payments.length === 0) {
-        return { success: newRows.length - createdFailed, failed: createdFailed, results: [] };
+      // ช่องที่ยังไม่มีรายการของงวดนั้น ให้ server สร้างรายการแล้วบันทึกชำระให้
+      //
+      // ต้องยิงทีละรายการตามลำดับ ห้ามยิงพร้อมกัน — เลขที่ใบเสร็จฝั่ง server รันจากการอ่าน
+      // เลขล่าสุดแล้วบวกหนึ่งโดยไม่ล็อกแถว ถ้ายิงขนานกันหลายรายการจะคิดเลขเดียวกันแล้วชนกัน
+      // ที่ unique constraint ตัวที่แพ้จะได้ 500 ทางส่งทีละรายการ (batch-payment) ไม่มีปัญหานี้
+      for (const row of newRows) {
+        try {
+          await api.post('/contributions/pay-member', {
+            memberId: row.memberId,
+            periodId: row.periodId,
+          });
+          succeededKeys.push(row.key);
+        } catch (error) {
+          failures.push({ key: row.key, label: row.label, error: extractApiError(error) });
+        }
       }
 
-      const response = await api.post('/contributions/batch-payment', { payments });
-      return {
-        ...response.data,
-        success: (response.data.success ?? 0) + (newRows.length - createdFailed),
-        failed: (response.data.failed ?? 0) + createdFailed,
-      };
+      if (payments.length === 0) {
+        return { success: succeededKeys.length, failed: failures.length, failures, succeededKeys };
+      }
+
+      const response = await api.post('/contributions/batch-payment', {
+        payments: payments.map((p) => ({ contributionId: p.contributionId, amount: p.amount })),
+      });
+
+      const rowByContributionId = new Map(payments.map((p) => [p.contributionId, p]));
+      const batchResults: Array<{ contributionId: string; success: boolean; error?: string }> =
+        response.data?.results ?? [];
+
+      for (const result of batchResults) {
+        const row = rowByContributionId.get(result.contributionId);
+        if (result.success) {
+          if (row) succeededKeys.push(row.key);
+        } else {
+          failures.push({
+            key: row?.key ?? '',
+            label: row?.label ?? result.contributionId,
+            error: result.error || 'ไม่ทราบสาเหตุ',
+          });
+        }
+      }
+
+      return { success: succeededKeys.length, failed: failures.length, failures, succeededKeys };
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['contribution-matrix'] });
-      setStatusChanges(new Map());
-      if (data.failed > 0) {
-        // แสดงรายละเอียดของรายการที่ล้มเหลว
-        const failedItems = data.results?.filter((r: any) => !r.success) || [];
 
-        // แยก error messages เพื่อแสดงให้ชัดเจน
-        const errorMessages = failedItems.map((r: any) => {
-          const errorMsg = r.error || 'ไม่ทราบสาเหตุ';
-          // ถ้า error message ยาวเกินไป ให้แสดงแค่ส่วนสำคัญ
-          if (errorMsg.length > 100) {
-            return errorMsg.substring(0, 100) + '...';
-          }
-          return errorMsg;
+      // เก็บรายการที่ยังบันทึกไม่สำเร็จไว้ใน statusChanges ให้ผู้ใช้กดบันทึกซ้ำได้
+      // ล้างเฉพาะรายการที่ผ่านแล้วเท่านั้น
+      setStatusChanges((prev) => {
+        const next = new Map(prev);
+        data.succeededKeys.forEach((key) => next.delete(key));
+        return next;
+      });
+
+      if (data.failed > 0) {
+        const messages = data.failures.map((f) => {
+          const detail = f.error.length > 100 ? `${f.error.substring(0, 100)}...` : f.error;
+          return `${f.label}: ${detail}`;
         });
-        
-        // ถ้ามี error message เดียว ให้แสดงเต็ม แต่ถ้ามีหลายอันให้แสดงสรุป
-        if (errorMessages.length === 1) {
-          showError(errorMessages[0]);
+
+        if (messages.length === 1) {
+          showError(messages[0]);
         } else {
-          showError(`บันทึกสำเร็จ ${data.success} รายการ แต่ล้มเหลว ${data.failed} รายการ - ${errorMessages.join('; ')}`);
+          showError(
+            `บันทึกสำเร็จ ${data.success} รายการ แต่ล้มเหลว ${data.failed} รายการ - ${messages.join('; ')}`,
+          );
         }
       } else {
         showSuccess(`บันทึกสำเร็จ ${data.success} รายการ`);
       }
     },
     onError: (error: any) => {
-      console.error('Batch payment error:', error);
-      console.error('Error response:', error.response?.data);
-      console.error('Error request:', error.config?.data);
-      
       // Check for validation errors
       if (error.response?.status === 400) {
         const validationErrors = error.response?.data?.message || error.response?.data;
@@ -267,17 +325,19 @@ export default function ContributionMatrixPage() {
     }
 
     // Build payments array from statusChanges
-    const payments: Array<{ contributionId: string; amount: number; paidDate?: string }> = [];
+    const payments: PaymentRow[] = [];
     // ช่องที่ยังไม่มีรายการของงวดนั้น — ให้ server สร้างรายการแล้วบันทึกชำระให้ เหมือนทางอัปโหลด Excel
-    const newRows: Array<{ memberId: string; periodId: string }> = [];
+    const newRows: NewRow[] = [];
 
     statusChanges.forEach((change, key) => {
       // Find the contribution data
       const [memberId, monthStr] = key.split('-');
       const month = parseInt(monthStr);
       const memberRow = matrixData?.members.find((m) => m.member.id === memberId);
-      
+
       if (memberRow) {
+        const label = `${memberRow.member.memberNo} ${memberRow.member.firstName ?? ''} ${memberRow.member.lastName ?? ''}`.trim()
+          + ` (${THAI_MONTHS_FULL[month - 1]})`;
         const monthData = memberRow.monthlyData[month];
         if (monthData && monthData.contributionId) {
           if (change.status === 'paid') {
@@ -287,11 +347,13 @@ export default function ContributionMatrixPage() {
               payments.push({
                 contributionId: monthData.contributionId,
                 amount: Number(amount),
+                key,
+                label,
               });
             } else {
               // ไม่มียอด (ยังไม่ generate ราคาให้) — ให้ฝั่ง server คิดยอดจากงวดเอง
               const periodId = matrixData?.periods?.find((p) => p.month === month)?.id;
-              if (periodId) newRows.push({ memberId, periodId });
+              if (periodId) newRows.push({ memberId, periodId, key, label });
             }
           } else if (change.status === 'unpaid' || change.status === 'arrears') {
             // Cancel payment (set amount to 0)
@@ -299,11 +361,13 @@ export default function ContributionMatrixPage() {
             payments.push({
               contributionId: monthData.contributionId,
               amount: 0,
+              key,
+              label,
             });
           }
         } else if (change.status === 'paid') {
           const periodId = matrixData?.periods?.find((p) => p.month === month)?.id;
-          if (periodId) newRows.push({ memberId, periodId });
+          if (periodId) newRows.push({ memberId, periodId, key, label });
         }
       }
     });
