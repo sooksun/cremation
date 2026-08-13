@@ -18,6 +18,8 @@ interface ReceiptDetail {
   type: string;
   description?: string;
   amount: number;
+  voidedAt?: string | null;
+  voidReason?: string | null;
   school?: {
     id: string;
     name: string;
@@ -199,9 +201,25 @@ export default function ReceiptDetailPage() {
         </div>
       </div>
 
+      {/* ใบเสร็จที่ถูกยกเลิกต้องเห็นชัดทั้งบนหน้าจอและตอนพิมพ์ ไม่ให้ถูกใช้เป็นหลักฐานการรับเงิน */}
+      {receipt.voidedAt && (
+        <div className="card border-2 border-rose-300 bg-rose-50 p-4 text-rose-700">
+          <p className="font-bold">ใบเสร็จนี้ถูกยกเลิกแล้ว — ไม่ใช่หลักฐานการรับเงิน</p>
+          <p className="text-sm mt-1">
+            ยกเลิกเมื่อ{' '}
+            {new Date(receipt.voidedAt).toLocaleDateString('th-TH', {
+              day: 'numeric',
+              month: 'short',
+              year: 'numeric',
+            })}
+            {receipt.voidReason ? ` — เหตุผล: ${receipt.voidReason}` : ''}
+          </p>
+        </div>
+      )}
+
       {/* Receipt Preview */}
       <div className="card p-6 print:p-0 print:shadow-none print:border-0">
-        <ReceiptTemplate 
+        <ReceiptTemplate
           ref={receiptRef} 
           data={receiptData} 
           signature={currentUser?.signature || null}

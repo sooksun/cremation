@@ -21,6 +21,8 @@ interface ReceiptItem {
   amount: number;
   school: School;
   bankAccount?: { bankName: string; accountNo: string };
+  voidedAt?: string | null;
+  voidReason?: string | null;
 }
 
 interface ReceiptForm {
@@ -212,8 +214,17 @@ export default function ReceiptsPage() {
               </thead>
               <tbody>
                 {receipts?.map((receipt) => (
-                  <tr key={receipt.id}>
-                    <td className="font-mono text-sm">{receipt.receiptNo}</td>
+                  <tr key={receipt.id} className={receipt.voidedAt ? 'bg-rose-50/60' : undefined}>
+                    <td className="font-mono text-sm">
+                      <span className={receipt.voidedAt ? 'line-through text-slate-400' : undefined}>
+                        {receipt.receiptNo}
+                      </span>
+                      {receipt.voidedAt && (
+                        <span className="badge-danger ml-2" title={receipt.voidReason || undefined}>
+                          ยกเลิก
+                        </span>
+                      )}
+                    </td>
                     <td>
                       <span className="flex items-center gap-1 text-sm">
                         <Calendar size={14} className="text-slate-400" />
@@ -227,7 +238,13 @@ export default function ReceiptsPage() {
                       {receipt.description || '-'}
                     </td>
                     <td className="text-slate-500 text-sm">{receipt.school?.name || '-'}</td>
-                    <td className="text-right font-semibold text-emerald-600">
+                    <td
+                      className={
+                        receipt.voidedAt
+                          ? 'text-right font-semibold text-slate-400 line-through'
+                          : 'text-right font-semibold text-emerald-600'
+                      }
+                    >
                       {formatCurrency(receipt.amount)}
                     </td>
                     <td>
