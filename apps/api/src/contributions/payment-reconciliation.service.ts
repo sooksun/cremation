@@ -167,10 +167,22 @@ export class PaymentReconciliationService {
 
   /**
    * สร้างไฟล์ .xlsx ของรายชื่อที่ขาด — client ส่งรายการที่ได้จาก reconcile() กลับมา
-   * แต่ห้ามเชื่อ payload นั้นตรง ๆ ต้องตรวจซ้ำกับฐานข้อมูลว่าแต่ละ memberNo
-   * ยังอยู่ในขอบเขตโรงเรียนของผู้ใช้จริง ไม่งั้นคนร้ายส่ง memberNo ปลอมเพื่อดูดรายชื่อข้ามโรงเรียนได้
+   * แต่ห้ามเชื่อ payload นั้นตรง ๆ รับจาก client แค่ memberNo (เพื่อรู้ว่าจะ query ใคร) กับ
+   * reason (เป็นการจำแนกจากไฟล์ที่ server ไม่ได้เก็บไว้แล้ว จึง re-derive ไม่ได้) ส่วนคอลัมน์อื่น
+   * ทั้งหมด (ชื่อ, โรงเรียน, กลุ่ม, ยอดที่ต้องชำระ) ต้องอ่านจากฐานข้อมูลเท่านั้น ไม่งั้นคนร้ายส่ง
+   * memberNo จริงของโรงเรียนตัวเองมาแต่ปลอมชื่อ/ยอดเงิน แล้วให้ระบบพิมพ์ค่าที่ปลอมมาลงไฟล์ทางการได้
+   * ขอบเขตโรงเรียนก็ยังต้องบังคับด้วย schoolId จาก resolveSchoolId เหมือนเดิม
    */
-  async buildMissingWorkbook(missing: MissingRow[], actor?: ScopedUser): Promise<Buffer> {
+  async buildMissingWorkbook(
+    periodId: string,
+    missing: MissingRow[],
+    actor?: ScopedUser,
+  ): Promise<Buffer> {
+    const period = await this.prisma.contributionPeriod.findUnique({ where: { id: periodId } });
+    if (!period) {
+      throw new NotFoundException('ไม่พบงวดที่ระบุ');
+    }
+
     const forcedSchoolId = actor ? this.schoolScope.resolveSchoolId(actor) : undefined;
 
     const allowed = await this.prisma.member.findMany({
@@ -178,20 +190,36 @@ export class PaymentReconciliationService {
         memberNo: { in: missing.map((row) => row.memberNo) },
         ...(forcedSchoolId ? { schoolId: forcedSchoolId } : {}),
       },
-      select: { memberNo: true, schoolId: true },
+      select: {
+        memberNo: true,
+        schoolId: true,
+        school: { select: { code: true, name: true } },
+        group: { select: { name: true } },
+        associationMember: { select: { firstName: true, lastName: true } },
+        contributions: {
+          where: { periodId },
+          select: { totalAmount: true },
+        },
+      },
     });
-    const allowedNos = new Set(allowed.map((m) => m.memberNo));
 
-    const rows = missing
-      .filter((row) => allowedNos.has(row.memberNo))
-      .map((row) => ({
-        เลขสมาชิก: row.memberNo,
-        'ชื่อ-สกุล': row.fullName,
-        โรงเรียน: row.schoolName,
-        กลุ่มเก็บเงิน: row.groupName,
-        ยอดที่ต้องชำระ: row.amountDue,
-        เหตุผล: REASON_LABEL[row.reason],
-      }));
+    const { totalAmount: defaultAmount } = await this.resolveAmounts(period);
+    const reasonByMemberNo = new Map(missing.map((row) => [row.memberNo, row.reason]));
+
+    const rows = allowed
+      .filter((member) => reasonByMemberNo.has(member.memberNo))
+      .map((member) => {
+        const contribution = member.contributions[0];
+        return {
+          เลขสมาชิก: member.memberNo,
+          'ชื่อ-สกุล':
+            `${member.associationMember?.firstName ?? ''} ${member.associationMember?.lastName ?? ''}`.trim(),
+          โรงเรียน: member.school.name,
+          กลุ่มเก็บเงิน: member.group?.name ?? '',
+          ยอดที่ต้องชำระ: contribution ? Number(contribution.totalAmount) : defaultAmount,
+          เหตุผล: REASON_LABEL[reasonByMemberNo.get(member.memberNo) as MissingReason],
+        };
+      });
 
     return buildWorkbookBuffer('รายชื่อที่ขาด', rows);
   }

@@ -263,11 +263,30 @@ describe('PaymentReconciliationService', () => {
   });
 
   describe('buildMissingWorkbook', () => {
-    const row = {
-      memberId: 'id-M2', contributionId: 'c-M2', memberNo: 'M2', fullName: 'ชื่อ M2',
-      schoolId: 's1', schoolCode: 'A', schoolName: 'ร.ร.A', groupName: 'กลุ่ม 1',
-      amountDue: 100, reason: 'NOT_IN_FILE' as const,
+    const EXPECTED_SELECT = {
+      memberNo: true,
+      schoolId: true,
+      school: { select: { code: true, name: true } },
+      group: { select: { name: true } },
+      associationMember: { select: { firstName: true, lastName: true } },
+      contributions: { where: { periodId: 'p1' }, select: { totalAmount: true } },
     };
+
+    // แถวที่ client โพสต์กลับมา — ตั้งใจให้ fullName/schoolName/groupName/amountDue "ปลอม" ไม่ตรงกับ DB
+    // เพื่อพิสูจน์ว่า service ไม่เอาค่าพวกนี้จาก client ไปใช้เลย รับแค่ memberNo กับ reason เท่านั้น
+    const postedRow = {
+      memberId: 'id-M2', contributionId: 'c-M2', memberNo: 'M2',
+      fullName: 'ปลอมชื่อ', schoolId: 's1', schoolCode: 'X', schoolName: 'ปลอมโรงเรียน',
+      groupName: 'ปลอมกลุ่ม', amountDue: 999999, reason: 'NOT_IN_FILE' as const,
+    };
+    const dbMemberM2 = {
+      memberNo: 'M2', schoolId: 's1',
+      school: { code: 'A', name: 'ร.ร.A' },
+      group: { name: 'กลุ่ม 1' },
+      associationMember: { firstName: 'ชื่อจริง', lastName: 'นามสกุลจริง' },
+      contributions: [{ totalAmount: 150 }],
+    };
+
     const rowOutOfScope = {
       memberId: 'id-M1', contributionId: 'c-M1', memberNo: 'M1', fullName: 'ชื่อ M1',
       schoolId: 's1', schoolCode: 'A', schoolName: 'ร.ร.A', groupName: 'กลุ่ม 1',
@@ -278,30 +297,46 @@ describe('PaymentReconciliationService', () => {
       schoolId: 's9', schoolCode: 'B', schoolName: 'ร.ร.B', groupName: 'กลุ่ม 2',
       amountDue: 200, reason: 'IN_FILE_NOT_PAID' as const,
     };
+    const dbMemberM9 = {
+      memberNo: 'M9', schoolId: 's9',
+      school: { code: 'B', name: 'ร.ร.B' },
+      group: { name: 'กลุ่ม 2' },
+      associationMember: { firstName: 'ชื่อ', lastName: 'M9' },
+      contributions: [{ totalAmount: 200 }],
+    };
 
-    it('สร้างไฟล์ที่อ่านกลับได้ตามรายชื่อที่ส่งมา และไม่บังคับ schoolId เมื่อไม่มีการจำกัดขอบเขต', async () => {
-      prisma.member.findMany.mockResolvedValueOnce([{ memberNo: 'M2', schoolId: 's1' }]);
+    it('เอาชื่อ/โรงเรียน/กลุ่ม/ยอดเงินจากฐานข้อมูลเสมอ ไม่ใช้ค่าที่ client โพสต์มาปลอม', async () => {
+      prisma.member.findMany.mockResolvedValueOnce([dbMemberM2]);
 
-      const buffer = await service.buildMissingWorkbook([row]);
+      const buffer = await service.buildMissingWorkbook('p1', [postedRow]);
 
-      // ไม่มี actor ที่ถูกบังคับโรงเรียน -> query ต้องไม่ใส่คีย์ schoolId เลย (ไม่ใช่แค่ output ว่าง)
+      // ไม่มี actor ที่ถูกบังคับโรงเรียน -> query ต้องไม่ใส่คีย์ schoolId เลย
       expect(prisma.member.findMany).toHaveBeenCalledWith({
         where: { memberNo: { in: ['M2'] } },
-        select: { memberNo: true, schoolId: true },
+        select: EXPECTED_SELECT,
       });
 
       const XLSX = await import('xlsx');
       const book = XLSX.read(buffer, { type: 'buffer' });
       const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(book.Sheets[book.SheetNames[0]]);
-      expect(rows[0]).toMatchObject({ เลขสมาชิก: 'M2', เหตุผล: 'ไม่มีในไฟล์' });
+      expect(rows).toHaveLength(1);
+      // ค่าที่ออกไฟล์ต้องเป็นค่าจาก dbMemberM2 ทั้งหมด — ไม่ใช่ 'ปลอมชื่อ' / 999999 ที่ client ส่งมา
+      expect(rows[0]).toMatchObject({
+        เลขสมาชิก: 'M2',
+        'ชื่อ-สกุล': 'ชื่อจริง นามสกุลจริง',
+        โรงเรียน: 'ร.ร.A',
+        กลุ่มเก็บเงิน: 'กลุ่ม 1',
+        ยอดที่ต้องชำระ: 150,
+        เหตุผล: 'ไม่มีในไฟล์',
+      });
     });
 
     it('บังคับ schoolId จาก resolveSchoolId ใน query และตัดรายชื่อนอกขอบเขตทิ้ง แม้ DB จะคืนแถวมาจริง', async () => {
       resolveSchoolId.mockReturnValue('s9');
       // จำลองฐานข้อมูลจริง: ถ้า query ถูกกรองด้วย schoolId: 's9' จะเจอแค่ M9 เท่านั้น
-      prisma.member.findMany.mockResolvedValueOnce([{ memberNo: 'M9', schoolId: 's9' }]);
+      prisma.member.findMany.mockResolvedValueOnce([dbMemberM9]);
 
-      const buffer = await service.buildMissingWorkbook([rowOutOfScope, rowInScope], {
+      const buffer = await service.buildMissingWorkbook('p1', [rowOutOfScope, rowInScope], {
         id: 'u2', role: Role.SCHOOL_ADMIN, schoolId: 's9',
       });
 
@@ -309,14 +344,58 @@ describe('PaymentReconciliationService', () => {
       // where จะไม่มี schoolId: 's9' อีกต่อไป และ assertion นี้จะ fail ทันที ไม่ว่า mock ด้านบนจะคืนอะไร
       expect(prisma.member.findMany).toHaveBeenCalledWith({
         where: { memberNo: { in: ['M1', 'M9'] }, schoolId: 's9' },
-        select: { memberNo: true, schoolId: true },
+        select: EXPECTED_SELECT,
       });
 
       const XLSX = await import('xlsx');
       const book = XLSX.read(buffer, { type: 'buffer' });
       const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(book.Sheets[book.SheetNames[0]]);
       expect(rows).toHaveLength(1);
-      expect(rows[0]).toMatchObject({ เลขสมาชิก: 'M9', โรงเรียน: 'ร.ร.B' });
+      expect(rows[0]).toMatchObject({
+        เลขสมาชิก: 'M9',
+        โรงเรียน: 'ร.ร.B',
+        เหตุผล: 'อยู่ในไฟล์ แต่ยังไม่ชำระ',
+      });
+    });
+
+    it('สมาชิกที่ไม่มีแถว contribution ของงวดนี้ ใช้ยอดของงวดเป็นค่า fallback', async () => {
+      const dbMemberNoContribution = {
+        memberNo: 'M3', schoolId: 's1',
+        school: { code: 'A', name: 'ร.ร.A' },
+        group: { name: 'กลุ่ม 1' },
+        associationMember: { firstName: 'ชื่อ', lastName: 'M3' },
+        contributions: [] as Array<{ totalAmount: number }>,
+      };
+      prisma.member.findMany.mockResolvedValueOnce([dbMemberNoContribution]);
+
+      const buffer = await service.buildMissingWorkbook('p1', [
+        { ...postedRow, memberNo: 'M3' },
+      ]);
+
+      const XLSX = await import('xlsx');
+      const book = XLSX.read(buffer, { type: 'buffer' });
+      const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(book.Sheets[book.SheetNames[0]]);
+      // PERIOD.welfareRate=100, serviceFee ปิดอยู่ -> defaultAmount = 100 จาก resolveAmounts(period)
+      expect(rows[0]).toMatchObject({ เลขสมาชิก: 'M3', ยอดที่ต้องชำระ: 100 });
+    });
+
+    it('รายการว่างยังสร้างไฟล์ที่เปิดอ่านได้ ไม่ throw', async () => {
+      prisma.member.findMany.mockResolvedValueOnce([]);
+
+      const buffer = await service.buildMissingWorkbook('p1', []);
+
+      const XLSX = await import('xlsx');
+      const book = XLSX.read(buffer, { type: 'buffer' });
+      const rows = XLSX.utils.sheet_to_json(book.Sheets[book.SheetNames[0]]);
+      expect(rows).toEqual([]);
+    });
+
+    it('งวดไม่มีอยู่จริง โยน NotFoundException', async () => {
+      prisma.contributionPeriod.findUnique.mockResolvedValueOnce(null);
+
+      await expect(service.buildMissingWorkbook('missing-period', [postedRow])).rejects.toThrow(
+        'ไม่พบงวดที่ระบุ',
+      );
     });
   });
 });

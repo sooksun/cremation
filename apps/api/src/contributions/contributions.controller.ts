@@ -295,6 +295,7 @@ export class ContributionsController {
     @Res({ passthrough: true }) res: Response,
   ) {
     const buffer = await this.reconciliationService.buildMissingWorkbook(
+      id,
       body.missing ?? [],
       req.user,
     );
