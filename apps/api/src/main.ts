@@ -3,6 +3,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { config as loadEnv } from 'dotenv';
 import { resolve } from 'path';
 import cookieParser from 'cookie-parser';
+import { json, urlencoded } from 'express';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
 import { validateEnv } from './config/env.validation';
@@ -49,6 +50,9 @@ async function bootstrap() {
       referrerPolicy: { policy: 'no-referrer' },
     }),
   );
+  // ค่าเริ่มต้นของ express คือ 100kb ซึ่งไม่พอกับบทสนทนาผู้ช่วยที่ส่งประวัติทั้งก้อนกลับมา
+  app.use(json({ limit: '1mb' }));
+  app.use(urlencoded({ extended: true, limit: '1mb' }));
   app.use(cookieParser());
 
   const corsOrigins = process.env.CORS_ORIGINS
