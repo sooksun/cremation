@@ -14,6 +14,7 @@ export interface ReconcileResponse {
   missing: Array<{
     memberNo: string; fullName: string; schoolCode: string; schoolName: string;
     groupName: string; amountDue: number; reason: 'NOT_IN_FILE' | 'IN_FILE_NOT_PAID';
+    memberId: string; contributionId: string | null; schoolId: string;
   }>;
   unknown: Array<{ rowNo: number; memberNo: string }>;
   success: number; failed: number; notFound: number;
@@ -45,9 +46,7 @@ export function UploadPaymentModal({
       form.append('fullDistrict', String(fullDistrict));
       form.append('autoMarkArrears', String(autoMarkArrears));
 
-      const response = await api.post<ReconcileResponse>('/contributions/upload', form, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+      const response = await api.post<ReconcileResponse>('/contributions/upload', form);
       onDone(response.data);
     } catch (error) {
       const message =
