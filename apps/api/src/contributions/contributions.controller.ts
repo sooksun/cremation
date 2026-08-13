@@ -10,8 +10,11 @@ import {
   Request,
   UploadedFile,
   UseInterceptors,
+  Res,
+  StreamableFile,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import type { Response } from 'express';
 import { ContributionsService } from './contributions.service';
 import { CreatePeriodDto, UpdatePeriodDto } from './dto/period.dto';
 import { UpdateContributionSettingsDto } from './dto/contribution-settings.dto';
@@ -20,6 +23,7 @@ import { ScopedUser } from '../common/security/school-scope.service';
 import { BatchPaymentDto } from './dto/batch-payment.dto';
 import { UploadPaymentDto } from './dto/upload-payment.dto';
 import { parsePaymentFile, isPaidStatus } from './payment-file.parser';
+import { buildWorkbookBuffer } from './payment-workbook';
 import { PaymentReconciliationService } from './payment-reconciliation.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -192,11 +196,30 @@ export class ContributionsController {
   async getPaymentTemplate(
     @Query('year') year: number,
     @Query('month') month: number,
+    @Query('format') format: string | undefined,
+    @Res({ passthrough: true }) res: Response,
   ) {
-    return this.contributionsService.generatePaymentTemplate(
-      Number(year) || new Date().getFullYear(),
-      Number(month) || new Date().getMonth() + 1,
+    const resolvedYear = Number(year) || new Date().getFullYear();
+    const resolvedMonth = Number(month) || new Date().getMonth() + 1;
+    const template = await this.contributionsService.generatePaymentTemplate(
+      resolvedYear,
+      resolvedMonth,
     );
+
+    if (format === 'json') {
+      return template;
+    }
+
+    const buffer = buildWorkbookBuffer('รายชื่อเก็บเงิน', template.members);
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    );
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="payment-template-${resolvedYear}-${String(resolvedMonth).padStart(2, '0')}.xlsx"`,
+    );
+    return new StreamableFile(buffer);
   }
 
   @Post('upload')

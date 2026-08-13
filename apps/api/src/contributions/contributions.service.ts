@@ -975,7 +975,7 @@ export class ContributionsService {
   // =============================================
   
   /**
-   * สร้าง template Excel สำหรับสมาชิกที่หักผ่านเงินเดือน
+   * สร้าง template Excel สำหรับสมาชิกทุกคนที่ยังไม่ตัดสมาชิกภาพ (ACTIVE + ARREARS)
    */
   async generatePaymentTemplate(year: number, month: number) {
     // หา period
@@ -987,11 +987,10 @@ export class ContributionsService {
       throw new NotFoundException(`ไม่พบงวดสำหรับเดือน ${month} ปี ${year}`);
     }
 
-    // ดึงสมาชิกที่หักผ่านเงินเดือน (ACTIVE + ARREARS ที่ยังไม่ตัดสมาชิกภาพ)
+    // ดึงสมาชิกที่ยังไม่ตัดสมาชิกภาพ (ACTIVE + ARREARS) ไม่ว่าจะหักผ่านเงินเดือนหรือจ่ายเอง
     const members = await this.prisma.member.findMany({
       where: {
         status: { in: [MemberStatus.ACTIVE, MemberStatus.ARREARS] },
-        salaryDeduction: true,
       },
       include: {
         school: { select: { code: true, name: true } },
@@ -1015,6 +1014,7 @@ export class ContributionsService {
         'โรงเรียน': member.school.name,
         'รหัสโรงเรียน': member.school.code,
         'ประเภท': member.associationMember?.memberType?.name ?? '',
+        'วิธีชำระ': member.salaryDeduction ? 'หักเงินเดือน' : 'จ่ายเอง',
         'ยอดที่ต้องชำระ': contribution ? Number(contribution.totalAmount) : defaultTotalAmount,
         'สถานะ': contribution && Number(contribution.paidAmount) > 0 ? 'ชำระแล้ว' : 'ยังไม่ชำระ',
       };
