@@ -8,13 +8,19 @@ import {
   Query,
   UseGuards,
   Request,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { ContributionsService } from './contributions.service';
 import { CreatePeriodDto, UpdatePeriodDto } from './dto/period.dto';
 import { UpdateContributionSettingsDto } from './dto/contribution-settings.dto';
 import { RecordPaymentDto } from './dto/payment.dto';
 import { ScopedUser } from '../common/security/school-scope.service';
 import { BatchPaymentDto } from './dto/batch-payment.dto';
+import { UploadPaymentDto } from './dto/upload-payment.dto';
+import { parsePaymentFile, isPaidStatus } from './payment-file.parser';
+import { PaymentReconciliationService } from './payment-reconciliation.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -23,7 +29,10 @@ import { Role } from '@prisma/client';
 @Controller('contributions')
 @UseGuards(JwtAuthGuard)
 export class ContributionsController {
-  constructor(private readonly contributionsService: ContributionsService) {}
+  constructor(
+    private readonly contributionsService: ContributionsService,
+    private readonly reconciliationService: PaymentReconciliationService,
+  ) {}
 
   @Get('settings')
   getSettings() {
@@ -193,16 +202,64 @@ export class ContributionsController {
   @Post('upload')
   @UseGuards(RolesGuard)
   @Roles(Role.ADMIN, Role.SCHOOL_ADMIN, Role.FINANCE)
+  @UseInterceptors(FileInterceptor('file', { limits: { fileSize: 5 * 1024 * 1024 } }))
   async uploadPaymentFile(
-    @Body() body: { year: number; month: number; data: any[] },
+    @UploadedFile() file: Express.Multer.File | undefined,
+    @Body() body: UploadPaymentDto,
     @Request() req: { user: ScopedUser },
   ) {
-    return this.contributionsService.processPaymentUpload(
-      body.year,
-      body.month,
-      body.data,
+    const year = Number(body.year);
+    const month = Number(body.month);
+    const fullDistrict = body.fullDistrict === 'true' || body.fullDistrict === true;
+    const autoMarkArrears = !(body.autoMarkArrears === 'false' || body.autoMarkArrears === false);
+
+    const period = await this.contributionsService.findPeriodByYearMonth(year, month);
+
+    const parsed = file
+      ? parsePaymentFile(file.buffer)
+      : {
+          rows: (body.data ?? []).map((row, index) => ({
+            rowNo: index + 2,
+            memberNo: String(row['เลขสมาชิก'] ?? '').trim(),
+            isPaid: isPaidStatus(row['สถานะ']),
+            amount: row['ยอดที่ต้องชำระ'] ? Number(row['ยอดที่ต้องชำระ']) : undefined,
+          })).filter((row) => row.memberNo !== ''),
+          duplicates: [],
+        };
+
+    const uploadResult = await this.contributionsService.processPaymentUpload(
+      year,
+      month,
+      parsed.rows.map((row) => ({
+        เลขสมาชิก: row.memberNo,
+        ยอดที่ต้องชำระ: row.amount,
+        สถานะ: row.isPaid ? 'ชำระแล้ว' : 'ยังไม่ชำระ',
+      })),
       req.user,
     );
+
+    const reconcileResult = await this.reconciliationService.reconcile({
+      periodId: period.id,
+      parsed,
+      paidNowMemberNos: new Set(parsed.rows.filter((r) => r.isPaid).map((r) => r.memberNo)),
+      actor: req.user,
+      fullDistrict,
+      autoMarkArrears,
+    });
+
+    return {
+      ...reconcileResult,
+      success: uploadResult.success,
+      failed: uploadResult.failed,
+      notFound: uploadResult.notFound,
+      errors: [
+        ...uploadResult.errors,
+        ...parsed.duplicates.map((dup) => ({
+          memberNo: dup.memberNo,
+          error: `เลขสมาชิกซ้ำในไฟล์ (บรรทัด ${dup.rowNo}) — ระบบใช้แถวเดียวเท่านั้น`,
+        })),
+      ],
+    };
   }
 
   @Post('backfill-receipts')

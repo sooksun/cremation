@@ -166,6 +166,16 @@ export class ContributionsService {
     return period;
   }
 
+  async findPeriodByYearMonth(year: number, month: number) {
+    const period = await this.prisma.contributionPeriod.findUnique({
+      where: { year_month: { year, month } },
+    });
+    if (!period) {
+      throw new NotFoundException(`ไม่พบงวดสำหรับเดือน ${month} ปี ${year}`);
+    }
+    return period;
+  }
+
   private assertPeriodOpen(period: { isClosed: boolean }, action: string) {
     if (period.isClosed) {
       throw new BadRequestException(`งวดนี้ปิดแล้ว ไม่สามารถ${action}ได้`);

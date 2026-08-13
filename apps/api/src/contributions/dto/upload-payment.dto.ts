@@ -1,12 +1,21 @@
-import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import { IsOptional, IsNumberString, IsArray } from 'class-validator';
 
 export class UploadPaymentDto {
-  @IsNotEmpty()
-  @IsNumber()
-  periodId: number;
+  @IsNumberString()
+  year!: string;
 
-  @IsNotEmpty()
-  @IsString()
-  month: string; // เดือนที่ต้องการ upload (1-12)
+  @IsNumberString()
+  month!: string;
+
+  /** multipart ส่งมาเป็น string เสมอ */
+  @IsOptional()
+  fullDistrict?: string | boolean;
+
+  @IsOptional()
+  autoMarkArrears?: string | boolean;
+
+  /** รูปแบบเดิม: ส่งแถวเป็น JSON โดยไม่แนบไฟล์ */
+  @IsOptional()
+  @IsArray()
+  data?: Array<Record<string, string | number | undefined>>;
 }
-
