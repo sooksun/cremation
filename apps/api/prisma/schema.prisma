@@ -370,6 +370,11 @@ model Member {
   leadedGroups              Group[]              @relation("GroupLeader")
   createdAt                 DateTime             @default(now())
   updatedAt                 DateTime             @updatedAt
+
+  // ตาราง 12 เดือน / template เก็บเงิน / แดชบอร์ด กรองสมาชิกด้วยสถานะแทบทุกคำสั่ง
+  // (ACTIVE, ARREARS) ทั้งแบบรวมและแยกรายโรงเรียน
+  @@index([status])
+  @@index([schoolId, status])
 }
 
 model Beneficiary {
@@ -447,6 +452,9 @@ model MemberContribution {
   updatedAt           DateTime           @updatedAt
 
   @@unique([memberId, periodId])
+  // การกรองด้วย periodId อย่างเดียว (หน้าสรุปงวด/การกระทบยอด) ใช้ unique ข้างบนไม่ได้
+  // เพราะขึ้นต้นด้วย memberId — แต่ MySQL สร้าง index ให้คอลัมน์ foreign key อยู่แล้ว
+  // (MemberContribution_periodId_fkey) จึงไม่ต้องประกาศซ้ำ ดูรายละเอียดใน backend-report.md
 }
 
 model DeathClaim {
@@ -578,6 +586,11 @@ model LedgerEntry {
   paymentId   String?
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @default(now()) @updatedAt
+
+  // งบทดลอง/สมุดรายวันกรองด้วยช่วงวันที่ ส่วนบัญชีแยกประเภทกรองด้วยบัญชี+ช่วงวันที่
+  // ตารางนี้โตเร็วที่สุดในระบบ (~1,600 แถว/เดือน) และเดิมไม่มี index เลย
+  @@index([date])
+  @@index([accountId, date])
 }
 
 // ใบเสร็จรับเงิน - schoolId optional (ระบุได้ถ้าเป็นเงินจากโรงเรียนใดโรงเรียนหนึ่ง)
@@ -602,6 +615,9 @@ model Receipt {
   updatedAt            DateTime            @updatedAt
 
   @@index([voidedAt])
+  // รายงานทุกหน้ากรองใบเสร็จด้วยช่วงวันที่ ทั้งแบบรวมทุกโรงเรียนและแยกรายโรงเรียน
+  @@index([date])
+  @@index([schoolId, date])
 }
 
 // ใบสำคัญจ่าย - schoolId optional (ระบุได้ถ้าจ่ายให้โรงเรียนใดโรงเรียนหนึ่ง)
@@ -621,6 +637,10 @@ model PaymentVoucher {
   deathClaimBenefit DeathClaim?          @relation("ClaimBenefitVoucher")
   createdAt         DateTime             @default(now())
   updatedAt         DateTime             @updatedAt
+
+  // รายรับ-รายจ่ายรายเดือนบนแดชบอร์ดกรองใบสำคัญจ่ายด้วยช่วงวันที่แบบเดียวกับใบเสร็จ
+  @@index([date])
+  @@index([schoolId, date])
 }
 
 model AppSetting {
