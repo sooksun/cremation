@@ -1193,11 +1193,12 @@ export class ReportsService {
         take: 10,
       }),
       // สมาชิกค้างชำระ — เดิม findMany ทั้งตารางแต่ใช้แค่ .length
+      // isArrears เป็นธงเดียวที่ตัดสิน การกรอง paidAmount = 0 ซ้ำจะทิ้งคนที่จ่ายมาบางส่วน
+      // แต่ยังค้างยอดอยู่ ทำให้ตัวเลขบนแดชบอร์ดต่ำกว่าความจริง
       this.prisma.memberContribution.count({
         where: {
           ...(schoolId ? { schoolId } : {}),
           isArrears: true,
-          paidAmount: { equals: 0 },
         },
       }),
     ]);

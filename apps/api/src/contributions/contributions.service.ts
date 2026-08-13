@@ -824,8 +824,10 @@ export class ContributionsService {
     const scopedSchoolId = actor
       ? this.schoolScope.resolveSchoolId(actor, schoolId)
       : schoolId;
+    // isArrears คือธงเดียวที่ตัดสินว่ายังค้างอยู่ ห้ามกรอง paidAmount: 0 ซ้ำ
+    // เพราะการชำระไม่ครบยอด (paidAmount > 0) ก็ยังถูกทำเครื่องหมายค้างชำระไว้
+    // ถ้ากรองด้วยจะได้รายงานที่บอกว่าค้างแต่ไม่มีใครในรายชื่อ
     const where: any = {
-      paidAmount: 0,
       isArrears: true,
     };
 
