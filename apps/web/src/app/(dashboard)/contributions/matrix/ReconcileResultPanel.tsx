@@ -24,9 +24,9 @@ export function ReconcileResultPanel({
   const bySchool = useMemo(() => {
     const map = new Map<string, ReconcileResponse['missing']>();
     for (const row of result.missing) {
-      const list = map.get(row.schoolName) ?? [];
+      const list = map.get(row.schoolId) ?? [];
       list.push(row);
-      map.set(row.schoolName, list);
+      map.set(row.schoolId, list);
     }
     return [...map.entries()];
   }, [result.missing]);
@@ -82,10 +82,10 @@ export function ReconcileResultPanel({
         </div>
       )}
 
-      {bySchool.map(([schoolName, rows]) => (
-        <details key={schoolName} open className="mb-3">
+      {bySchool.map(([schoolId, rows]) => (
+        <details key={schoolId} open className="mb-3">
           <summary className="cursor-pointer text-sm font-medium text-slate-700">
-            {schoolName} — ขาด {rows.length} คน
+            {rows[0].schoolName} — ขาด {rows.length} คน
           </summary>
           <table className="w-full text-sm mt-2">
             <thead>
