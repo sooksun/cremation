@@ -6,6 +6,7 @@ import { AuditAction, Prisma, ReceiptType, Role } from '@prisma/client';
 import { SchoolScopeService, ScopedUser } from '../common/security/school-scope.service';
 import { AuditLogService } from '../common/services/audit-log.service';
 import { CashBookService } from '../cash-book/cash-book.service';
+import { NOT_VOIDED } from '../common/receipt-filter';
 
 @Injectable()
 export class ReceiptsService {
@@ -114,7 +115,8 @@ export class ReceiptsService {
   }
 
   async getSummary(schoolId?: string, startDate?: Date, endDate?: Date) {
-    const where: any = {};
+    // สรุปยอดคือตัวเลขเงิน ใบที่ยกเลิกต้องไม่ถูกนับ
+    const where: any = { ...NOT_VOIDED };
     if (schoolId) where.schoolId = schoolId;
     if (startDate && endDate) {
       where.date = { gte: startDate, lte: endDate };

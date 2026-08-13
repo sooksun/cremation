@@ -13,6 +13,7 @@ import { applyIdCardMask, applyNationalIdMask } from '../common/utils/pii.util';
 import { SchoolScopeService, ScopedUser } from '../common/security/school-scope.service';
 import { AccountsService } from '../accounts/accounts.service';
 import { AuditLogService } from '../common/services/audit-log.service';
+import { NOT_VOIDED } from '../common/receipt-filter';
 
 @Injectable()
 export class ReportsService {
@@ -64,6 +65,7 @@ export class ReportsService {
         this.prisma.receipt.aggregate({
           where: {
             ...where,
+            ...NOT_VOIDED,
             date: {
               gte: new Date(targetYear, currentMonth, 1),
               lt: new Date(targetYear, currentMonth + 1, 1),
@@ -204,7 +206,7 @@ export class ReportsService {
     const [receipts, payments] = await Promise.all([
       this.prisma.receipt.groupBy({
         by: ['type'],
-        where: { ...where, ...dateFilter },
+        where: { ...where, ...dateFilter, ...NOT_VOIDED },
         _sum: { amount: true },
         _count: true,
       }),
@@ -247,7 +249,7 @@ export class ReportsService {
     const end = new Date(date);
     end.setHours(23, 59, 59, 999);
 
-    const receiptWhere: any = { date: { gte: start, lte: end } };
+    const receiptWhere: any = { date: { gte: start, lte: end }, ...NOT_VOIDED };
     const paymentWhere: any = { date: { gte: start, lte: end } };
     if (schoolId) {
       receiptWhere.schoolId = schoolId;
@@ -328,7 +330,7 @@ export class ReportsService {
 
     const [receiptsSum, paymentsSum, bankDeposits, bankWithdrawals] = await Promise.all([
       this.prisma.receipt.aggregate({
-        where: { ...where, ...dateFilter },
+        where: { ...where, ...dateFilter, ...NOT_VOIDED },
         _sum: { amount: true },
       }),
       this.prisma.paymentVoucher.aggregate({
@@ -536,7 +538,8 @@ export class ReportsService {
     type?: ReceiptType,
     actor?: ScopedUser,
   ) {
-    const where: any = { date: { gte: startDate, lte: endDate } };
+    // ทะเบียนคุมใบเสร็จเป็นรายงานยอดรายรับ ใบที่ยกเลิกไม่ใช่เงินจริงจึงไม่นับ
+    const where: any = { date: { gte: startDate, lte: endDate }, ...NOT_VOIDED };
     if (schoolId) where.schoolId = schoolId;
     if (type) where.type = type;
 
@@ -888,6 +891,7 @@ export class ReportsService {
       this.prisma.receipt.aggregate({
         where: {
           ...(schoolId ? { schoolId } : {}),
+          ...NOT_VOIDED,
           date: { gte: startOfMonth, lte: endOfMonth },
         },
         _sum: { amount: true },
@@ -1129,6 +1133,7 @@ export class ReportsService {
           this.prisma.receipt.aggregate({
             where: {
               ...(schoolId ? { schoolId } : {}),
+              ...NOT_VOIDED,
               date: { gte: startOfMonth, lte: endOfMonth },
             },
             _sum: { amount: true },
@@ -1247,7 +1252,7 @@ export class ReportsService {
     // รายรับตามประเภท
     const receiptsByType = await this.prisma.receipt.groupBy({
       by: ['type'],
-      where: { ...where, ...dateFilter },
+      where: { ...where, ...dateFilter, ...NOT_VOIDED },
       _sum: { amount: true },
       _count: true,
     });
@@ -1267,7 +1272,7 @@ export class ReportsService {
         const endOfMonth = new Date(year, month, 0);
 
         const result = await this.prisma.receipt.aggregate({
-          where: { ...where, date: { gte: startOfMonth, lte: endOfMonth } },
+          where: { ...where, ...NOT_VOIDED, date: { gte: startOfMonth, lte: endOfMonth } },
           _sum: { amount: true },
         });
 

@@ -3,6 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateBankAccountDto, UpdateBankAccountDto } from './dto/bank-account.dto';
 import { CreateBankTransactionDto, UpdateBankTransactionDto } from './dto/bank-transaction.dto';
 import { DocumentNumberService, DocumentType } from '../common/document-number.service';
+import { NOT_VOIDED } from '../common/receipt-filter';
 import { AuditLogService } from '../common/services/audit-log.service';
 import { AuditAction, BankTransactionType } from '@prisma/client';
 import { ScopedUser } from '../common/security/school-scope.service';
@@ -191,7 +192,7 @@ export class BankAccountsService {
 
     const [receipts, payments, manualTxns] = await Promise.all([
       this.prisma.receipt.findMany({
-        where: { bankAccountId: id, ...dateFilter },
+        where: { bankAccountId: id, ...NOT_VOIDED, ...dateFilter },
         include: { school: true },
         orderBy: { date: 'asc' },
       }),
@@ -257,7 +258,7 @@ export class BankAccountsService {
 
     const [receiptsSum, paymentsSum, manualDeposits, manualWithdrawals] = await Promise.all([
       this.prisma.receipt.aggregate({
-        where: { bankAccountId: id },
+        where: { bankAccountId: id, ...NOT_VOIDED },
         _sum: { amount: true },
       }),
       this.prisma.paymentVoucher.aggregate({

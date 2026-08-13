@@ -595,8 +595,13 @@ model Receipt {
   memberContribution   MemberContribution?
   ledgerEntries        LedgerEntry[]
   deathClaimCollection DeathClaim?         @relation("ClaimCollectionReceipt")
+  // ยกเลิกใบเสร็จแบบไม่ลบแถว เพื่อไม่ให้เลขที่ใบเสร็จถูกนำกลับมาออกซ้ำให้เงินคนละก้อน
+  voidedAt             DateTime?
+  voidReason           String?
   createdAt            DateTime            @default(now())
   updatedAt            DateTime            @updatedAt
+
+  @@index([voidedAt])
 }
 
 // ใบสำคัญจ่าย - schoolId optional (ระบุได้ถ้าจ่ายให้โรงเรียนใดโรงเรียนหนึ่ง)

@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { NOT_VOIDED } from '../common/receipt-filter';
 import {
   AssociationMemberStatus,
   MemberStatus,
@@ -203,7 +204,7 @@ export class DashboardsService {
     ] = await Promise.all([
       this.prisma.receipt.groupBy({
         by: ['date'],
-        where: { ...schoolFilter, date: inYear },
+        where: { ...schoolFilter, ...NOT_VOIDED, date: inYear },
         _sum: { amount: true },
       }),
       this.prisma.paymentVoucher.groupBy({
@@ -213,7 +214,7 @@ export class DashboardsService {
       }),
       // ยอดยกมา = เงินเข้า-ออกทั้งหมดก่อนต้นปี เพื่อให้ยอดสะสมต่อเนื่องข้ามปี
       this.prisma.receipt.aggregate({
-        where: { ...schoolFilter, date: { lt: yearStart } },
+        where: { ...schoolFilter, ...NOT_VOIDED, date: { lt: yearStart } },
         _sum: { amount: true },
       }),
       this.prisma.paymentVoucher.aggregate({
@@ -222,7 +223,7 @@ export class DashboardsService {
       }),
       this.prisma.receipt.groupBy({
         by: ['type'],
-        where: { ...schoolFilter, date: inYear },
+        where: { ...schoolFilter, ...NOT_VOIDED, date: inYear },
         _sum: { amount: true },
         _count: true,
       }),

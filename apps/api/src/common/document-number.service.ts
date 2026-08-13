@@ -55,6 +55,10 @@ export class DocumentNumberService {
 
   /**
    * ใบเสร็จรับเงิน: R202412-M0001
+   *
+   * ต้องนับใบเสร็จที่ถูกยกเลิก (voidedAt) รวมเข้ามาด้วยเสมอ ห้ามกรองออก
+   * เลขที่ที่ออกไปแล้วถือว่าใช้ไปแล้วตลอดกาล ถ้ากรองใบที่ยกเลิกทิ้ง
+   * เลขที่ของใบนั้นจะว่างกลับมาแล้วถูกออกซ้ำให้สมาชิกคนละคนคนละยอด
    */
   private async generateReceiptNumber(yearMonth: string): Promise<string> {
     const prefix = `R${yearMonth}-M`;
@@ -180,6 +184,7 @@ export class DocumentNumberService {
   async isDuplicate(type: DocumentType, number: string): Promise<boolean> {
     switch (type) {
       case DocumentType.RECEIPT:
+        // รวมใบที่ยกเลิกแล้วด้วย — เลขที่ที่เคยออกไปถือว่าถูกใช้ไปแล้ว
         const receipt = await this.prisma.receipt.findFirst({
           where: { receiptNo: number },
         });
