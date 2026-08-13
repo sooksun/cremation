@@ -75,6 +75,9 @@ importers:
       rxjs:
         specifier: ^7.8.1
         version: 7.8.2
+      xlsx:
+        specifier: ^0.18.5
+        version: 0.18.5
     devDependencies:
       '@nestjs/cli':
         specifier: ^10.2.1
@@ -154,9 +157,6 @@ importers:
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
-      xlsx:
-        specifier: ^0.18.5
-        version: 0.18.5
 
   apps/web:
     dependencies:

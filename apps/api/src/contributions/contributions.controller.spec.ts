@@ -92,4 +92,25 @@ describe('ContributionsController.uploadPaymentFile', () => {
       expect.objectContaining({ memberNo: 'M0001', error: expect.stringContaining('ซ้ำ') }),
     );
   });
+
+  it('ถ้างวดปิดแล้ว processPaymentUpload ต้อง throw และห้ามเรียก reconcile เลย', async () => {
+    const closedPeriodError = new Error('งวดนี้ปิดแล้ว ไม่สามารถอัปโหลดการชำระเงินได้');
+    contributions.processPaymentUpload.mockRejectedValue(closedPeriodError);
+
+    const file = xlsxFile([
+      ['เลขสมาชิก', 'สถานะ'],
+      ['M0001', 'ชำระแล้ว'],
+    ]);
+
+    await expect(
+      controller.uploadPaymentFile(
+        file,
+        { year: '2026', month: '8' },
+        { user: { id: 'u1', role: 'ADMIN' } } as never,
+      ),
+    ).rejects.toThrow(closedPeriodError);
+
+    expect(contributions.processPaymentUpload).toHaveBeenCalled();
+    expect(reconciliation.reconcile).not.toHaveBeenCalled();
+  });
 });
