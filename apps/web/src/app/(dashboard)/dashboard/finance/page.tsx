@@ -11,19 +11,19 @@ import {
   Info,
   CalendarClock,
 } from 'lucide-react';
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Legend,
-  ComposedChart,
-  Line,
-} from 'recharts';
+import dynamic from 'next/dynamic';
+import ChartSkeleton from '@/components/ChartSkeleton';
 import { api } from '@/lib/api';
+
+// recharts หนักราว 99 kB (gzip) และใช้เฉพาะบล็อกกราฟ จึงโหลดแบบ dynamic ฝั่ง client เท่านั้น
+const MonthlyCashFlowChart = dynamic(
+  () => import('./charts').then((m) => m.MonthlyCashFlowChart),
+  { ssr: false, loading: () => <ChartSkeleton className="h-[340px]" /> },
+);
+const TypeBreakdownChart = dynamic(
+  () => import('./charts').then((m) => m.TypeBreakdownChart),
+  { ssr: false, loading: () => <ChartSkeleton className="h-[240px]" /> },
+);
 import { useAuthStore } from '@/store/auth';
 
 const THAI_MONTHS = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
@@ -177,18 +177,7 @@ export default function FinanceDashboardPage() {
       {/* เงินเข้า-ออก + ยอดสะสม รายเดือน */}
       <div className="card p-6">
         <h2 className="font-semibold text-slate-900 mb-4">เงินเข้า–ออก และยอดสะสมรายเดือน</h2>
-        <ResponsiveContainer width="100%" height={340}>
-          <ComposedChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} />
-            <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-            <YAxis tickFormatter={(v) => num(v)} tick={{ fontSize: 12 }} />
-            <Tooltip formatter={(v: number, key) => [baht(v), key]} />
-            <Legend />
-            <Bar dataKey="inflow" name="เงินเข้า" fill="#10b981" radius={[4, 4, 0, 0]} />
-            <Bar dataKey="outflow" name="เงินออก" fill="#f43f5e" radius={[4, 4, 0, 0]} />
-            <Line type="monotone" dataKey="accumulated" name="ยอดสะสม" stroke="#8b5cf6" strokeWidth={2} dot={false} />
-          </ComposedChart>
-        </ResponsiveContainer>
+        <MonthlyCashFlowChart data={chartData} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -329,15 +318,7 @@ function TypeBreakdown({
       {rows.length === 0 ? (
         <p className="text-sm text-slate-400 py-8 text-center">ยังไม่มีรายการ</p>
       ) : (
-        <ResponsiveContainer width="100%" height={240}>
-          <BarChart data={rows} layout="vertical" margin={{ left: 20 }}>
-            <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-            <XAxis type="number" tickFormatter={(v) => num(v)} tick={{ fontSize: 11 }} />
-            <YAxis type="category" dataKey="label" width={120} tick={{ fontSize: 11 }} />
-            <Tooltip formatter={(v: number) => baht(v)} />
-            <Bar dataKey="amount" fill={color} radius={[0, 4, 4, 0]} name="ยอดเงิน" />
-          </BarChart>
-        </ResponsiveContainer>
+        <TypeBreakdownChart rows={rows} color={color} />
       )}
     </div>
   );

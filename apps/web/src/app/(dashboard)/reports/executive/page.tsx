@@ -17,22 +17,23 @@ import {
   Download,
 } from 'lucide-react';
 import { exportElementToPdf } from '@/lib/export-pdf';
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  LineChart,
-  Line,
-  Legend,
-  PieChart as RechartsPieChart,
-  Pie,
-  Cell,
-} from 'recharts';
+import dynamic from 'next/dynamic';
+import ChartSkeleton from '@/components/ChartSkeleton';
 import { api } from '@/lib/api';
+
+// recharts หนักราว 99 kB (gzip) และใช้เฉพาะบล็อกกราฟ จึงโหลดแบบ dynamic ฝั่ง client เท่านั้น
+const MemberStatusPieChart = dynamic(
+  () => import('./charts').then((m) => m.MemberStatusPieChart),
+  { ssr: false, loading: () => <ChartSkeleton /> },
+);
+const MonthlyFinanceChart = dynamic(
+  () => import('./charts').then((m) => m.MonthlyFinanceChart),
+  { ssr: false, loading: () => <ChartSkeleton /> },
+);
+const DeathClaimsTrendChart = dynamic(
+  () => import('./charts').then((m) => m.DeathClaimsTrendChart),
+  { ssr: false, loading: () => <ChartSkeleton /> },
+);
 import { useAuthStore } from '@/store/auth';
 import { formatThaiDateShort } from '@/components/ThaiDatePicker';
 import dayjs from 'dayjs';
@@ -305,27 +306,7 @@ export default function ExecutiveDashboardPage() {
             สัดส่วนสถานะสมาชิก
           </h3>
           <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <RechartsPieChart>
-                <Pie
-                  data={memberStatusPieData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={50}
-                  outerRadius={80}
-                  paddingAngle={5}
-                  dataKey="value"
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                >
-                  {memberStatusPieData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip 
-                  formatter={(value: number) => `${formatNumber(value)} คน`}
-                />
-              </RechartsPieChart>
-            </ResponsiveContainer>
+            <MemberStatusPieChart data={memberStatusPieData} />
           </div>
         </motion.div>
 
@@ -341,22 +322,7 @@ export default function ExecutiveDashboardPage() {
             รายรับ-รายจ่าย 12 เดือนย้อนหลัง
           </h3>
           <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={financeChartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                <XAxis dataKey="name" tick={{ fontSize: 11 }} />
-                <YAxis 
-                  tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
-                  tick={{ fontSize: 11 }}
-                />
-                <Tooltip 
-                  formatter={(value: number) => formatCurrency(value)}
-                />
-                <Legend />
-                <Line type="monotone" dataKey="รายรับ" stroke="#10b981" strokeWidth={2} />
-                <Line type="monotone" dataKey="รายจ่าย" stroke="#f43f5e" strokeWidth={2} />
-              </LineChart>
-            </ResponsiveContainer>
+            <MonthlyFinanceChart data={financeChartData} />
           </div>
         </motion.div>
       </div>
@@ -375,18 +341,7 @@ export default function ExecutiveDashboardPage() {
             แนวโน้มการแจ้งเสียชีวิต (5 ปี)
           </h3>
           <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={deathClaimsChartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                <YAxis tick={{ fontSize: 12 }} />
-                <Tooltip />
-                <Legend />
-                <Bar dataKey="ตัวสมาชิก" stackId="a" fill="#f43f5e" />
-                <Bar dataKey="บิดามารดา" stackId="a" fill="#f59e0b" />
-                <Bar dataKey="บุตร" stackId="a" fill="#6366f1" />
-              </BarChart>
-            </ResponsiveContainer>
+            <DeathClaimsTrendChart data={deathClaimsChartData} />
           </div>
         </motion.div>
 

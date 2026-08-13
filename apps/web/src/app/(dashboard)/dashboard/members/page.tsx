@@ -13,20 +13,23 @@ import {
   ShieldAlert,
 } from 'lucide-react';
 import Link from 'next/link';
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart as RechartsPieChart,
-  Pie,
-  Cell,
-  Legend,
-} from 'recharts';
+import dynamic from 'next/dynamic';
+import ChartSkeleton from '@/components/ChartSkeleton';
 import { api, membershipEndReasonLabels, type MembershipEndReason } from '@/lib/api';
+
+// recharts หนักราว 99 kB (gzip) และใช้เฉพาะบล็อกกราฟ จึงโหลดแบบ dynamic ฝั่ง client เท่านั้น
+const MemberStatusPieChart = dynamic(
+  () => import('./charts').then((m) => m.MemberStatusPieChart),
+  { ssr: false, loading: () => <ChartSkeleton className="h-[260px]" /> },
+);
+const MemberTypeBarChart = dynamic(
+  () => import('./charts').then((m) => m.MemberTypeBarChart),
+  { ssr: false, loading: () => <ChartSkeleton className="h-[260px]" /> },
+);
+const ClusterBarChart = dynamic(
+  () => import('./charts').then((m) => m.ClusterBarChart),
+  { ssr: false, loading: () => <ChartSkeleton className="h-[260px]" /> },
+);
 import { useAuthStore } from '@/store/auth';
 
 const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#f43f5e', '#8b5cf6', '#06b6d4'];
@@ -197,24 +200,10 @@ export default function MembersDashboardPage() {
           {statusData.length === 0 ? (
             <EmptyHint text="ยังไม่มีข้อมูลสมาชิก" />
           ) : (
-            <ResponsiveContainer width="100%" height={260}>
-              <RechartsPieChart>
-                <Pie
-                  data={statusData.map((s) => ({ name: STATUS_LABELS[s.status] ?? s.status, value: s.count }))}
-                  dataKey="value"
-                  nameKey="name"
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={90}
-                  label={(e: any) => `${e.name} ${e.value}`}
-                >
-                  {statusData.map((_, i) => (
-                    <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip formatter={(v: number) => `${num(v)} คน`} />
-              </RechartsPieChart>
-            </ResponsiveContainer>
+            <MemberStatusPieChart
+              data={statusData.map((s) => ({ name: STATUS_LABELS[s.status] ?? s.status, value: s.count }))}
+              colors={COLORS}
+            />
           )}
         </div>
 
@@ -224,15 +213,7 @@ export default function MembersDashboardPage() {
           {data.byMemberType.length === 0 ? (
             <EmptyHint text="ยังไม่มีข้อมูลประเภทสมาชิก" />
           ) : (
-            <ResponsiveContainer width="100%" height={260}>
-              <BarChart data={data.byMemberType} layout="vertical" margin={{ left: 20 }}>
-                <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-                <XAxis type="number" allowDecimals={false} />
-                <YAxis type="category" dataKey="name" width={90} tick={{ fontSize: 12 }} />
-                <Tooltip formatter={(v: number) => `${num(v)} คน`} />
-                <Bar dataKey="count" fill="#3b82f6" radius={[0, 4, 4, 0]} name="จำนวน" />
-              </BarChart>
-            </ResponsiveContainer>
+            <MemberTypeBarChart data={data.byMemberType} />
           )}
         </div>
       </div>
@@ -271,16 +252,9 @@ export default function MembersDashboardPage() {
           {data.byCluster.length === 0 ? (
             <EmptyHint text="ยังไม่มีกลุ่มเครือข่าย" />
           ) : (
-            <ResponsiveContainer width="100%" height={260}>
-              <BarChart data={data.byCluster.map((c) => ({ ...c, short: c.name.replace('กลุ่มเครือข่ายพัฒนาการศึกษา', '') }))}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="short" tick={{ fontSize: 11 }} interval={0} angle={-15} textAnchor="end" height={60} />
-                <YAxis allowDecimals={false} />
-                <Tooltip formatter={(v: number) => `${num(v)} คน`} />
-                <Legend />
-                <Bar dataKey="members" fill="#8b5cf6" radius={[4, 4, 0, 0]} name="สมาชิก" />
-              </BarChart>
-            </ResponsiveContainer>
+            <ClusterBarChart
+              data={data.byCluster.map((c) => ({ ...c, short: c.name.replace('กลุ่มเครือข่ายพัฒนาการศึกษา', '') }))}
+            />
           )}
         </div>
       </div>

@@ -17,24 +17,23 @@ import {
   Download,
 } from 'lucide-react';
 import { exportElementToPdf } from '@/lib/export-pdf';
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  LineChart,
-  Line,
-  Legend,
-  PieChart as RechartsPieChart,
-  Pie,
-  Cell,
-  AreaChart,
-  Area,
-} from 'recharts';
+import dynamic from 'next/dynamic';
+import ChartSkeleton from '@/components/ChartSkeleton';
 import { api } from '@/lib/api';
+
+// recharts หนักราว 99 kB (gzip) และใช้เฉพาะบล็อกกราฟ จึงโหลดแบบ dynamic ฝั่ง client เท่านั้น
+const MonthlyAreaChart = dynamic(() => import('./charts').then((m) => m.MonthlyAreaChart), {
+  ssr: false,
+  loading: () => <ChartSkeleton />,
+});
+const TypeDonutChart = dynamic(() => import('./charts').then((m) => m.TypeDonutChart), {
+  ssr: false,
+  loading: () => <ChartSkeleton />,
+});
+const CollectionRateChart = dynamic(() => import('./charts').then((m) => m.CollectionRateChart), {
+  ssr: false,
+  loading: () => <ChartSkeleton />,
+});
 import { useAuthStore } from '@/store/auth';
 import dayjs from 'dayjs';
 
@@ -271,17 +270,7 @@ export default function FinanceDashboardPage() {
           รายรับ-รายจ่ายรายเดือน ปี พ.ศ. {selectedYear + 543}
         </h3>
         <div className="h-80">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={monthlyChartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-              <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-              <YAxis tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`} tick={{ fontSize: 12 }} />
-              <Tooltip formatter={(value: number) => formatCurrency(value)} />
-              <Legend />
-              <Area type="monotone" dataKey="รายรับ" stackId="1" stroke="#10b981" fill="#10b981" fillOpacity={0.6} />
-              <Area type="monotone" dataKey="รายจ่าย" stackId="2" stroke="#f43f5e" fill="#f43f5e" fillOpacity={0.6} />
-            </AreaChart>
-          </ResponsiveContainer>
+          <MonthlyAreaChart data={monthlyChartData} />
         </div>
       </motion.div>
 
@@ -300,23 +289,7 @@ export default function FinanceDashboardPage() {
           </h3>
           <div className="grid grid-cols-2 gap-4">
             <div className="h-48">
-              <ResponsiveContainer width="100%" height="100%">
-                <RechartsPieChart>
-                  <Pie
-                    data={receiptsPieData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={40}
-                    outerRadius={70}
-                    dataKey="value"
-                  >
-                    {receiptsPieData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip formatter={(value: number) => formatCurrency(value)} />
-                </RechartsPieChart>
-              </ResponsiveContainer>
+              <TypeDonutChart data={receiptsPieData} />
             </div>
             <div className="space-y-2">
               {data.receiptsByType.map((r, i) => (
@@ -348,23 +321,7 @@ export default function FinanceDashboardPage() {
           </h3>
           <div className="grid grid-cols-2 gap-4">
             <div className="h-48">
-              <ResponsiveContainer width="100%" height="100%">
-                <RechartsPieChart>
-                  <Pie
-                    data={paymentsPieData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={40}
-                    outerRadius={70}
-                    dataKey="value"
-                  >
-                    {paymentsPieData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip formatter={(value: number) => formatCurrency(value)} />
-                </RechartsPieChart>
-              </ResponsiveContainer>
+              <TypeDonutChart data={paymentsPieData} />
             </div>
             <div className="space-y-2">
               {data.paymentsByType.map((p, i) => (
@@ -396,28 +353,7 @@ export default function FinanceDashboardPage() {
           อัตราการเก็บเงินสงเคราะห์รายงวด
         </h3>
         <div className="h-64">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={collectionRateData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-              <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-              <YAxis yAxisId="left" tick={{ fontSize: 12 }} domain={[0, 100]} unit="%" />
-              <YAxis
-                yAxisId="right"
-                orientation="right"
-                tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
-                tick={{ fontSize: 12 }}
-              />
-              <Tooltip
-                formatter={(value: number, name: string) =>
-                  name === 'อัตราเก็บ' ? `${value}%` : formatCurrency(value)
-                }
-              />
-              <Legend />
-              <Bar yAxisId="left" dataKey="อัตราเก็บ" fill="#10b981" radius={[4, 4, 0, 0]} />
-              <Line yAxisId="right" type="monotone" dataKey="คาดหวัง" stroke="#f59e0b" strokeWidth={2} />
-              <Line yAxisId="right" type="monotone" dataKey="เก็บได้" stroke="#3b82f6" strokeWidth={2} />
-            </BarChart>
-          </ResponsiveContainer>
+          <CollectionRateChart data={collectionRateData} />
         </div>
       </motion.div>
 

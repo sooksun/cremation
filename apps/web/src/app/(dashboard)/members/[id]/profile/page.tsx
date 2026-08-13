@@ -21,19 +21,15 @@ import {
   TrendingUp,
 } from 'lucide-react';
 import Link from 'next/link';
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-} from 'recharts';
+import dynamic from 'next/dynamic';
+import ChartSkeleton from '@/components/ChartSkeleton';
 import { api } from '@/lib/api';
+
+// recharts หนักราว 99 kB (gzip) และใช้เฉพาะกราฟประวัติการชำระ จึงโหลดแบบ dynamic ฝั่ง client เท่านั้น
+const ContributionHistoryChart = dynamic(
+  () => import('./charts').then((m) => m.ContributionHistoryChart),
+  { ssr: false, loading: () => <ChartSkeleton /> },
+);
 import { formatThaiDate, formatThaiDateShort } from '@/components/ThaiDatePicker';
 import { useAuthStore } from '@/store/auth';
 
@@ -377,16 +373,7 @@ export default function MemberProfilePage() {
               ประวัติการชำระเงินสงเคราะห์
             </h3>
             <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={contributionChartData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                  <XAxis dataKey="name" tick={{ fontSize: 10 }} />
-                  <YAxis tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`} tick={{ fontSize: 11 }} />
-                  <Tooltip formatter={(value: number) => formatCurrency(value)} />
-                  <Bar dataKey="ยอดชำระ" fill="#e2e8f0" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="ชำระแล้ว" fill="#10b981" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
+              <ContributionHistoryChart data={contributionChartData} />
             </div>
           </div>
 
