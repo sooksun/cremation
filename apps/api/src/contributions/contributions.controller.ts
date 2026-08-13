@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Controller,
   Get,
   Post,
@@ -25,6 +26,7 @@ import { UploadPaymentDto } from './dto/upload-payment.dto';
 import { parsePaymentFile, isPaidStatus } from './payment-file.parser';
 import { buildWorkbookBuffer } from './payment-workbook';
 import { PaymentReconciliationService, MissingRow } from './payment-reconciliation.service';
+import { MAX_UPLOAD_BYTES, UploadFileSizeInterceptor } from './upload-file-size.interceptor';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -197,6 +199,7 @@ export class ContributionsController {
     @Query('year') year: number,
     @Query('month') month: number,
     @Query('format') format: string | undefined,
+    @Request() req: { user: ScopedUser },
     @Res({ passthrough: true }) res: Response,
   ) {
     const resolvedYear = Number(year) || new Date().getFullYear();
@@ -204,6 +207,7 @@ export class ContributionsController {
     const template = await this.contributionsService.generatePaymentTemplate(
       resolvedYear,
       resolvedMonth,
+      req.user,
     );
 
     if (format === 'json') {
@@ -225,7 +229,10 @@ export class ContributionsController {
   @Post('upload')
   @UseGuards(RolesGuard)
   @Roles(Role.ADMIN, Role.SCHOOL_ADMIN, Role.FINANCE)
-  @UseInterceptors(FileInterceptor('file', { limits: { fileSize: 5 * 1024 * 1024 } }))
+  @UseInterceptors(
+    UploadFileSizeInterceptor,
+    FileInterceptor('file', { limits: { fileSize: MAX_UPLOAD_BYTES } }),
+  )
   async uploadPaymentFile(
     @UploadedFile() file: Express.Multer.File | undefined,
     @Body() body: UploadPaymentDto,
@@ -235,8 +242,6 @@ export class ContributionsController {
     const month = Number(body.month);
     const fullDistrict = body.fullDistrict === 'true' || body.fullDistrict === true;
     const autoMarkArrears = !(body.autoMarkArrears === 'false' || body.autoMarkArrears === false);
-
-    const period = await this.contributionsService.findPeriodByYearMonth(year, month);
 
     const parsed = file
       ? parsePaymentFile(file.buffer)
@@ -249,6 +254,17 @@ export class ContributionsController {
           })).filter((row) => row.memberNo !== ''),
           duplicates: [],
         };
+
+    // ไฟล์ที่ไม่มีแถวข้อมูลเลย ต้องตกที่นี่ ก่อนเขียนฐานข้อมูลใด ๆ — ถ้าปล่อยผ่าน
+    // schoolIdsInFile จะว่าง แต่ผู้ใช้ที่ถูกบังคับโรงเรียนจะยังถูกเทียบกับสมาชิกทั้งโรงเรียน
+    // ทำให้ทุกคนกลายเป็น "ขาด" แล้วถูกบันทึกค้างชำระยกโรงเรียนจากไฟล์เปล่าใบเดียว
+    if (parsed.rows.length === 0) {
+      throw new BadRequestException(
+        'ไฟล์นี้ไม่มีแถวข้อมูลสมาชิก — ตรวจสอบว่าเลือกไฟล์ถูกต้องและมีข้อมูลอย่างน้อย 1 แถว',
+      );
+    }
+
+    const period = await this.contributionsService.findPeriodByYearMonth(year, month);
 
     const uploadResult = await this.contributionsService.processPaymentUpload(
       year,
