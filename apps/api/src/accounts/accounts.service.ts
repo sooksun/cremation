@@ -340,22 +340,27 @@ export class AccountsService {
     const closeDate = new Date(year, 11, 31);
 
     // Close Income (revenues) - Debit Revenue, Credit Summary
+    // ยอดติดลบ (เช่น กลับรายการมากกว่ารายได้ที่รับจริง) ต้องกลับข้างเดบิต/เครดิต
+    // ไม่งั้นบัญชีนั้นไม่ถูกล้าง แต่ netProfit รวมยอดติดลบไว้แล้ว → 399 เหลือยอดค้างข้ามปี
     for (const inc of pl.income) {
       const acc = await this.prisma.account.findFirst({ where: { code: inc.code } });
-      if (acc && inc.amount > 0) {
+      if (acc && inc.amount !== 0) {
+        const magnitude = Math.abs(inc.amount);
+        const positive = inc.amount > 0;
+        const description = `ปิดรายได้ ${inc.name} ประจำปี ${year}`;
         entries.push({
           accountId: acc.id,
           date: closeDate,
-          description: `ปิดรายได้ ${inc.name} ประจำปี ${year}`,
-          debit: inc.amount,
-          credit: 0,
+          description,
+          debit: positive ? magnitude : 0,
+          credit: positive ? 0 : magnitude,
         });
         entries.push({
           accountId: incomeSummary.id,
           date: closeDate,
-          description: `ปิดรายได้ ${inc.name} ประจำปี ${year}`,
-          debit: 0,
-          credit: inc.amount,
+          description,
+          debit: positive ? 0 : magnitude,
+          credit: positive ? magnitude : 0,
         });
       }
     }
@@ -363,20 +368,23 @@ export class AccountsService {
     // Close Expenses - Credit Expense, Debit Summary
     for (const exp of pl.expenses) {
       const acc = await this.prisma.account.findFirst({ where: { code: exp.code } });
-      if (acc && exp.amount > 0) {
+      if (acc && exp.amount !== 0) {
+        const magnitude = Math.abs(exp.amount);
+        const positive = exp.amount > 0;
+        const description = `ปิดค่าใช้จ่าย ${exp.name} ประจำปี ${year}`;
         entries.push({
           accountId: acc.id,
           date: closeDate,
-          description: `ปิดค่าใช้จ่าย ${exp.name} ประจำปี ${year}`,
-          debit: 0,
-          credit: exp.amount,
+          description,
+          debit: positive ? 0 : magnitude,
+          credit: positive ? magnitude : 0,
         });
         entries.push({
           accountId: incomeSummary.id,
           date: closeDate,
-          description: `ปิดค่าใช้จ่าย ${exp.name} ประจำปี ${year}`,
-          debit: exp.amount,
-          credit: 0,
+          description,
+          debit: positive ? magnitude : 0,
+          credit: positive ? 0 : magnitude,
         });
       }
     }
