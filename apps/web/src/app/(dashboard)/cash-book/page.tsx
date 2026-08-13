@@ -5,7 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { Plus, Edit, Trash2, Wallet } from 'lucide-react';
 import { api } from '@/lib/api';
-import { showSuccess, showError } from '@/lib/toast';
+import { showSuccess, showError, showConfirm } from '@/lib/toast';
 import { useAuthStore } from '@/store/auth';
 import ThaiDatePicker from '@/components/ThaiDatePicker';
 import dayjs from 'dayjs';
@@ -177,7 +177,19 @@ export default function CashBookPage() {
                   <td className="p-3 text-slate-600">{e.description || '-'}</td>
                   <td className="p-3 flex gap-2 justify-end">
                     <button onClick={() => openEdit(e)} className="text-blue-600"><Edit size={16} /></button>
-                    <button onClick={() => deleteMutation.mutate(e.id)} className="text-red-600"><Trash2 size={16} /></button>
+                    <button
+                      onClick={() => {
+                        showConfirm(
+                          `ต้องการลบรายการเงินสด วันที่ ${dayjs(e.date).format('DD/MM/BBBB')} ` +
+                            `${e.type === 'IN' ? 'รับ' : 'จ่าย'} ${formatCurrency(e.amount)} ` +
+                            `(${e.description || 'ไม่มีรายละเอียด'}) หรือไม่?`,
+                          () => deleteMutation.mutate(e.id),
+                        );
+                      }}
+                      className="text-red-600"
+                    >
+                      <Trash2 size={16} />
+                    </button>
                   </td>
                 </tr>
               ))}
