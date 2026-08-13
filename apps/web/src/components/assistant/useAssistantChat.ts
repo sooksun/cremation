@@ -3,6 +3,9 @@
 import { useCallback, useRef, useState } from 'react';
 import { streamAssistant, type AssistantMessage } from '@/lib/assistant';
 
+/** ต้องตรงกับ MAX_MESSAGE_LENGTH ใน apps/api/src/assistant/dto/chat.dto.ts */
+const MAX_MESSAGE_LENGTH = 4000;
+
 export function useAssistantChat() {
   const [messages, setMessages] = useState<AssistantMessage[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
@@ -18,7 +21,13 @@ export function useAssistantChat() {
       setError(null);
 
       const history: AssistantMessage[] = [...messages, { role: 'user', content: trimmed }];
-      const payload = history.slice(-38); // กัน DTO 40-message cap (เผื่อที่ 2 message)
+      // กัน DTO 40-message cap (เผื่อที่ 2 message) และตัดข้อความยาวให้อยู่ในเพดาน 4,000
+      // ตัวอักษรของ DTO — ถ้าปล่อยไว้ คำตอบยาวครั้งเดียวจะทำให้คำถามถัดไปโดน 400 ทั้งหมด
+      const payload = history
+        .slice(-38)
+        .map((m) => (m.content.length > MAX_MESSAGE_LENGTH
+          ? { ...m, content: m.content.slice(0, MAX_MESSAGE_LENGTH) }
+          : m));
       setMessages([...history, { role: 'assistant', content: '' }]);
       setIsStreaming(true);
 
