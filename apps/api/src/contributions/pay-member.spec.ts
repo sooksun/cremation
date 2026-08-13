@@ -1,4 +1,5 @@
-import { BadRequestException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException } from '@nestjs/common';
+import { Role } from '@prisma/client';
 import { ContributionsService } from './contributions.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { MembersService } from '../members/members.service';
@@ -16,12 +17,14 @@ import { AppSettingsService } from '../common/services/app-settings.service';
 describe('ContributionsService.payMemberForPeriod', () => {
   let service: ContributionsService;
   let prisma: any;
+  let schoolScope: SchoolScopeService;
 
   const PERIOD = { id: 'p1', year: 2026, month: 1, isClosed: false, welfareRate: 100, serviceFee: 5 };
   const MEMBER = {
     id: 'member-1',
     memberNo: 'M0001',
     schoolId: 'school-1',
+    groupId: 'group-1',
     associationMember: { firstName: 'ก', lastName: 'ข' },
   };
 
@@ -36,11 +39,27 @@ describe('ContributionsService.payMemberForPeriod', () => {
         ),
         update: jest.fn().mockResolvedValue({ id: 'new-c' }),
       },
-      receipt: { create: jest.fn().mockResolvedValue({ id: 'receipt-1' }) },
-      ledgerEntry: { createMany: jest.fn() },
+      receipt: {
+        create: jest.fn().mockResolvedValue({ id: 'receipt-1' }),
+        findUnique: jest.fn().mockResolvedValue(null),
+        delete: jest.fn(),
+      },
+      ledgerEntry: { createMany: jest.fn().mockResolvedValue({ count: 3 }), deleteMany: jest.fn() },
+      cashBook: { deleteMany: jest.fn() },
       bankAccount: { findUnique: jest.fn().mockResolvedValue(null) },
-      account: { findFirst: jest.fn().mockResolvedValue(null) },
+      // ผังบัญชีต้องมีจริง ไม่งั้นบล็อกลงบัญชีจะไม่ถูกรัน แล้วเทสต์ชุดนี้จะเขียวทั้งที่ลบการลงบัญชีทิ้ง
+      account: {
+        findFirst: jest.fn().mockImplementation(({ where }: any) =>
+          Promise.resolve({ id: `acc-${where.code}`, code: where.code }),
+        ),
+      },
+      $transaction: jest.fn().mockImplementation((fn: any) => fn(prisma)),
     };
+
+    schoolScope = {
+      assertSchoolAccess: jest.fn(),
+      assertGroupLeaderCanPay: jest.fn(),
+    } as unknown as SchoolScopeService;
 
     service = new ContributionsService(
       prisma as unknown as PrismaService,
@@ -48,7 +67,7 @@ describe('ContributionsService.payMemberForPeriod', () => {
       { resetArrearsTracking: jest.fn() } as unknown as MembershipRulesService,
       { generateNumber: jest.fn().mockResolvedValue('R202601-M0001') } as unknown as DocumentNumberService,
       { findDefault: jest.fn().mockResolvedValue(null) } as unknown as BankAccountsService,
-      { assertSchoolAccess: jest.fn(), assertGroupLeaderCanPay: jest.fn() } as unknown as SchoolScopeService,
+      schoolScope,
       { log: jest.fn() } as unknown as AuditLogService,
       {
         isServiceFeeEnabled: jest.fn().mockResolvedValue(true),
@@ -73,6 +92,20 @@ describe('ContributionsService.payMemberForPeriod', () => {
     expect(prisma.receipt.create).toHaveBeenCalledTimes(1);
   });
 
+  it('ลงบัญชีคู่ผูกกับใบเสร็จและยอดต้องดุล', async () => {
+    await service.payMemberForPeriod({ memberId: 'member-1', periodId: 'p1' });
+
+    expect(prisma.ledgerEntry.createMany).toHaveBeenCalledTimes(1);
+    const entries = prisma.ledgerEntry.createMany.mock.calls[0][0].data;
+    expect(entries.length).toBeGreaterThanOrEqual(2);
+    expect(entries.every((e: any) => e.receiptId === 'receipt-1')).toBe(true);
+
+    const debit = entries.reduce((sum: number, e: any) => sum + Number(e.debit || 0), 0);
+    const credit = entries.reduce((sum: number, e: any) => sum + Number(e.credit || 0), 0);
+    expect(debit).toBe(105);
+    expect(credit).toBe(105);
+  });
+
   it('ใช้รายการเดิมถ้ามีอยู่แล้ว ไม่สร้างซ้ำ', async () => {
     prisma.memberContribution.findUnique.mockResolvedValue({
       id: 'c1', schoolId: 'school-1', memberId: 'member-1',
@@ -93,5 +126,26 @@ describe('ContributionsService.payMemberForPeriod', () => {
     await expect(
       service.payMemberForPeriod({ memberId: 'member-1', periodId: 'p1' }),
     ).rejects.toThrow(BadRequestException);
+  });
+
+  it('หัวหน้ากลุ่มลงชำระให้สมาชิกนอกกลุ่มตัวเองไม่ได้', async () => {
+    (schoolScope.assertGroupLeaderCanPay as jest.Mock).mockRejectedValue(
+      new ForbiddenException('ไม่มีสิทธิ์บันทึกการชำระสำหรับสมาชิกนอกกลุ่มของคุณ'),
+    );
+
+    await expect(
+      service.payMemberForPeriod(
+        { memberId: 'member-1', periodId: 'p1' },
+        { id: 'u1', role: Role.GROUP_LEADER, schoolId: 'school-1', groupId: 'group-other' },
+      ),
+    ).rejects.toThrow(ForbiddenException);
+
+    expect(schoolScope.assertGroupLeaderCanPay).toHaveBeenCalledWith(
+      expect.objectContaining({ role: Role.GROUP_LEADER }),
+      { schoolId: 'school-1', member: { groupId: 'group-1' } },
+    );
+    // ต้องหยุดก่อนแตะเงิน
+    expect(prisma.receipt.create).not.toHaveBeenCalled();
+    expect(prisma.memberContribution.update).not.toHaveBeenCalled();
   });
 });

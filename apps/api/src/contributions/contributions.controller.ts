@@ -20,6 +20,7 @@ import { ContributionsService } from './contributions.service';
 import { CreatePeriodDto, UpdatePeriodDto } from './dto/period.dto';
 import { UpdateContributionSettingsDto } from './dto/contribution-settings.dto';
 import { RecordPaymentDto } from './dto/payment.dto';
+import { PayMemberDto } from './dto/pay-member.dto';
 import { ScopedUser } from '../common/security/school-scope.service';
 import { BatchPaymentDto } from './dto/batch-payment.dto';
 import { UploadPaymentDto } from './dto/upload-payment.dto';
@@ -117,7 +118,7 @@ export class ContributionsController {
   @UseGuards(RolesGuard)
   @Roles(Role.ADMIN, Role.SCHOOL_ADMIN, Role.FINANCE, Role.GROUP_LEADER)
   payMemberForPeriod(
-    @Body() dto: { memberId: string; periodId: string; amount?: number; paidDate?: string },
+    @Body() dto: PayMemberDto,
     @Request() req: { user: ScopedUser; ip?: string },
   ) {
     return this.contributionsService.payMemberForPeriod(dto, req.user, req.ip);
