@@ -261,4 +261,37 @@ describe('PaymentReconciliationService', () => {
       expect(result.summary.markedArrears).toBe(0);
     });
   });
+
+  describe('buildMissingWorkbook', () => {
+    const row = {
+      memberId: 'id-M2', contributionId: 'c-M2', memberNo: 'M2', fullName: 'ชื่อ M2',
+      schoolId: 's1', schoolCode: 'A', schoolName: 'ร.ร.A', groupName: 'กลุ่ม 1',
+      amountDue: 100, reason: 'NOT_IN_FILE' as const,
+    };
+
+    it('สร้างไฟล์ที่อ่านกลับได้ตามรายชื่อที่ส่งมา', async () => {
+      prisma.member.findMany.mockResolvedValueOnce([{ memberNo: 'M2', schoolId: 's1' }]);
+
+      const buffer = await service.buildMissingWorkbook([row]);
+
+      const XLSX = await import('xlsx');
+      const book = XLSX.read(buffer, { type: 'buffer' });
+      const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(book.Sheets[book.SheetNames[0]]);
+      expect(rows[0]).toMatchObject({ เลขสมาชิก: 'M2', เหตุผล: 'ไม่มีในไฟล์' });
+    });
+
+    it('ตัดรายชื่อที่อยู่นอกขอบเขตโรงเรียนของผู้ใช้ทิ้ง', async () => {
+      resolveSchoolId.mockReturnValue('s9');
+      prisma.member.findMany.mockResolvedValueOnce([]);
+
+      const buffer = await service.buildMissingWorkbook([row], {
+        id: 'u2', role: Role.SCHOOL_ADMIN, schoolId: 's9',
+      });
+
+      const XLSX = await import('xlsx');
+      const book = XLSX.read(buffer, { type: 'buffer' });
+      const rows = XLSX.utils.sheet_to_json(book.Sheets[book.SheetNames[0]]);
+      expect(rows).toEqual([]);
+    });
+  });
 });

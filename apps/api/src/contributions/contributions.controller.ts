@@ -24,7 +24,7 @@ import { BatchPaymentDto } from './dto/batch-payment.dto';
 import { UploadPaymentDto } from './dto/upload-payment.dto';
 import { parsePaymentFile, isPaidStatus } from './payment-file.parser';
 import { buildWorkbookBuffer } from './payment-workbook';
-import { PaymentReconciliationService } from './payment-reconciliation.service';
+import { PaymentReconciliationService, MissingRow } from './payment-reconciliation.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -283,6 +283,27 @@ export class ContributionsController {
         })),
       ],
     };
+  }
+
+  @Post('periods/:id/missing/export')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.SCHOOL_ADMIN, Role.FINANCE)
+  async exportMissing(
+    @Param('id') id: string,
+    @Body() body: { missing: MissingRow[] },
+    @Request() req: { user: ScopedUser },
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const buffer = await this.reconciliationService.buildMissingWorkbook(
+      body.missing ?? [],
+      req.user,
+    );
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    );
+    res.setHeader('Content-Disposition', `attachment; filename="missing-${id}.xlsx"`);
+    return new StreamableFile(buffer);
   }
 
   @Post('backfill-receipts')

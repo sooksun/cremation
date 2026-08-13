@@ -4,8 +4,14 @@ import { PrismaService } from '../prisma/prisma.service';
 import { ScopedUser, SchoolScopeService } from '../common/security/school-scope.service';
 import { AppSettingsService } from '../common/services/app-settings.service';
 import type { ParsedPaymentFile } from './payment-file.parser';
+import { buildWorkbookBuffer } from './payment-workbook';
 
 export type MissingReason = 'NOT_IN_FILE' | 'IN_FILE_NOT_PAID';
+
+const REASON_LABEL: Record<MissingReason, string> = {
+  NOT_IN_FILE: 'ไม่มีในไฟล์',
+  IN_FILE_NOT_PAID: 'อยู่ในไฟล์ แต่ยังไม่ชำระ',
+};
 
 export interface MissingRow {
   memberId: string;
@@ -157,6 +163,37 @@ export class PaymentReconciliationService {
       missing,
       unknown,
     };
+  }
+
+  /**
+   * สร้างไฟล์ .xlsx ของรายชื่อที่ขาด — client ส่งรายการที่ได้จาก reconcile() กลับมา
+   * แต่ห้ามเชื่อ payload นั้นตรง ๆ ต้องตรวจซ้ำกับฐานข้อมูลว่าแต่ละ memberNo
+   * ยังอยู่ในขอบเขตโรงเรียนของผู้ใช้จริง ไม่งั้นคนร้ายส่ง memberNo ปลอมเพื่อดูดรายชื่อข้ามโรงเรียนได้
+   */
+  async buildMissingWorkbook(missing: MissingRow[], actor?: ScopedUser): Promise<Buffer> {
+    const forcedSchoolId = actor ? this.schoolScope.resolveSchoolId(actor) : undefined;
+
+    const allowed = await this.prisma.member.findMany({
+      where: {
+        memberNo: { in: missing.map((row) => row.memberNo) },
+        ...(forcedSchoolId ? { schoolId: forcedSchoolId } : {}),
+      },
+      select: { memberNo: true, schoolId: true },
+    });
+    const allowedNos = new Set(allowed.map((m) => m.memberNo));
+
+    const rows = missing
+      .filter((row) => allowedNos.has(row.memberNo))
+      .map((row) => ({
+        เลขสมาชิก: row.memberNo,
+        'ชื่อ-สกุล': row.fullName,
+        โรงเรียน: row.schoolName,
+        กลุ่มเก็บเงิน: row.groupName,
+        ยอดที่ต้องชำระ: row.amountDue,
+        เหตุผล: REASON_LABEL[row.reason],
+      }));
+
+    return buildWorkbookBuffer('รายชื่อที่ขาด', rows);
   }
 
   /**
