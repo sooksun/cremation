@@ -32,6 +32,7 @@ describe('PaymentReconciliationService', () => {
   let prisma: {
     contributionPeriod: { findUnique: jest.Mock };
     member: { findMany: jest.Mock };
+    memberContribution: { updateMany: jest.Mock; createMany: jest.Mock };
   };
   let resolveSchoolId: jest.Mock;
 
@@ -39,6 +40,7 @@ describe('PaymentReconciliationService', () => {
     prisma = {
       contributionPeriod: { findUnique: jest.fn().mockResolvedValue(PERIOD) },
       member: { findMany: jest.fn() },
+      memberContribution: { updateMany: jest.fn().mockResolvedValue({ count: 0 }), createMany: jest.fn() },
     };
     resolveSchoolId = jest.fn().mockReturnValue(undefined);
 
@@ -66,6 +68,7 @@ describe('PaymentReconciliationService', () => {
       parsed: parsed([{ rowNo: 2, memberNo: 'M1', isPaid: true }]),
       paidNowMemberNos: new Set(['M1']),
       fullDistrict: false,
+      autoMarkArrears: false,
     });
 
     expect(prisma.member.findMany.mock.calls[1][0].where.schoolId).toEqual({ in: ['s1'] });
@@ -86,6 +89,7 @@ describe('PaymentReconciliationService', () => {
       paidNowMemberNos: new Set(['M1']),
       actor: { id: 'u1', role: Role.ADMIN },
       fullDistrict: true,
+      autoMarkArrears: false,
     });
 
     expect(prisma.member.findMany.mock.calls[1][0].where.schoolId).toBeUndefined();
@@ -103,6 +107,7 @@ describe('PaymentReconciliationService', () => {
       paidNowMemberNos: new Set(),
       actor: { id: 'u2', role: Role.SCHOOL_ADMIN, schoolId: 's9' },
       fullDistrict: true,
+      autoMarkArrears: false,
     });
 
     expect(prisma.member.findMany.mock.calls[1][0].where.schoolId).toEqual({ in: ['s9'] });
@@ -119,6 +124,7 @@ describe('PaymentReconciliationService', () => {
       parsed: parsed([{ rowNo: 2, memberNo: 'M1', isPaid: false }]),
       paidNowMemberNos: new Set(),
       fullDistrict: false,
+      autoMarkArrears: false,
     });
 
     expect(result.summary.inFileNotPaid).toBe(1);
@@ -138,6 +144,7 @@ describe('PaymentReconciliationService', () => {
       parsed: parsed([{ rowNo: 2, memberNo: 'M1', isPaid: true }]),
       paidNowMemberNos: new Set(['M1']),
       fullDistrict: false,
+      autoMarkArrears: false,
     });
 
     expect(result.summary.alreadyPaid).toBe(1);
@@ -153,6 +160,7 @@ describe('PaymentReconciliationService', () => {
       parsed: parsed([{ rowNo: 7, memberNo: 'M9999', isPaid: true }]),
       paidNowMemberNos: new Set(),
       fullDistrict: false,
+      autoMarkArrears: false,
     });
 
     expect(result.summary.unknownInFile).toBe(1);
@@ -169,10 +177,88 @@ describe('PaymentReconciliationService', () => {
       parsed: parsed([{ rowNo: 2, memberNo: 'M1', isPaid: true }]),
       paidNowMemberNos: new Set(),
       fullDistrict: false,
+      autoMarkArrears: false,
     });
 
     expect(prisma.member.findMany.mock.calls[1][0].where.status).toEqual({
       in: [MemberStatus.ACTIVE, MemberStatus.ARREARS],
+    });
+  });
+
+  describe('autoMarkArrears', () => {
+    it('ตั้ง isArrears เฉพาะ contribution ของคนที่ขาด ไม่ใช่ทั้งงวด', async () => {
+      prisma.member.findMany
+        .mockResolvedValueOnce([{ id: 'id-M1', memberNo: 'M1', schoolId: 's1' }])
+        .mockResolvedValueOnce([
+          member({ memberNo: 'M1', schoolId: 's1', schoolCode: 'A', paidAmount: 100 }),
+          member({ memberNo: 'M2', schoolId: 's1', schoolCode: 'A' }),
+        ]);
+      prisma.memberContribution.updateMany.mockResolvedValue({ count: 1 });
+
+      const result = await service.reconcile({
+        periodId: 'p1',
+        parsed: parsed([{ rowNo: 2, memberNo: 'M1', isPaid: true }]),
+        paidNowMemberNos: new Set(['M1']),
+        fullDistrict: false,
+        autoMarkArrears: true,
+      });
+
+      expect(prisma.memberContribution.updateMany).toHaveBeenCalledWith({
+        where: { id: { in: ['c-M2'] }, paidAmount: 0 },
+        data: { isArrears: true },
+      });
+      expect(result.summary.markedArrears).toBe(1);
+    });
+
+    it('สร้างแถว contribution ให้คนที่ขาดแต่ยังไม่มีแถวของงวดนั้น', async () => {
+      const noContribution = member({ memberNo: 'M3', schoolId: 's1', schoolCode: 'A' });
+      noContribution.contributions = [];
+      prisma.member.findMany
+        .mockResolvedValueOnce([{ id: 'id-M1', memberNo: 'M1', schoolId: 's1' }])
+        .mockResolvedValueOnce([noContribution]);
+      prisma.memberContribution.createMany.mockResolvedValue({ count: 1 });
+
+      const result = await service.reconcile({
+        periodId: 'p1',
+        parsed: parsed([{ rowNo: 2, memberNo: 'M1', isPaid: true }]),
+        paidNowMemberNos: new Set(),
+        fullDistrict: false,
+        autoMarkArrears: true,
+      });
+
+      expect(prisma.memberContribution.createMany).toHaveBeenCalledWith({
+        data: [
+          {
+            memberId: 'id-M3',
+            periodId: 'p1',
+            schoolId: 's1',
+            welfareAmount: 100,
+            serviceAmount: 0,
+            totalAmount: 100,
+            paidAmount: 0,
+            isArrears: true,
+          },
+        ],
+      });
+      expect(result.summary.markedArrears).toBe(1);
+    });
+
+    it('autoMarkArrears = false ไม่แตะฐานข้อมูล', async () => {
+      prisma.member.findMany
+        .mockResolvedValueOnce([{ id: 'id-M1', memberNo: 'M1', schoolId: 's1' }])
+        .mockResolvedValueOnce([member({ memberNo: 'M2', schoolId: 's1', schoolCode: 'A' })]);
+
+      const result = await service.reconcile({
+        periodId: 'p1',
+        parsed: parsed([{ rowNo: 2, memberNo: 'M1', isPaid: true }]),
+        paidNowMemberNos: new Set(),
+        fullDistrict: false,
+        autoMarkArrears: false,
+      });
+
+      expect(prisma.memberContribution.updateMany).not.toHaveBeenCalled();
+      expect(prisma.memberContribution.createMany).not.toHaveBeenCalled();
+      expect(result.summary.markedArrears).toBe(0);
     });
   });
 });

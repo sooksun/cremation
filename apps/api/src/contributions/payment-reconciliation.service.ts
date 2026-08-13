@@ -49,6 +49,7 @@ export class PaymentReconciliationService {
     paidNowMemberNos: Set<string>;
     actor?: ScopedUser;
     fullDistrict: boolean;
+    autoMarkArrears: boolean;
   }): Promise<ReconcileResult> {
     const period = await this.prisma.contributionPeriod.findUnique({
       where: { id: params.periodId },
@@ -138,6 +139,10 @@ export class PaymentReconciliationService {
       });
     }
 
+    const markedArrears = params.autoMarkArrears
+      ? await this.markMissingAsArrears(params.periodId, missing, defaultAmount, period)
+      : 0;
+
     return {
       scope: { fullDistrict: effectiveFullDistrict, schools: [...schools.values()] },
       summary: {
@@ -147,11 +152,58 @@ export class PaymentReconciliationService {
         missingFromFile: missing.filter((m) => m.reason === 'NOT_IN_FILE').length,
         inFileNotPaid: missing.filter((m) => m.reason === 'IN_FILE_NOT_PAID').length,
         unknownInFile: unknown.length,
-        markedArrears: 0,
+        markedArrears,
       },
       missing,
       unknown,
     };
+  }
+
+  /**
+   * ตั้งธงค้างชำระให้เฉพาะคนที่ขาด — ห้ามใช้ markArrearsForPeriod เพราะตัวนั้นเหมารวม
+   * ทุกคนที่ยังไม่จ่ายทั้งงวด ซึ่งกว้างกว่าขอบเขตที่ไฟล์ครอบคลุม
+   */
+  private async markMissingAsArrears(
+    periodId: string,
+    missing: MissingRow[],
+    defaultAmount: number,
+    period: { welfareRate: unknown; serviceFee: unknown },
+  ): Promise<number> {
+    if (missing.length === 0) return 0;
+
+    const existingIds = missing
+      .map((row) => row.contributionId)
+      .filter((id): id is string => id !== null);
+    const withoutContribution = missing.filter((row) => row.contributionId === null);
+
+    let marked = 0;
+
+    if (existingIds.length > 0) {
+      const updated = await this.prisma.memberContribution.updateMany({
+        where: { id: { in: existingIds }, paidAmount: 0 },
+        data: { isArrears: true },
+      });
+      marked += updated.count;
+    }
+
+    if (withoutContribution.length > 0) {
+      const { welfareRate, serviceFee } = await this.resolveAmounts(period);
+      const created = await this.prisma.memberContribution.createMany({
+        data: withoutContribution.map((row) => ({
+          memberId: row.memberId,
+          periodId,
+          schoolId: row.schoolId,
+          welfareAmount: welfareRate,
+          serviceAmount: serviceFee,
+          totalAmount: defaultAmount,
+          paidAmount: 0,
+          isArrears: true,
+        })),
+      });
+      marked += created.count;
+    }
+
+    return marked;
   }
 
   private async resolveAmounts(period: { welfareRate: unknown; serviceFee: unknown }) {
