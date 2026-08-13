@@ -268,11 +268,27 @@ describe('PaymentReconciliationService', () => {
       schoolId: 's1', schoolCode: 'A', schoolName: 'ร.ร.A', groupName: 'กลุ่ม 1',
       amountDue: 100, reason: 'NOT_IN_FILE' as const,
     };
+    const rowOutOfScope = {
+      memberId: 'id-M1', contributionId: 'c-M1', memberNo: 'M1', fullName: 'ชื่อ M1',
+      schoolId: 's1', schoolCode: 'A', schoolName: 'ร.ร.A', groupName: 'กลุ่ม 1',
+      amountDue: 100, reason: 'NOT_IN_FILE' as const,
+    };
+    const rowInScope = {
+      memberId: 'id-M9', contributionId: 'c-M9', memberNo: 'M9', fullName: 'ชื่อ M9',
+      schoolId: 's9', schoolCode: 'B', schoolName: 'ร.ร.B', groupName: 'กลุ่ม 2',
+      amountDue: 200, reason: 'IN_FILE_NOT_PAID' as const,
+    };
 
-    it('สร้างไฟล์ที่อ่านกลับได้ตามรายชื่อที่ส่งมา', async () => {
+    it('สร้างไฟล์ที่อ่านกลับได้ตามรายชื่อที่ส่งมา และไม่บังคับ schoolId เมื่อไม่มีการจำกัดขอบเขต', async () => {
       prisma.member.findMany.mockResolvedValueOnce([{ memberNo: 'M2', schoolId: 's1' }]);
 
       const buffer = await service.buildMissingWorkbook([row]);
+
+      // ไม่มี actor ที่ถูกบังคับโรงเรียน -> query ต้องไม่ใส่คีย์ schoolId เลย (ไม่ใช่แค่ output ว่าง)
+      expect(prisma.member.findMany).toHaveBeenCalledWith({
+        where: { memberNo: { in: ['M2'] } },
+        select: { memberNo: true, schoolId: true },
+      });
 
       const XLSX = await import('xlsx');
       const book = XLSX.read(buffer, { type: 'buffer' });
@@ -280,18 +296,27 @@ describe('PaymentReconciliationService', () => {
       expect(rows[0]).toMatchObject({ เลขสมาชิก: 'M2', เหตุผล: 'ไม่มีในไฟล์' });
     });
 
-    it('ตัดรายชื่อที่อยู่นอกขอบเขตโรงเรียนของผู้ใช้ทิ้ง', async () => {
+    it('บังคับ schoolId จาก resolveSchoolId ใน query และตัดรายชื่อนอกขอบเขตทิ้ง แม้ DB จะคืนแถวมาจริง', async () => {
       resolveSchoolId.mockReturnValue('s9');
-      prisma.member.findMany.mockResolvedValueOnce([]);
+      // จำลองฐานข้อมูลจริง: ถ้า query ถูกกรองด้วย schoolId: 's9' จะเจอแค่ M9 เท่านั้น
+      prisma.member.findMany.mockResolvedValueOnce([{ memberNo: 'M9', schoolId: 's9' }]);
 
-      const buffer = await service.buildMissingWorkbook([row], {
+      const buffer = await service.buildMissingWorkbook([rowOutOfScope, rowInScope], {
         id: 'u2', role: Role.SCHOOL_ADMIN, schoolId: 's9',
+      });
+
+      // ถ้าใครลบ spread ...(forcedSchoolId ? { schoolId: forcedSchoolId } : {}) ออก
+      // where จะไม่มี schoolId: 's9' อีกต่อไป และ assertion นี้จะ fail ทันที ไม่ว่า mock ด้านบนจะคืนอะไร
+      expect(prisma.member.findMany).toHaveBeenCalledWith({
+        where: { memberNo: { in: ['M1', 'M9'] }, schoolId: 's9' },
+        select: { memberNo: true, schoolId: true },
       });
 
       const XLSX = await import('xlsx');
       const book = XLSX.read(buffer, { type: 'buffer' });
-      const rows = XLSX.utils.sheet_to_json(book.Sheets[book.SheetNames[0]]);
-      expect(rows).toEqual([]);
+      const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(book.Sheets[book.SheetNames[0]]);
+      expect(rows).toHaveLength(1);
+      expect(rows[0]).toMatchObject({ เลขสมาชิก: 'M9', โรงเรียน: 'ร.ร.B' });
     });
   });
 });
