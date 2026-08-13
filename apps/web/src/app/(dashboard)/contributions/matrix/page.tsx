@@ -97,8 +97,12 @@ export default function ContributionMatrixPage() {
   const [viewMode, setViewMode] = useState<'detail' | 'summary'>('detail');
   const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth() + 1);
   const [showUploadModal, setShowUploadModal] = useState(false);
-  const [reconcileResult, setReconcileResult] = useState<ReconcileResponse | null>(null);
-  const [reconcilePeriodId, setReconcilePeriodId] = useState<string>('');
+  // The period id targeted by the currently-open upload modal (fixed for the modal's
+  // lifetime since the month selector is unreachable behind the modal overlay).
+  const [uploadPeriodId, setUploadPeriodId] = useState<string>('');
+  // The completed reconcile result is always set together with the periodId that
+  // produced it, in a single object, so the pair can never drift out of sync.
+  const [reconcile, setReconcile] = useState<{ result: ReconcileResponse; periodId: string } | null>(null);
 
   // State สำหรับเก็บการเปลี่ยนแปลงสถานะ
   const [statusChanges, setStatusChanges] = useState<Map<string, { contributionId: string; status: 'paid' | 'unpaid' | 'arrears' }>>(new Map());
@@ -388,31 +392,41 @@ export default function ContributionMatrixPage() {
     }
   };
 
-  // Open upload modal — resolve the period id for the selected month up front so the
-  // reconcile result panel always has a valid periodId once a result comes back.
+  // Open upload modal — resolve the period id for the selected month up front, and
+  // discard any previously-shown reconcile result so a stale panel can never stay
+  // paired with the newly-targeted period.
   const handleOpenUploadModal = () => {
     const period = matrixData?.periods.find((p) => p.month === selectedMonth);
     if (!period) {
       showError(`ไม่มีงวดสำหรับเดือน ${THAI_MONTHS_FULL[selectedMonth - 1]} กรุณาสร้างงวดก่อน`);
       return;
     }
-    setReconcilePeriodId(period.id);
+    setUploadPeriodId(period.id);
+    setReconcile(null);
     setShowUploadModal(true);
+  };
+
+  // Closing the modal without completing an upload must not leave a stale result
+  // panel behind — reconcile is already cleared on open, this is a second guard.
+  const handleCloseUploadModal = () => {
+    setShowUploadModal(false);
+    setUploadPeriodId('');
+    setReconcile(null);
   };
 
   // Send arrears notice — confirm first, since this can trigger membership termination
   // for members who meet the cutoff (processArrearsAfterNotice on the backend)
   const handleSendArrearsNotice = async () => {
-    if (!reconcilePeriodId || !reconcileResult) return;
+    if (!reconcile) return;
     const confirmed = window.confirm(
-      `จะแจ้งเตือนค้างชำระ ${reconcileResult.missing.length} ราย\n` +
+      `จะแจ้งเตือนค้างชำระ ${reconcile.result.missing.length} ราย\n` +
         'สมาชิกที่ครบเงื่อนไขตามระเบียบอาจถูกตัดสมาชิกภาพจากการดำเนินการนี้ ยืนยันหรือไม่',
     );
     if (!confirmed) return;
 
     try {
       const response = await api.post(
-        `/contributions/periods/${reconcilePeriodId}/send-arrears-notice`,
+        `/contributions/periods/${reconcile.periodId}/send-arrears-notice`,
       );
       showSuccess(response.data.message);
       queryClient.invalidateQueries({ queryKey: ['contribution-matrix'] });
@@ -498,21 +512,21 @@ export default function ContributionMatrixPage() {
           year={selectedYear}
           month={selectedMonth}
           canUseFullDistrict={['ADMIN', 'FINANCE'].includes(user?.role ?? '')}
-          onClose={() => setShowUploadModal(false)}
+          onClose={handleCloseUploadModal}
           onDone={(result) => {
             setShowUploadModal(false);
-            setReconcileResult(result);
+            setReconcile({ result, periodId: uploadPeriodId });
             queryClient.invalidateQueries({ queryKey: ['contribution-matrix'] });
             showSuccess(`บันทึกชำระ ${result.success} รายการ · ขาด ${result.missing.length} คน`);
           }}
         />
       )}
 
-      {reconcileResult && reconcilePeriodId && (
+      {reconcile && (
         <ReconcileResultPanel
-          result={reconcileResult}
-          periodId={reconcilePeriodId}
-          onClose={() => setReconcileResult(null)}
+          result={reconcile.result}
+          periodId={reconcile.periodId}
+          onClose={() => setReconcile(null)}
           onSendNotice={handleSendArrearsNotice}
         />
       )}
