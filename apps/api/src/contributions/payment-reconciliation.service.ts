@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { MemberStatus } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { ScopedUser, SchoolScopeService } from '../common/security/school-scope.service';
@@ -12,6 +12,11 @@ const REASON_LABEL: Record<MissingReason, string> = {
   NOT_IN_FILE: 'ไม่มีในไฟล์',
   IN_FILE_NOT_PAID: 'อยู่ในไฟล์ แต่ยังไม่ชำระ',
 };
+
+/** reason มาจาก body ที่ client โพสต์ ห้ามเอาไปเปิด REASON_LABEL ตรง ๆ ก่อนตรวจว่าเป็นค่าที่รู้จัก */
+function isMissingReason(value: unknown): value is MissingReason {
+  return value === 'NOT_IN_FILE' || value === 'IN_FILE_NOT_PAID';
+}
 
 export interface MissingRow {
   memberId: string;
@@ -183,6 +188,11 @@ export class PaymentReconciliationService {
       throw new NotFoundException('ไม่พบงวดที่ระบุ');
     }
 
+    const invalidReason = missing.find((row) => !isMissingReason(row.reason));
+    if (invalidReason) {
+      throw new BadRequestException(`เหตุผลไม่ถูกต้อง: ${String(invalidReason.reason)}`);
+    }
+
     const forcedSchoolId = actor ? this.schoolScope.resolveSchoolId(actor) : undefined;
 
     const allowed = await this.prisma.member.findMany({
@@ -204,21 +214,24 @@ export class PaymentReconciliationService {
     });
 
     const { totalAmount: defaultAmount } = await this.resolveAmounts(period);
-    const reasonByMemberNo = new Map(missing.map((row) => [row.memberNo, row.reason]));
+    const reasonByMemberNo = new Map<string, MissingReason>(
+      missing.map((row) => [row.memberNo, row.reason]),
+    );
 
     const rows = allowed
-      .filter((member) => reasonByMemberNo.has(member.memberNo))
-      .map((member) => {
+      .flatMap((member) => {
+        const reason = reasonByMemberNo.get(member.memberNo);
+        if (!reason) return [];
         const contribution = member.contributions[0];
-        return {
+        return [{
           เลขสมาชิก: member.memberNo,
           'ชื่อ-สกุล':
             `${member.associationMember?.firstName ?? ''} ${member.associationMember?.lastName ?? ''}`.trim(),
           โรงเรียน: member.school.name,
           กลุ่มเก็บเงิน: member.group?.name ?? '',
           ยอดที่ต้องชำระ: contribution ? Number(contribution.totalAmount) : defaultAmount,
-          เหตุผล: REASON_LABEL[reasonByMemberNo.get(member.memberNo) as MissingReason],
-        };
+          เหตุผล: REASON_LABEL[reason],
+        }];
       });
 
     return buildWorkbookBuffer('รายชื่อที่ขาด', rows);
@@ -264,6 +277,10 @@ export class PaymentReconciliationService {
           paidAmount: 0,
           isArrears: true,
         })),
+        // เจ้าหน้าที่สองคนอัปโหลดงวดเดียวกันพร้อมกันจะชน @@unique([memberId, periodId])
+        // ถ้าไม่ข้ามแถวซ้ำ จะได้ 500 ทั้งที่เงินและใบเสร็จถูกบันทึกไปแล้ว
+        // created.count นับเฉพาะแถวที่เขียนจริง markedArrears จึงยังตรงกับสิ่งที่เกิดขึ้น
+        skipDuplicates: true,
       });
       marked += created.count;
     }

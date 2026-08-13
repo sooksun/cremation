@@ -1,3 +1,4 @@
+import { BadRequestException } from '@nestjs/common';
 import { MemberStatus, Role } from '@prisma/client';
 import { PaymentReconciliationService } from './payment-reconciliation.service';
 import { PrismaService } from '../prisma/prisma.service';
@@ -239,7 +240,32 @@ describe('PaymentReconciliationService', () => {
             isArrears: true,
           },
         ],
+        // กันชนกับการอัปโหลดงวดเดียวกันพร้อมกัน (unique memberId+periodId) ไม่ให้กลายเป็น 500
+        skipDuplicates: true,
       });
+      expect(result.summary.markedArrears).toBe(1);
+    });
+
+    it('แถวที่ชนกับของที่มีอยู่แล้วถูกข้าม markedArrears นับเฉพาะที่เขียนได้จริง', async () => {
+      const first = member({ memberNo: 'M3', schoolId: 's1', schoolCode: 'A' });
+      first.contributions = [];
+      const second = member({ memberNo: 'M4', schoolId: 's1', schoolCode: 'A' });
+      second.contributions = [];
+      prisma.member.findMany
+        .mockResolvedValueOnce([{ id: 'id-M1', memberNo: 'M1', schoolId: 's1' }])
+        .mockResolvedValueOnce([first, second]);
+      // เจ้าหน้าที่อีกคนเพิ่งสร้างแถวของ M4 ไปแล้ว -> Prisma ข้ามแถวนั้นและคืน count = 1
+      prisma.memberContribution.createMany.mockResolvedValue({ count: 1 });
+
+      const result = await service.reconcile({
+        periodId: 'p1',
+        parsed: parsed([{ rowNo: 2, memberNo: 'M1', isPaid: true }]),
+        paidNowMemberNos: new Set(),
+        fullDistrict: false,
+        autoMarkArrears: true,
+      });
+
+      expect(prisma.memberContribution.createMany.mock.calls[0][0].data).toHaveLength(2);
       expect(result.summary.markedArrears).toBe(1);
     });
 
@@ -388,6 +414,16 @@ describe('PaymentReconciliationService', () => {
       const book = XLSX.read(buffer, { type: 'buffer' });
       const rows = XLSX.utils.sheet_to_json(book.Sheets[book.SheetNames[0]]);
       expect(rows).toEqual([]);
+    });
+
+    it('reason ที่ไม่ใช่สองค่าที่รู้จัก ถูกปฏิเสธ ไม่ถูกเอาไปเปิดตาราง label', async () => {
+      await expect(
+        service.buildMissingWorkbook('p1', [
+          { ...postedRow, reason: 'constructor' as unknown as 'NOT_IN_FILE' },
+        ]),
+      ).rejects.toThrow(BadRequestException);
+
+      expect(prisma.member.findMany).not.toHaveBeenCalled();
     });
 
     it('งวดไม่มีอยู่จริง โยน NotFoundException', async () => {
