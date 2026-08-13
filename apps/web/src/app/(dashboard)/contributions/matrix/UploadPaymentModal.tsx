@@ -46,7 +46,12 @@ export function UploadPaymentModal({
       form.append('fullDistrict', String(fullDistrict));
       form.append('autoMarkArrears', String(autoMarkArrears));
 
-      const response = await api.post<ReconcileResponse>('/contributions/upload', form);
+      // ต้อง override Content-Type ให้เป็น undefined เฉพาะคำขอนี้ — instance กลางตั้ง default เป็น
+      // application/json ซึ่งทำให้ axios แปลง FormData เป็น JSON แล้วไฟล์หายไปทั้งก้อน
+      // เมื่อไม่มี Content-Type axios จะตรวจเจอ FormData เองแล้วใส่ multipart/form-data; boundary=… ให้
+      const response = await api.post<ReconcileResponse>('/contributions/upload', form, {
+        headers: { 'Content-Type': undefined },
+      });
       onDone(response.data);
     } catch (error) {
       const message =
