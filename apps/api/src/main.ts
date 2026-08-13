@@ -3,7 +3,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { config as loadEnv } from 'dotenv';
 import { resolve } from 'path';
 import cookieParser from 'cookie-parser';
-import { json, urlencoded } from 'express';
+import type { NestExpressApplication } from '@nestjs/platform-express';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
 import { validateEnv } from './config/env.validation';
@@ -16,7 +16,7 @@ async function bootstrap() {
 
   const isProduction = process.env.NODE_ENV === 'production';
 
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   app.use(
     helmet({
@@ -51,8 +51,10 @@ async function bootstrap() {
     }),
   );
   // ค่าเริ่มต้นของ express คือ 100kb ซึ่งไม่พอกับบทสนทนาผู้ช่วยที่ส่งประวัติทั้งก้อนกลับมา
-  app.use(json({ limit: '1mb' }));
-  app.use(urlencoded({ extended: true, limit: '1mb' }));
+  // ใช้ API ของ Nest แทนการ import express ตรง ๆ เพราะ express ไม่ใช่ dependency โดยตรง
+  // ของ apps/api — pnpm deploy --prod จะไม่รวมมาให้ แล้ว container จะ boot ไม่ขึ้น
+  app.useBodyParser('json', { limit: '1mb' });
+  app.useBodyParser('urlencoded', { limit: '1mb', extended: true });
   app.use(cookieParser());
 
   const corsOrigins = process.env.CORS_ORIGINS
