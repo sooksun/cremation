@@ -21,6 +21,8 @@ import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/auth';
 import { showSuccess, showError } from '@/lib/toast';
 import { canSelectAllSchools, filterSchoolsForUser } from '@/lib/school-scope';
+import { UploadPaymentModal, type ReconcileResponse } from './UploadPaymentModal';
+import { ReconcileResultPanel } from './ReconcileResultPanel';
 
 interface MonthData {
   status: 'paid' | 'unpaid' | 'arrears' | 'none';
@@ -95,7 +97,9 @@ export default function ContributionMatrixPage() {
   const [viewMode, setViewMode] = useState<'detail' | 'summary'>('detail');
   const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth() + 1);
   const [showUploadModal, setShowUploadModal] = useState(false);
-  
+  const [reconcileResult, setReconcileResult] = useState<ReconcileResponse | null>(null);
+  const [reconcilePeriodId, setReconcilePeriodId] = useState<string>('');
+
   // State สำหรับเก็บการเปลี่ยนแปลงสถานะ
   const [statusChanges, setStatusChanges] = useState<Map<string, { contributionId: string; status: 'paid' | 'unpaid' | 'arrears' }>>(new Map());
 
@@ -370,99 +374,51 @@ export default function ContributionMatrixPage() {
     try {
       const response = await api.get(
         `/contributions/template?year=${selectedYear}&month=${selectedMonth}`,
+        { responseType: 'blob' },
       );
-      const data = response.data;
-
-      // สร้าง CSV content
-      const headers = ['เลขสมาชิก', 'ชื่อ', 'นามสกุล', 'โรงเรียน', 'รหัสโรงเรียน', 'ประเภท', 'ยอดที่ต้องชำระ', 'สถานะ'];
-      const rows = data.members.map((m: any) => [
-        m.เลขสมาชิก,
-        m.ชื่อ,
-        m.นามสกุล,
-        m.โรงเรียน,
-        m.รหัสโรงเรียน,
-        m.ประเภท,
-        m.ยอดที่ต้องชำระ,
-        m.สถานะ,
-      ]);
-
-      const csvContent = [
-        headers.join(','),
-        ...rows.map((r: any[]) => r.map((cell) => `"${cell}"`).join(',')),
-      ].join('\n');
-
-      // Download as CSV
-      const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
+      const url = URL.createObjectURL(response.data as Blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `Template_การชำระเงิน_${selectedYear + 543}_${THAI_MONTHS_FULL[selectedMonth - 1]}.csv`;
+      link.download = `Template_การชำระเงิน_${selectedYear + 543}_${THAI_MONTHS_FULL[selectedMonth - 1]}.xlsx`;
       link.click();
       URL.revokeObjectURL(url);
-
-      showSuccess(`ดาวน์โหลด Template สำเร็จ (${data.totalMembers} รายการ)`);
-    } catch (error: any) {
-      showError(error.response?.data?.message || 'เกิดข้อผิดพลาดในการดาวน์โหลด');
+      showSuccess('ดาวน์โหลด Template สำเร็จ');
+    } catch {
+      showError('เกิดข้อผิดพลาดในการดาวน์โหลด');
     }
   };
 
-  // Handle file upload
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    // Check if file is CSV or Excel
-    const isCSV = file.name.endsWith('.csv');
-    const isExcel = file.name.endsWith('.xlsx') || file.name.endsWith('.xls');
-
-    if (!isCSV && !isExcel) {
-      showError('กรุณาอัปโหลดไฟล์ CSV หรือ Excel (.xlsx, .xls)');
+  // Open upload modal — resolve the period id for the selected month up front so the
+  // reconcile result panel always has a valid periodId once a result comes back.
+  const handleOpenUploadModal = () => {
+    const period = matrixData?.periods.find((p) => p.month === selectedMonth);
+    if (!period) {
+      showError(`ไม่มีงวดสำหรับเดือน ${THAI_MONTHS_FULL[selectedMonth - 1]} กรุณาสร้างงวดก่อน`);
       return;
     }
+    setReconcilePeriodId(period.id);
+    setShowUploadModal(true);
+  };
+
+  // Send arrears notice — confirm first, since this can trigger membership termination
+  // for members who meet the cutoff (processArrearsAfterNotice on the backend)
+  const handleSendArrearsNotice = async () => {
+    if (!reconcilePeriodId || !reconcileResult) return;
+    const confirmed = window.confirm(
+      `จะแจ้งเตือนค้างชำระ ${reconcileResult.missing.length} ราย\n` +
+        'สมาชิกที่ครบเงื่อนไขตามระเบียบอาจถูกตัดสมาชิกภาพจากการดำเนินการนี้ ยืนยันหรือไม่',
+    );
+    if (!confirmed) return;
 
     try {
-      const text = await file.text();
-      const lines = text.split('\n').filter((line) => line.trim());
-      
-      if (lines.length < 2) {
-        showError('ไฟล์ไม่มีข้อมูล');
-        return;
-      }
-
-      // Parse CSV
-      const headers = lines[0].split(',').map((h) => h.replace(/"/g, '').trim());
-      const data = lines.slice(1).map((line) => {
-        const values = line.split(',').map((v) => v.replace(/"/g, '').trim());
-        const row: any = {};
-        headers.forEach((header, index) => {
-          row[header] = values[index] || '';
-        });
-        return row;
-      });
-
-      // Upload to API
-      const response = await api.post('/contributions/upload', {
-        year: selectedYear,
-        month: selectedMonth,
-        data,
-      });
-
-      queryClient.invalidateQueries({ queryKey: ['contribution-matrix'] });
-      setShowUploadModal(false);
-      
-      showSuccess(
-        `อัปโหลดสำเร็จ: ${response.data.success} รายการ${response.data.failed > 0 ? `, ล้มเหลว: ${response.data.failed} รายการ` : ''}`,
+      const response = await api.post(
+        `/contributions/periods/${reconcilePeriodId}/send-arrears-notice`,
       );
-
-      if (response.data.errors && response.data.errors.length > 0) {
-        console.error('Upload errors:', response.data.errors);
-      }
-    } catch (error: any) {
-      showError(error.response?.data?.message || 'เกิดข้อผิดพลาดในการอัปโหลด');
+      showSuccess(response.data.message);
+      queryClient.invalidateQueries({ queryKey: ['contribution-matrix'] });
+    } catch {
+      showError('แจ้งเตือนค้างชำระไม่สำเร็จ');
     }
-
-    // Reset input
-    event.target.value = '';
   };
 
   // Export to CSV
@@ -526,22 +482,40 @@ export default function ContributionMatrixPage() {
             <FileSpreadsheet size={20} />
             ดาวน์โหลด Template
           </button>
-          <label className="btn-primary cursor-pointer">
+          <button onClick={handleOpenUploadModal} className="btn-primary" disabled={!matrixData}>
             <Upload size={20} />
             อัปโหลด Excel
-            <input
-              type="file"
-              accept=".csv,.xlsx,.xls"
-              onChange={handleFileUpload}
-              className="hidden"
-            />
-          </label>
+          </button>
           <button onClick={handleExport} className="btn-secondary" disabled={!matrixData}>
             <Download size={20} />
             ส่งออก CSV
           </button>
         </div>
       </div>
+
+      {showUploadModal && (
+        <UploadPaymentModal
+          year={selectedYear}
+          month={selectedMonth}
+          canUseFullDistrict={['ADMIN', 'FINANCE'].includes(user?.role ?? '')}
+          onClose={() => setShowUploadModal(false)}
+          onDone={(result) => {
+            setShowUploadModal(false);
+            setReconcileResult(result);
+            queryClient.invalidateQueries({ queryKey: ['contribution-matrix'] });
+            showSuccess(`บันทึกชำระ ${result.success} รายการ · ขาด ${result.missing.length} คน`);
+          }}
+        />
+      )}
+
+      {reconcileResult && reconcilePeriodId && (
+        <ReconcileResultPanel
+          result={reconcileResult}
+          periodId={reconcilePeriodId}
+          onClose={() => setReconcileResult(null)}
+          onSendNotice={handleSendArrearsNotice}
+        />
+      )}
 
       {/* Filters */}
       <div className="card p-4">
