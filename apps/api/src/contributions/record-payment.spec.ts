@@ -1,4 +1,4 @@
-import { BadRequestException } from '@nestjs/common';
+import { BadRequestException, Logger } from '@nestjs/common';
 import { ContributionsService } from './contributions.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { MembersService } from '../members/members.service';
@@ -188,6 +188,94 @@ describe('ContributionsService.recordPayment — ต้องออกใบเ�
     await expect(
       service.recordPayment('c1', { amount: 2000, paidDate: '2026-01-20' }),
     ).rejects.toThrow(/2,000\.00.*105\.00/);
+  });
+});
+
+/**
+ * I5: การหาบัญชีธนาคารเริ่มต้นเคยถูกห่อด้วย catch {} เปล่า ๆ
+ * ถ้าพัง ใบเสร็จจะออกโดยไม่มีบัญชีธนาคารผูกอยู่ และไม่มีใครรู้เลยว่าทำไม
+ * พฤติกรรมยังเหมือนเดิม (คืน undefined ออกใบเสร็จต่อได้) แต่ต้องมีร่องรอยใน log
+ */
+describe('ContributionsService — หาบัญชีธนาคารเริ่มต้นไม่สำเร็จ ต้องไม่เงียบ', () => {
+  function buildService(findDefault: jest.Mock) {
+    const prisma: any = {
+      memberContribution: {
+        findUnique: jest.fn().mockResolvedValue({
+          id: 'c1',
+          schoolId: 'school-1',
+          memberId: 'member-1',
+          welfareAmount: 100,
+          serviceAmount: 5,
+          totalAmount: 105,
+          paidAmount: 0,
+          receiptId: null,
+          period: { id: 'p1', isClosed: false, year: 2026, month: 1 },
+          member: { groupId: null, memberNo: 'M0001', associationMember: { firstName: 'ก', lastName: 'ข' } },
+        }),
+        update: jest.fn().mockResolvedValue({ id: 'c1' }),
+      },
+      receipt: { create: jest.fn().mockResolvedValue({ id: 'receipt-1' }), findUnique: jest.fn() },
+      ledgerEntry: { createMany: jest.fn().mockResolvedValue({ count: 3 }) },
+      bankAccount: { findUnique: jest.fn() },
+      account: {
+        findFirst: jest.fn().mockImplementation(({ where }: any) =>
+          Promise.resolve({ id: `acc-${where.code}`, code: where.code }),
+        ),
+      },
+      $transaction: jest.fn().mockImplementation((fn: any) => fn(prisma)),
+    };
+
+    const service = new ContributionsService(
+      prisma as unknown as PrismaService,
+      {} as MembersService,
+      { resetArrearsTracking: jest.fn() } as unknown as MembershipRulesService,
+      { generateNumber: jest.fn().mockResolvedValue('R202601-M0001') } as unknown as DocumentNumberService,
+      { findDefault } as unknown as BankAccountsService,
+      { assertSchoolAccess: jest.fn(), assertGroupLeaderCanPay: jest.fn() } as unknown as SchoolScopeService,
+      { log: jest.fn() } as unknown as AuditLogService,
+      {
+        isServiceFeeEnabled: jest.fn().mockResolvedValue(true),
+        effectiveServiceFee: jest.fn((fee: number) => fee),
+      } as unknown as AppSettingsService,
+    );
+
+    return { service, prisma };
+  }
+
+  let logError: jest.SpyInstance;
+
+  beforeEach(() => {
+    logError = jest.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
+  });
+
+  afterEach(() => {
+    logError.mockRestore();
+  });
+
+  it('findDefault ที่ throw ต้องไม่ทำให้การบันทึกล้ม แต่ต้องถูกเขียนลง log', async () => {
+    const findDefault = jest.fn().mockRejectedValue(new Error('bank lookup exploded'));
+    const { service, prisma } = buildService(findDefault);
+
+    await service.recordPayment('c1', { amount: 105, paidDate: '2026-01-20' });
+
+    // พฤติกรรมเดิม: ยังออกใบเสร็จได้ เพียงแต่ไม่ผูกบัญชีธนาคาร
+    expect(prisma.receipt.create).toHaveBeenCalledTimes(1);
+    expect(prisma.receipt.create.mock.calls[0][0].data.bankAccountId).toBeUndefined();
+
+    // ต้องมีร่องรอยว่าทำไมใบเสร็จถึงไม่มีบัญชีธนาคาร
+    expect(logError).toHaveBeenCalledTimes(1);
+    expect(String(logError.mock.calls[0][0])).toContain('bank lookup exploded');
+  });
+
+  it('การค้นหาที่สำเร็จต้องไม่เขียน log ผิดพลาด และยังผูกบัญชีธนาคารเหมือนเดิม', async () => {
+    const findDefault = jest.fn().mockResolvedValue({ id: 'bank-1' });
+    const { service, prisma } = buildService(findDefault);
+    prisma.bankAccount.findUnique.mockResolvedValue({ id: 'bank-1' });
+
+    await service.recordPayment('c1', { amount: 105, paidDate: '2026-01-20' });
+
+    expect(prisma.receipt.create.mock.calls[0][0].data.bankAccountId).toBe('bank-1');
+    expect(logError).not.toHaveBeenCalled();
   });
 });
 

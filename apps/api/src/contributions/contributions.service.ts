@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { MembersService } from '../members/members.service';
 import { MembershipRulesService } from '../members/membership-rules.service';
@@ -40,6 +40,8 @@ export interface PaidBySchoolSummary {
 
 @Injectable()
 export class ContributionsService {
+  private readonly logger = new Logger(ContributionsService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly membersService: MembersService,
@@ -87,7 +89,14 @@ export class ContributionsService {
         });
         return verify?.id;
       }
-    } catch {}
+    } catch (error) {
+      // หาบัญชีธนาคารเริ่มต้นไม่ได้ = ใบเสร็จออกโดยไม่ผูกบัญชีธนาคาร ซึ่งยังทำงานต่อได้
+      // แต่ต้องมีร่องรอยไว้ ไม่งั้นใบเสร็จจะขาดบัญชีธนาคารไปเรื่อย ๆ โดยไม่มีใครรู้สาเหตุ
+      const message = error instanceof Error ? error.message : String(error);
+      this.logger.error(
+        `หาบัญชีธนาคารเริ่มต้นไม่สำเร็จ ใบเสร็จจะออกโดยไม่ผูกบัญชีธนาคาร: ${message}`,
+      );
+    }
     return undefined;
   }
 
