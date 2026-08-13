@@ -147,13 +147,15 @@ export class AccountsService {
     return true;
   }
 
-  async getJournal(startDate?: Date, endDate?: Date, schoolId?: string) {
+  /**
+   * สมุดรายวันเป็นข้อมูลระดับสมาคม ไม่ใช่ระดับโรงเรียน
+   * LedgerEntry ไม่มีคอลัมน์ schoolId (เงินของกองทุนเป็นก้อนเดียวทั้งเขต) จึงกรองตามโรงเรียนไม่ได้
+   * เดิมเมธอดนี้รับ schoolId แล้วไม่ได้ใช้ ทำให้ผู้เรียกเข้าใจผิดว่าได้ข้อมูลเฉพาะโรงเรียนตัวเอง
+   * ห้ามเพิ่มพารามิเตอร์ schoolId กลับเข้ามาจนกว่า LedgerEntry จะมีคอลัมน์นั้นจริง
+   */
+  async getJournal(startDate?: Date, endDate?: Date) {
     const where: any = {};
     if (startDate && endDate) where.date = { gte: startDate, lte: endDate };
-    if (schoolId) {
-      // Note: ledger doesn't directly have school, but we can join via receipt/payment if needed
-      // For simplicity, return all or filter via related
-    }
 
     const entries = await this.prisma.ledgerEntry.findMany({
       where,
@@ -229,7 +231,15 @@ export class AccountsService {
     });
   }
 
-  async getBalanceSheet(asOfDate?: Date, schoolId?: string) {
+  /**
+   * งบดุลเป็นงบระดับสมาคม ไม่ใช่ระดับโรงเรียน — โดยเจตนา
+   * เงินของกองทุนฌาปนกิจเป็นก้อนเดียวทั้งเขต (บัญชีธนาคารชุดเดียว) และ LedgerEntry
+   * ไม่มีคอลัมน์ schoolId เลย ยอดสินทรัพย์/หนี้สิน/ทุนจึงเป็นยอดรวมทั้งสมาคมเสมอ
+   * สินทรัพย์ถาวรก็ไม่กรองตามโรงเรียนเช่นกัน เพื่อให้ทุกส่วนของงบอยู่บนขอบเขตเดียวกัน
+   * (เดิมกรองเฉพาะสินทรัพย์ถาวร ทำให้งบไม่ดุลและปิดบังว่ายอดที่เหลือเป็นยอดทั้งสมาคม)
+   * ห้ามเพิ่มพารามิเตอร์ schoolId กลับเข้ามาจนกว่า LedgerEntry จะมีคอลัมน์นั้นจริง
+   */
+  async getBalanceSheet(asOfDate?: Date) {
     const endDate = asOfDate || new Date();
     const tb = await this.getTrialBalance(undefined, endDate);
     const accounts = tb.accounts || [];
@@ -253,9 +263,10 @@ export class AccountsService {
     const liabilitiesAndEquity = totalLiabilities + totalEquity;
 
     // Group 11: Include Fixed Assets from Asset model (book value) — compute BEFORE use
-    const assetWhere: any = { status: 'ACTIVE' };
-    if (schoolId) assetWhere.schoolId = schoolId;
-    const fixedAssetsRaw = await this.prisma.asset.findMany({ where: assetWhere });
+    // ไม่กรองตามโรงเรียน: งบดุลทั้งใบเป็นยอดทั้งสมาคม (ดู doc comment ด้านบน)
+    const fixedAssetsRaw = await this.prisma.asset.findMany({
+      where: { status: 'ACTIVE' },
+    });
     const fixedAssets = fixedAssetsRaw.map((a) => {
       const book = Number(a.originalCost) - Number(a.accumulatedDep || 0);
       return {
@@ -322,7 +333,12 @@ export class AccountsService {
   }
 
   // Period Closing for Accounting - Group 7
-  async closeAccountingYear(year: number, schoolId?: string) {
+  /**
+   * ปิดบัญชีเป็นการปิดระดับสมาคม ไม่ใช่ระดับโรงเรียน
+   * รายการปิดถูกเขียนลง LedgerEntry ซึ่งไม่มีคอลัมน์ schoolId — ปิดแยกรายโรงเรียนไม่ได้
+   * เดิมเมธอดนี้รับ schoolId แล้วไม่ได้ใช้เลย ทำให้เข้าใจผิดว่าปิดเฉพาะโรงเรียนที่ระบุ
+   */
+  async closeAccountingYear(year: number) {
     const startDate = new Date(year, 0, 1);
     const endDate = new Date(year + 1, 0, 1);
 

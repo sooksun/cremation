@@ -252,17 +252,15 @@ export class ReportsController {
   }
 
   // Group 13: Statement of Changes in Equity
+  // ยอดทั้งสมาคม — ไม่รับ schoolId เพราะตัวเลขมาจาก LedgerEntry ที่ไม่มีคอลัมน์โรงเรียน
   @Get('changes-in-equity')
   getChangesInEquity(
-    @Request() req: { user: ScopedUser },
     @Query('startDate') startDate: string,
     @Query('endDate') endDate: string,
-    @Query('schoolId') schoolId?: string,
   ) {
     return this.reportsService.getChangesInEquity(
       new Date(startDate),
       new Date(endDate),
-      this.scopedSchoolId(req.user, schoolId),
     );
   }
 

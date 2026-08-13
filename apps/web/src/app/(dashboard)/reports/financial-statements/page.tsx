@@ -20,11 +20,12 @@ export default function FinancialStatementsPage() {
   });
   const contentRef = useRef<HTMLDivElement>(null);
 
+  // งบดุลเป็นยอดทั้งสมาคม — ไม่ส่ง schoolId และไม่ใส่ selectedSchoolId ใน queryKey
+  // เพราะการเปลี่ยนโรงเรียนที่เลือกไม่ทำให้ตัวเลขเปลี่ยน (ดูหมายเหตุใต้หัวข้องบดุล)
   const { data: balanceSheet, isLoading: loadingBS } = useQuery({
-    queryKey: ['balance-sheet', asOfDate, selectedSchoolId],
+    queryKey: ['balance-sheet', asOfDate],
     queryFn: async () => {
       const params = new URLSearchParams({ asOfDate });
-      if (selectedSchoolId) params.append('schoolId', selectedSchoolId);
       const res = await api.get(`/accounts/reports/balance-sheet?${params}`);
       return res.data;
     },
@@ -58,11 +59,11 @@ export default function FinancialStatementsPage() {
     },
   });
 
+  // งบแสดงการเปลี่ยนแปลงในส่วนของทุนเป็นยอดทั้งสมาคมเช่นเดียวกับงบดุล — ไม่ส่ง schoolId
   const { data: changesInEquity, isLoading: loadingEquity } = useQuery({
-    queryKey: ['changes-in-equity', plRange, selectedSchoolId],
+    queryKey: ['changes-in-equity', plRange],
     queryFn: async () => {
       const params = new URLSearchParams(plRange);
-      if (selectedSchoolId) params.append('schoolId', selectedSchoolId);
       const res = await api.get(`/reports/changes-in-equity?${params}`);
       return res.data;
     },
@@ -95,12 +96,25 @@ export default function FinancialStatementsPage() {
       <div>
         <h1 className="text-2xl font-display font-bold text-slate-900">งบการเงิน</h1>
         <p className="text-slate-500 mt-1">งบดุลและงบกำไรขาดทุน จากผังบัญชีและสมุดรายวัน</p>
+        <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          <span className="font-semibold">ขอบเขตข้อมูล: ทั้งสมาคม</span> — งบดุล งบกำไรขาดทุน
+          งบแสดงการเปลี่ยนแปลงในส่วนของทุน และสมุดรายวัน เป็นยอดรวม
+          <span className="font-semibold">ทั้งสมาคม</span> ไม่ใช่เฉพาะโรงเรียนที่เลือกไว้ด้านบน
+          เนื่องจากเงินกองทุนฌาปนกิจใช้บัญชีธนาคารชุดเดียวร่วมกันทั้งเขต
+          การเปลี่ยนโรงเรียนที่เลือกจะไม่ทำให้ตัวเลขในหน้านี้เปลี่ยน
+          ยกเว้นงบกระแสเงินสดที่ยังแยกตามโรงเรียนได้
+        </div>
       </div>
 
       <div ref={contentRef} className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         <div className="card p-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="font-semibold flex items-center gap-2"><Scale size={20} />งบดุล</h2>
+            <h2 className="font-semibold flex items-center gap-2">
+              <Scale size={20} />งบดุล
+              <span className="rounded bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-600">
+                ทั้งสมาคม
+              </span>
+            </h2>
             <div className="flex items-center gap-2">
               <ThaiDatePicker
                 value={asOfDate}
@@ -200,7 +214,12 @@ export default function FinancialStatementsPage() {
         </div>
 
         <div className="card p-6">
-          <h2 className="font-semibold mb-4">งบแสดงการเปลี่ยนแปลงในส่วนของเจ้าของ (Changes in Equity)</h2>
+          <h2 className="font-semibold mb-4">
+            งบแสดงการเปลี่ยนแปลงในส่วนของเจ้าของ (Changes in Equity)
+            <span className="ml-2 rounded bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-600">
+              ทั้งสมาคม
+            </span>
+          </h2>
           {loadingEquity ? (
             <div>Loading...</div>
           ) : changesInEquity ? (
@@ -221,7 +240,12 @@ export default function FinancialStatementsPage() {
 
       {/* Journal / สมุดรายวันขั้นสูง */}
       <div className="card p-6">
-        <h2 className="font-semibold mb-4">สมุดรายวัน (Journal) - ตัวอย่าง</h2>
+        <h2 className="font-semibold mb-4">
+          สมุดรายวัน (Journal) - ตัวอย่าง
+          <span className="ml-2 rounded bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-600">
+            ทั้งสมาคม
+          </span>
+        </h2>
         {loadingJournal ? (
           <div>กำลังโหลด...</div>
         ) : journal && journal.length > 0 ? (

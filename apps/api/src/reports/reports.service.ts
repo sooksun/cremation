@@ -1457,10 +1457,16 @@ export class ReportsService {
   }
 
   // Group 13: Statement of Changes in Equity / Net Assets (to complete the set of financial statements)
-  async getChangesInEquity(startDate: Date, endDate: Date, schoolId?: string) {
+  /**
+   * งบแสดงการเปลี่ยนแปลงในส่วนของทุนเป็นยอดทั้งสมาคม ไม่ใช่รายโรงเรียน
+   * ตัวเลขทุกตัวมาจาก getBalanceSheet และ getProfitAndLoss ซึ่งอ่านจาก LedgerEntry
+   * ที่ไม่มีคอลัมน์ schoolId — เดิมรับ schoolId แล้วส่งต่อไปงบดุล แต่ไม่มีผลกับยอดทุนเลย
+   * (งบดุลใช้ schoolId แค่กรองสินทรัพย์ถาวร ซึ่งไม่ได้เข้ายอด totals.equity)
+   */
+  async getChangesInEquity(startDate: Date, endDate: Date) {
     const [startBS, endBS] = await Promise.all([
-      this.accountsService.getBalanceSheet(startDate, schoolId),
-      this.accountsService.getBalanceSheet(endDate, schoolId),
+      this.accountsService.getBalanceSheet(startDate),
+      this.accountsService.getBalanceSheet(endDate),
     ]);
 
     const pl = await this.accountsService.getProfitAndLoss(startDate, endDate);  // reuse

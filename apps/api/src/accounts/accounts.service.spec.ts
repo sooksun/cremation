@@ -444,7 +444,7 @@ describe('AccountsService.getBalanceSheet', () => {
   it('สินทรัพย์ถาวรต้องคิดราคาตามบัญชี = ราคาทุน − ค่าเสื่อมสะสม', async () => {
     const service = buildService(buildPrisma(ACCOUNTS, ENTRIES, ASSETS));
 
-    const sheet = await service.getBalanceSheet(undefined, 'school-1');
+    const sheet = await service.getBalanceSheet();
 
     expect(sheet.fixedAssets[0]).toMatchObject({
       originalCost: 50000,
@@ -482,7 +482,7 @@ describe('AccountsService.getBalanceSheet', () => {
   it('งบไม่ปิด ต้องรายงานว่าไม่ดุลพร้อมส่วนต่าง ไม่ใช่บอกว่าดุล', async () => {
     const service = buildService(buildPrisma(ACCOUNTS, ENTRIES, ASSETS));
 
-    const sheet = await service.getBalanceSheet(undefined, 'school-1');
+    const sheet = await service.getBalanceSheet();
 
     // สินทรัพย์ 31,000 แต่หนี้สิน+ทุนมีแค่ 1,000 เพราะยังไม่ได้ลงทุนของสินทรัพย์ถาวร
     expect(sheet.isBalanced).toBe(false);
@@ -498,12 +498,18 @@ describe('AccountsService.getBalanceSheet', () => {
   });
 
   /**
-   * ข้อจำกัดที่รู้อยู่: LedgerEntry ไม่มีคอลัมน์ schoolId
-   * getBalanceSheet จึงส่ง schoolId ไปกรองเฉพาะสินทรัพย์ถาวรเท่านั้น
-   * ส่วนยอดจากงบทดลองเป็นยอดรวมทั้งสมาคม — ผู้ใช้ระดับโรงเรียนจึงเห็นยอดของโรงเรียนอื่นด้วย
-   * แก้ที่ service อย่างเดียวไม่ได้ ต้องเพิ่มคอลัมน์ใน schema ก่อน จึง mark it.failing ไว้เตือน
+   * งบดุลเป็นยอด "ทั้งสมาคม" โดยเจตนา — ห้ามแก้กลับให้กรองรายโรงเรียน
+   *
+   * เหตุผล: เงินของกองทุนฌาปนกิจเป็นก้อนเดียวทั้งเขต (บัญชีธนาคารชุดเดียว) และ
+   * LedgerEntry ไม่มีคอลัมน์ schoolId เลย ยอดสินทรัพย์/หนี้สิน/ทุนจึงกรองรายโรงเรียนไม่ได้จริง
+   * เดิม getBalanceSheet รับ schoolId ไปกรองเฉพาะ "สินทรัพย์ถาวร" ส่วนที่เหลือไม่กรอง
+   * ทำให้ SCHOOL_ADMIN เปิดงบดุลแล้วนึกว่าเห็นเฉพาะโรงเรียนตัวเอง ทั้งที่เป็นยอดทั้งสมาคม
+   * ตอนนี้จึงตัดพารามิเตอร์ schoolId ทิ้ง ให้ทุกส่วนของงบอยู่บนขอบเขตเดียวกัน (ทั้งสมาคม)
+   *
+   * ถ้าวันหนึ่งต้องการงบดุลรายโรงเรียนจริง ต้องเพิ่มคอลัมน์ schoolId ใน LedgerEntry
+   * แล้วออกแบบใหม่ทั้งชุด ไม่ใช่แค่ใส่พารามิเตอร์กลับเข้ามา
    */
-  it.failing('งบดุลที่ระบุโรงเรียน ต้องไม่รวมยอดบัญชีของโรงเรียนอื่น', async () => {
+  it('งบดุลเป็นยอดทั้งสมาคมเสมอ ไม่ขึ้นกับโรงเรียนของผู้เรียก', async () => {
     const mixed: FakeEntry[] = [
       ...ENTRIES,
       {
@@ -514,11 +520,24 @@ describe('AccountsService.getBalanceSheet', () => {
         schoolId: 'school-2',
       },
     ];
-    const service = buildService(buildPrisma(ACCOUNTS, mixed));
+    const prisma = buildPrisma(ACCOUNTS, mixed, ASSETS);
+    const service = buildService(prisma);
 
-    const sheet = await service.getBalanceSheet(undefined, 'school-1');
+    const sheet = await service.getBalanceSheet();
 
-    expect(sheet.totals.assets).toBe(1000);
+    // 1,000 (school-1) + 5,000 (school-2) + สินทรัพย์ถาวร 30,000 ของ school-1 = 36,000
+    expect(sheet.totals.assets).toBe(36000);
+    // ห้ามมี read path ไหนส่งเงื่อนไขโรงเรียนไปที่ ledger หรือสินทรัพย์ถาวร
+    const entryWheres = prisma.account.findMany.mock.calls.map(
+      (c: any[]) => c[0]?.include?.entries?.where ?? {},
+    );
+    for (const w of entryWheres) {
+      expect(w).not.toHaveProperty('schoolId');
+      expect(w).not.toHaveProperty('receipt');
+    }
+    for (const call of prisma.asset.findMany.mock.calls) {
+      expect(call[0]?.where ?? {}).not.toHaveProperty('schoolId');
+    }
   });
 });
 

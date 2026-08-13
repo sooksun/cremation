@@ -50,6 +50,7 @@ export class AccountsController {
     );
   }
 
+  // สมุดรายวันเป็นยอดทั้งสมาคมเช่นเดียวกับงบดุล — ไม่รับ schoolId
   @Get('journal')
   @UseGuards(RolesGuard)
   @Roles(Role.ADMIN, Role.SCHOOL_ADMIN, Role.FINANCE, Role.ACCOUNTING)
@@ -63,16 +64,17 @@ export class AccountsController {
     );
   }
 
+  /**
+   * งบดุลเป็นยอดทั้งสมาคม ไม่รับ schoolId
+   * SchoolScopeInterceptor จะยัด req.query.schoolId ให้ทุก request อยู่แล้ว แต่ route นี้ไม่อ่านค่านั้น
+   * จงใจไม่รับ เพื่อไม่ให้ผู้เรียกเข้าใจผิดว่ากรองตามโรงเรียนได้ (LedgerEntry ไม่มี schoolId)
+   */
   @Get('reports/balance-sheet')
   @UseGuards(RolesGuard)
   @Roles(Role.ADMIN, Role.SCHOOL_ADMIN, Role.FINANCE, Role.ACCOUNTING)
-  getBalanceSheet(
-    @Query('asOfDate') asOfDate?: string,
-    @Query('schoolId') schoolId?: string,
-  ) {
+  getBalanceSheet(@Query('asOfDate') asOfDate?: string) {
     return this.accountsService.getBalanceSheet(
       asOfDate ? new Date(asOfDate) : undefined,
-      schoolId,
     );
   }
 
@@ -93,11 +95,8 @@ export class AccountsController {
   @Post('close-year')
   @UseGuards(RolesGuard)
   @Roles(Role.ADMIN, Role.ACCOUNTING)
-  closeAccountingYear(
-    @Query('year') year: string,
-    @Query('schoolId') schoolId?: string,
-  ) {
-    return this.accountsService.closeAccountingYear(Number(year), schoolId);
+  closeAccountingYear(@Query('year') year: string) {
+    return this.accountsService.closeAccountingYear(Number(year));
   }
 
   @Get(':id')
