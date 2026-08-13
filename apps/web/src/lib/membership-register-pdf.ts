@@ -1,5 +1,4 @@
-import { PDFDocument, type PDFPage, type PDFFont, rgb } from 'pdf-lib';
-import fontkit from '@pdf-lib/fontkit';
+import type { PDFDocument, PDFPage, PDFFont, RGB } from 'pdf-lib';
 import dayjs from 'dayjs';
 import buddhistEra from 'dayjs/plugin/buddhistEra';
 import {
@@ -11,6 +10,30 @@ import {
 } from '@/lib/membership-register';
 
 dayjs.extend(buddhistEra);
+
+/**
+ * pdf-lib + fontkit รวมกันหนักกว่า 170 kB (gzip) และใช้เฉพาะตอนกดสร้าง PDF เท่านั้น
+ * จึงโหลดแบบ dynamic เพื่อไม่ให้ติดไปกับ bundle แรกของหน้า /register ซึ่งเป็นหน้าสาธารณะ
+ */
+type PdfLib = typeof import('pdf-lib');
+
+let pdfLibPromise: Promise<PdfLib> | null = null;
+let pdfLib: PdfLib | null = null;
+
+async function loadPdfLib(): Promise<PdfLib> {
+  if (!pdfLibPromise) {
+    pdfLibPromise = import('pdf-lib');
+  }
+  pdfLib = await pdfLibPromise;
+  return pdfLib;
+}
+
+function black(): RGB {
+  if (!pdfLib) {
+    throw new Error('pdf-lib ยังไม่ถูกโหลด');
+  }
+  return pdfLib.rgb(0, 0, 0);
+}
 
 const DEFAULT_SIZE = 10;
 const FONT_URL = '/fonts/Sarabun-Regular.ttf';
@@ -293,7 +316,7 @@ function drawText(
     y: pos.y,
     size,
     font,
-    color: rgb(0, 0, 0),
+    color: black(),
   });
 }
 
@@ -321,7 +344,7 @@ function drawNationalId(
       y,
       size: DEFAULT_SIZE,
       font,
-      color: rgb(0, 0, 0),
+      color: black(),
     });
   });
 }
@@ -532,10 +555,14 @@ function fillTemplate(pdfDoc: PDFDocument, font: PDFFont, data: MembershipRegist
 
 async function buildMembershipRegisterPdf(data: MembershipRegisterForm): Promise<Uint8Array> {
   const config = MEMBERSHIP_TYPE_CONFIG[data.type];
-  const { templateBytes, fontBytes } = await loadAssets(config.blankPdf);
+  const [lib, fontkitModule, { templateBytes, fontBytes }] = await Promise.all([
+    loadPdfLib(),
+    import('@pdf-lib/fontkit'),
+    loadAssets(config.blankPdf),
+  ]);
 
-  const pdfDoc = await PDFDocument.load(templateBytes);
-  pdfDoc.registerFontkit(fontkit);
+  const pdfDoc = await lib.PDFDocument.load(templateBytes);
+  pdfDoc.registerFontkit(fontkitModule.default ?? (fontkitModule as unknown as Parameters<PDFDocument['registerFontkit']>[0]));
   const font = await pdfDoc.embedFont(fontBytes);
 
   fillTemplate(pdfDoc, font, data);
