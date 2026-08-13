@@ -5,12 +5,16 @@ import { buildChatMessages } from './build-messages';
 import { OpenRouterClient } from './openrouter.client';
 import { getAssistantConfig } from './assistant.config';
 import type { ChatMessage } from './assistant.types';
+import { FundFactsService } from './fund-facts.service';
 
 @Injectable()
 export class AssistantService implements OnModuleInit {
   private knowledgeBase = '';
 
-  constructor(private readonly client: OpenRouterClient = new OpenRouterClient()) {}
+  constructor(
+    private readonly client: OpenRouterClient = new OpenRouterClient(),
+    private readonly fundFacts?: FundFactsService,
+  ) {}
 
   onModuleInit(): void {
     this.knowledgeBase = loadKnowledgeBase(join(__dirname, 'knowledge'));
@@ -21,7 +25,8 @@ export class AssistantService implements OnModuleInit {
     if (!cfg.enabled || !cfg.apiKey) {
       throw new ServiceUnavailableException('ระบบผู้ช่วยตอบคำถามยังไม่พร้อมใช้งาน');
     }
-    const messages = buildChatMessages(this.knowledgeBase, history);
+    const facts = this.fundFacts ? await this.fundFacts.snapshot() : null;
+    const messages = buildChatMessages(this.knowledgeBase, history, facts);
     yield* this.client.streamChat({
       apiKey: cfg.apiKey,
       model: cfg.model,

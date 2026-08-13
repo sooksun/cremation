@@ -10,7 +10,7 @@ import { CommonModule } from '../common/common.module';
   imports: [MembersModule, CommonModule],
   controllers: [DeathClaimsController],
   providers: [DeathClaimsService, DeathBenefitCalculatorService, WelfareSettingsService],
-  exports: [DeathClaimsService, WelfareSettingsService],
+  exports: [DeathClaimsService, WelfareSettingsService, DeathBenefitCalculatorService],
 })
 export class DeathClaimsModule {}
 

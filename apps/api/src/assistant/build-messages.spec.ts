@@ -3,9 +3,9 @@ import type { ChatMessage } from './assistant.types';
 
 describe('buildSystemPrompt', () => {
   it('embeds the knowledge base and the out-of-scope guardrail', () => {
-    const sys = buildSystemPrompt('KB_CONTENT_MARKER');
+    const sys = buildSystemPrompt('KB_CONTENT_MARKER', null);
     expect(sys).toContain('KB_CONTENT_MARKER');
-    expect(sys).toContain('ไม่พบข้อกำหนดนี้ในระเบียบ');
+    expect(sys).toContain('ไม่พบข้อกำหนดนี้ในเอกสารที่มี');
   });
 });
 
