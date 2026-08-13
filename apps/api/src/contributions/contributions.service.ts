@@ -5,12 +5,23 @@ import { MembershipRulesService } from '../members/membership-rules.service';
 import { CreatePeriodDto, UpdatePeriodDto } from './dto/period.dto';
 import { RecordPaymentDto } from './dto/payment.dto';
 import { Decimal } from '@prisma/client/runtime/library';
-import { AuditAction, MemberStatus, ReceiptType } from '@prisma/client';
+import { AuditAction, MemberStatus, Prisma, ReceiptType } from '@prisma/client';
 import { DocumentNumberService, DocumentType } from '../common/document-number.service';
 import { BankAccountsService } from '../bank-accounts/bank-accounts.service';
 import { SchoolScopeService, ScopedUser } from '../common/security/school-scope.service';
 import { AuditLogService } from '../common/services/audit-log.service';
 import { AppSettingsService } from '../common/services/app-settings.service';
+
+// type alias ไม่ใช่ interface — จะได้ส่งลง metadata (Prisma InputJsonValue) ได้ตรง ๆ
+export type VoidedReceiptInfo = {
+  receiptNo: string;
+  amount: number;
+};
+
+interface SettleContributionResult {
+  contribution: unknown;
+  voidedReceipt: VoidedReceiptInfo | null;
+}
 
 export interface PaidBySchoolSummary {
   schoolId: string;
@@ -84,6 +95,16 @@ export class ContributionsService {
     receiptId: string;
     memberLabel: string;
   }) {
+    // ยอดที่รับจริงอาจไม่เท่ากับยอดที่เรียกเก็บ (แก้ยอดย้อนหลัง หรือรับไม่ครบ)
+    // ด้านเครดิตต้องกระจายจากยอดที่รับจริงเสมอ ไม่ใช่ยอดที่เรียกเก็บ ไม่งั้นบัญชีคู่ไม่ดุล
+    // เก็บเงินสงเคราะห์ให้ครบก่อน ส่วนที่เกินจากนั้นจึงเป็นค่าบริการ (ไม่เกินค่าบริการที่เรียกเก็บ)
+    // รับเกินยอดเรียกเก็บ ส่วนเกินลงเป็นรายได้เงินสงเคราะห์
+    const serviceCredit = Math.min(
+      Math.max(params.amount - params.welfareAmount, 0),
+      params.serviceAmount,
+    );
+    const welfareCredit = params.amount - serviceCredit;
+
     const entries = [
       {
         accountId: params.debitAccountId,
@@ -98,18 +119,18 @@ export class ContributionsService {
         date: params.paidDate,
         description: `รายได้เงินสงเคราะห์ ${params.memberLabel}`,
         debit: 0,
-        credit: params.welfareAmount,
+        credit: welfareCredit,
         receiptId: params.receiptId,
       },
     ];
 
-    if (params.serviceAmount > 0) {
+    if (serviceCredit > 0) {
       entries.push({
         accountId: params.serviceRevenueId,
         date: params.paidDate,
         description: `รายได้ค่าบริการ ${params.memberLabel}`,
         debit: 0,
-        credit: params.serviceAmount,
+        credit: serviceCredit,
         receiptId: params.receiptId,
       });
     }
@@ -188,8 +209,43 @@ export class ContributionsService {
   }
 
   /**
+   * ใบเสร็จที่ยกเลิกต้องคงแถวไว้ เพื่อกันเลขที่ใบเสร็จถูกปล่อยว่างแล้วออกซ้ำให้เงินคนละก้อน
+   * แต่รายการบัญชีกับสมุดเงินสดของใบนั้นต้องหายไป เพราะเงินก้อนนั้นไม่ใช่เงินจริงแล้ว
+   */
+  private async voidReceiptInTx(
+    tx: Prisma.TransactionClient,
+    receiptId: string,
+    reason: string,
+  ): Promise<VoidedReceiptInfo | null> {
+    await tx.ledgerEntry.deleteMany({ where: { receiptId } });
+    await tx.cashBook.deleteMany({ where: { receiptId } });
+    const voided = await tx.receipt.update({
+      where: { id: receiptId },
+      data: { voidedAt: new Date(), voidReason: reason },
+      select: { receiptNo: true, amount: true },
+    });
+    return { receiptNo: voided.receiptNo, amount: Number(voided.amount) };
+  }
+
+  /**
+   * ใบเสร็จเป็นของรายการนี้จริงหรือไม่ — ห้ามแตะใบเสร็จประเภทอื่นหรือของรายการอื่น
+   */
+  private isOwnedContributionReceipt(
+    receipt: { type: ReceiptType; memberContribution: { id: string } | null } | null,
+    contributionId: string,
+  ): boolean {
+    return (
+      !!receipt &&
+      receipt.type === ReceiptType.MEMBER_CONTRIBUTION &&
+      receipt.memberContribution?.id === contributionId
+    );
+  }
+
+  /**
    * จุดเดียวที่บันทึกการชำระเงินสมทบ — ใช้ร่วมกันทั้งการลงรายคน การลงทีละหลายคน
    * และการอัปโหลด Excel เพื่อให้ทั้งสามทางออกใบเสร็จและลงบัญชีเหมือนกันเสมอ
+   *
+   * คืนใบเสร็จที่ถูกยกเลิกระหว่างทางกลับไปด้วย เพื่อให้ผู้เรียกบันทึกลง audit log ได้
    */
   private async settleContribution(
     contribution: {
@@ -204,7 +260,7 @@ export class ContributionsService {
       member: { memberNo: string; associationMember?: { firstName: string; lastName: string } | null };
     },
     params: { amount: number; paidDate?: string | Date | null; receiptId?: string },
-  ) {
+  ): Promise<SettleContributionResult> {
     const amount = Number(params.amount);
 
     // ยอดที่แปลงเป็นตัวเลขไม่ได้ (เช่น "1,050" กลายเป็น NaN) หรือยอดติดลบ ต้องตกที่นี่เสมอ
@@ -224,13 +280,37 @@ export class ContributionsService {
     const paidDate = this.resolvePaidDate(contribution.period, params.paidDate);
     const existingReceiptId = params.receiptId || contribution.receiptId;
 
+    // ใบเสร็จเดิมที่ยอดไม่ตรงกับที่กำลังบันทึก ต้องถูกยกเลิกแล้วออกใบใหม่
+    // ไม่ใช่แก้แค่ paidAmount จนใบเสร็จกับบัญชีค้างยอดเดิมไว้คนละยอดกับที่รับจริง
+    let receiptToVoidId: string | null = null;
+
     if (existingReceiptId) {
-      const updated = await this.prisma.memberContribution.update({
-        where: { id: contribution.id },
-        data: { paidAmount: amount, paidDate, receiptId: existingReceiptId, isArrears: false },
+      const existingReceipt = await this.prisma.receipt.findUnique({
+        where: { id: existingReceiptId },
+        select: {
+          id: true,
+          amount: true,
+          type: true,
+          voidedAt: true,
+          memberContribution: { select: { id: true } },
+        },
       });
-      await this.membershipRules.resetArrearsTracking(contribution.memberId);
-      return updated;
+
+      const needsReissue =
+        this.isOwnedContributionReceipt(existingReceipt, contribution.id) &&
+        (!!existingReceipt!.voidedAt ||
+          Math.abs(Number(existingReceipt!.amount) - amount) >= 0.005);
+
+      if (!needsReissue) {
+        const updated = await this.prisma.memberContribution.update({
+          where: { id: contribution.id },
+          data: { paidAmount: amount, paidDate, receiptId: existingReceiptId, isArrears: false },
+        });
+        await this.membershipRules.resetArrearsTracking(contribution.memberId);
+        return { contribution: updated, voidedReceipt: null };
+      }
+
+      receiptToVoidId = existingReceipt!.id;
     }
 
     // เลขเอกสารสร้างนอก transaction (DocumentNumberService เปิด transaction ของตัวเองอยู่แล้ว)
@@ -253,7 +333,15 @@ export class ContributionsService {
 
     // ใบเสร็จ + รายการบัญชี + สถานะการชำระ ต้องสำเร็จหรือล้มพร้อมกัน
     // ถ้าแยกกันเขียน แล้วพังกลางทาง จะเหลือใบเสร็จลอยที่ไม่มีรายการอ้างถึง
-    const updated = await this.prisma.$transaction(async (tx) => {
+    const result = await this.prisma.$transaction(async (tx) => {
+      const voidedReceipt = receiptToVoidId
+        ? await this.voidReceiptInTx(
+            tx,
+            receiptToVoidId,
+            `แก้ไขยอดชำระเป็น ${amount} บาท จึงออกใบเสร็จใหม่แทน`,
+          )
+        : null;
+
       const receipt = await tx.receipt.create({
         data: {
           receiptNo,
@@ -280,56 +368,58 @@ export class ContributionsService {
         }),
       });
 
-      return tx.memberContribution.update({
+      const updated = await tx.memberContribution.update({
         where: { id: contribution.id },
         data: { paidAmount: amount, paidDate, receiptId: receipt.id, isArrears: false },
       });
+
+      return { contribution: updated, voidedReceipt };
     });
 
     await this.membershipRules.resetArrearsTracking(contribution.memberId);
-    return updated;
+    return result;
   }
 
   /**
    * ยกเลิกการชำระ: กลับไปเป็นค้างชำระ ไม่ใช่ล้างธงทิ้งจนหายจากรายงานค้างชำระ
-   * และต้องล้างใบเสร็จกับรายการบัญชีของการชำระครั้งนั้นทิ้งไปด้วย เพราะ Receipt ไม่มีสถานะยกเลิก
-   * รายงานสมุดเงินสดจึงนับใบเสร็จจากวันที่ตรง ๆ — ถ้าปล่อยใบเสร็จค้างไว้ เงินที่ยกเลิกแล้วจะยังอยู่ในรายงานตลอดไป
-   * และการกดชำระซ้ำจะออกใบเสร็จใบที่สองให้เงินก้อนเดิม
+   * ใบเสร็จของการชำระครั้งนั้นถูกทำเครื่องหมายยกเลิก (voidedAt) แล้วคงแถวไว้
+   * ห้ามลบแถวทิ้ง เพราะเลขที่ใบเสร็จของเดือนนั้นจะว่างกลับมาแล้วถูกออกซ้ำให้คนละคนคนละยอด
+   * ส่วนรายการบัญชีกับสมุดเงินสดต้องหายไป เพราะรายงานเงินสด/รายรับนับจากใบเสร็จที่ยังไม่ถูกยกเลิกเท่านั้น
    */
-  private async cancelContributionSettlement(contribution: { id: string; receiptId: string | null }) {
-    // ลบได้เฉพาะใบเสร็จของรายการนี้เองเท่านั้น ห้ามแตะใบเสร็จประเภทอื่นหรือของรายการอื่น
+  private async cancelContributionSettlement(contribution: {
+    id: string;
+    receiptId: string | null;
+  }): Promise<SettleContributionResult> {
+    // ยกเลิกได้เฉพาะใบเสร็จของรายการนี้เองเท่านั้น ห้ามแตะใบเสร็จประเภทอื่นหรือของรายการอื่น
     const receipt = contribution.receiptId
       ? await this.prisma.receipt.findUnique({
           where: { id: contribution.receiptId },
           select: {
             id: true,
             type: true,
+            voidedAt: true,
             memberContribution: { select: { id: true } },
           },
         })
       : null;
 
     const ownedReceiptId =
-      receipt &&
-      receipt.type === ReceiptType.MEMBER_CONTRIBUTION &&
-      receipt.memberContribution?.id === contribution.id
-        ? receipt.id
+      this.isOwnedContributionReceipt(receipt, contribution.id) && !receipt!.voidedAt
+        ? receipt!.id
         : null;
 
     return this.prisma.$transaction(async (tx) => {
-      // ต้องตัดการอ้างอิงจาก contribution ก่อน แล้วค่อยลบใบเสร็จ ไม่งั้นติด foreign key
+      // ตัดการอ้างอิงจาก contribution ก่อน ใบเสร็จที่ยกเลิกแล้วต้องไม่ถูกผูกกับรายการที่ค้างชำระ
       const updated = await tx.memberContribution.update({
         where: { id: contribution.id },
         data: { paidAmount: 0, paidDate: null, receiptId: null, isArrears: true },
       });
 
-      if (ownedReceiptId) {
-        await tx.ledgerEntry.deleteMany({ where: { receiptId: ownedReceiptId } });
-        await tx.cashBook.deleteMany({ where: { receiptId: ownedReceiptId } });
-        await tx.receipt.delete({ where: { id: ownedReceiptId } });
-      }
+      const voidedReceipt = ownedReceiptId
+        ? await this.voidReceiptInTx(tx, ownedReceiptId, 'ยกเลิกการชำระเงินสงเคราะห์')
+        : null;
 
-      return updated;
+      return { contribution: updated, voidedReceipt };
     });
   }
 
@@ -400,12 +490,26 @@ export class ContributionsService {
         entityType: 'MemberContribution',
         entityId: contribution.id,
         schoolId: member.schoolId,
-        metadata: { memberNo: member.memberNo, periodId: period.id, amount: params.amount },
+        metadata: {
+          memberNo: member.memberNo,
+          periodId: period.id,
+          amount: params.amount,
+          ...this.voidedReceiptMetadata(result.voidedReceipt),
+        },
         ipAddress,
       });
     }
 
-    return result;
+    return result.contribution;
+  }
+
+  /**
+   * ใบเสร็จที่ถูกยกเลิกต้องมีร่องรอยว่าเป็นใบไหนยอดเท่าไร
+   * ไม่งั้น audit log จะเหลือแค่ "ชำระ 0 บาท" ซึ่งตามกลับไม่ได้ว่าเงินก้อนไหนหายไป
+   */
+  private voidedReceiptMetadata(voided: VoidedReceiptInfo | null) {
+    if (!voided) return {};
+    return { voidedReceiptNo: voided.receiptNo, voidedAmount: voided.amount };
   }
 
   private assertPeriodOpen(period: { isClosed: boolean }, action: string) {
@@ -551,7 +655,11 @@ export class ContributionsService {
         entityType: 'MemberContribution',
         entityId: id,
         schoolId: contribution.schoolId,
-        metadata: { amount: dto.amount, paidDate: dto.paidDate },
+        metadata: {
+          amount: dto.amount,
+          paidDate: dto.paidDate,
+          ...this.voidedReceiptMetadata(result.voidedReceipt),
+        },
         ipAddress,
       });
     }
@@ -560,7 +668,7 @@ export class ContributionsService {
       await this.membershipRules.resetArrearsTracking(contribution.memberId);
     }
 
-    return result;
+    return result.contribution;
   }
 
   // Batch record payments for multiple contributions
@@ -574,6 +682,8 @@ export class ContributionsService {
     }
 
     const results: Array<{ contributionId: string; success: boolean; error?: string }> = [];
+    // ใบเสร็จที่ถูกยกเลิกระหว่างรอบนี้ ต้องตามกลับได้จาก audit log ของรอบเดียวกัน
+    const voidedReceipts: VoidedReceiptInfo[] = [];
 
     for (const payment of payments) {
       if (!payment.contributionId) {
@@ -630,11 +740,14 @@ export class ContributionsService {
       }
 
       try {
-        await this.settleContribution(contribution, {
+        const settled = await this.settleContribution(contribution, {
           amount: payment.amount,
           paidDate: payment.paidDate,
           receiptId: payment.receiptId,
         });
+        if (settled.voidedReceipt) {
+          voidedReceipts.push(settled.voidedReceipt);
+        }
         results.push({ contributionId: payment.contributionId, success: true });
       } catch (error: any) {
         const errorMessage = error.message || error.code || String(error);
@@ -659,6 +772,7 @@ export class ContributionsService {
           total: payments.length,
           success: successCount,
           failed: failCount,
+          ...(voidedReceipts.length > 0 ? { voidedReceipts } : {}),
         },
         ipAddress,
       });

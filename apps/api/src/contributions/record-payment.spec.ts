@@ -142,9 +142,11 @@ describe('ContributionsService.recordPayment — ต้องออกใบเ�
 });
 
 /**
- * C1: ใบเสร็จไม่มีคอลัมน์ยกเลิก และรายงานสมุดเงินสดนับใบเสร็จจากวันที่ตรง ๆ
- * ถ้ายกเลิกการชำระแล้วปล่อยใบเสร็จกับรายการบัญชีค้างไว้ เงินที่ยกเลิกจะอยู่ในรายงานตลอดไป
+ * C1: ถ้ายกเลิกการชำระแล้วปล่อยใบเสร็จกับรายการบัญชีค้างไว้ เงินที่ยกเลิกจะอยู่ในรายงานตลอดไป
  * แล้วการกดชำระซ้ำจะออกใบเสร็จใบที่สอง กลายเป็น 210 บาทจากการจ่ายจริง 105 บาท
+ *
+ * ใบเสร็จที่ยกเลิกจึงคงแถวไว้แต่ทำเครื่องหมาย voidedAt (กันเลขที่ถูกออกซ้ำ)
+ * ส่วนรายการบัญชีของใบนั้นต้องหายไป — รายละเอียดการยกเลิกอยู่ที่ void-receipt.spec.ts
  */
 describe('ContributionsService.recordPayment — ชำระ → ยกเลิก → ชำระใหม่', () => {
   function buildStatefulPrisma() {
@@ -188,9 +190,17 @@ describe('ContributionsService.recordPayment — ชำระ → ยกเล�
           return {
             id: row.id,
             type: row.type,
+            amount: row.amount,
+            voidedAt: row.voidedAt ?? null,
             // ความสัมพันธ์ 1:1 — ใบเสร็จเป็นของรายการนี้ก็ต่อเมื่อรายการยังชี้กลับมาที่ใบนี้
             memberContribution: contribution.receiptId === row.id ? { id: contribution.id } : null,
           };
+        }),
+        update: jest.fn(async ({ where, data }: any) => {
+          const row = receipts.get(where.id);
+          if (!row) throw new Error(`receipt ${where.id} not found`);
+          Object.assign(row, data);
+          return { ...row };
         }),
         delete: jest.fn(async ({ where }: any) => {
           receipts.delete(where.id);
@@ -221,7 +231,7 @@ describe('ContributionsService.recordPayment — ชำระ → ยกเล�
     return { prisma, receipts, ledger, contribution };
   }
 
-  it('ต้องเหลือใบเสร็จใบเดียวและรายการบัญชีชุดเดียวที่ดุล', async () => {
+  it('ต้องเหลือใบเสร็จที่ใช้ได้ใบเดียวและรายการบัญชีชุดเดียวที่ดุล', async () => {
     const { prisma, receipts, ledger, contribution } = buildStatefulPrisma();
 
     const service = new ContributionsService(
@@ -243,16 +253,17 @@ describe('ContributionsService.recordPayment — ชำระ → ยกเล�
     await service.recordPayment('c1', { amount: 105, paidDate: '2026-01-20' });
     await service.recordPayment('c1', { amount: 0, paidDate: '2026-01-20' });
 
-    // ยกเลิกแล้วต้องไม่เหลือใบเสร็จหรือรายการบัญชีค้างอยู่ในระบบ
-    expect(receipts.size).toBe(0);
+    // ยกเลิกแล้วต้องไม่เหลือใบเสร็จที่ใช้ได้หรือรายการบัญชีค้างอยู่ในระบบ
+    const usable = () => Array.from(receipts.values()).filter((r) => !r.voidedAt);
+    expect(usable()).toHaveLength(0);
     expect(ledger).toHaveLength(0);
     expect(contribution.receiptId).toBeNull();
     expect(contribution.isArrears).toBe(true);
 
     await service.recordPayment('c1', { amount: 105, paidDate: '2026-01-20' });
 
-    expect(receipts.size).toBe(1);
-    const [receiptId] = Array.from(receipts.keys());
+    expect(usable()).toHaveLength(1);
+    const receiptId = usable()[0].id;
     expect(contribution.receiptId).toBe(receiptId);
     expect(Number(receipts.get(receiptId).amount)).toBe(105);
 
