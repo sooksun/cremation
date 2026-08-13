@@ -415,12 +415,38 @@ export default function ContributionMatrixPage() {
   };
 
   // Send arrears notice — confirm first, since this can trigger membership termination
-  // for members who meet the cutoff (processArrearsAfterNotice on the backend)
+  // for members who meet the cutoff (processArrearsAfterNotice on the backend).
+  //
+  // The endpoint acts on EVERY unpaid contribution in the period within the caller's school
+  // scope — not on the rows that came from the uploaded file. Confirming with
+  // reconcile.result.missing.length (a file-scoped number) would understate the blast radius,
+  // so the count shown here is read from the same period-scoped, school-scoped source the
+  // endpoint works from: GET /contributions/arrears?periodId=…
   const handleSendArrearsNotice = async () => {
     if (!reconcile) return;
+
+    let arrearsCount: number;
+    try {
+      const response = await api.get(
+        `/contributions/arrears?periodId=${encodeURIComponent(reconcile.periodId)}`,
+      );
+      arrearsCount = Array.isArray(response.data) ? response.data.length : 0;
+    } catch {
+      showError('ตรวจสอบจำนวนรายการค้างชำระไม่สำเร็จ — ยังไม่ได้แจ้งเตือน');
+      return;
+    }
+
+    if (arrearsCount === 0) {
+      showError('ไม่มีรายการค้างชำระของงวดนี้ในขอบเขตของคุณ');
+      return;
+    }
+
     const confirmed = window.confirm(
-      `จะแจ้งเตือนค้างชำระ ${reconcile.result.missing.length} ราย\n` +
-        'สมาชิกที่ครบเงื่อนไขตามระเบียบอาจถูกตัดสมาชิกภาพจากการดำเนินการนี้ ยืนยันหรือไม่',
+      'การแจ้งเตือนนี้ครอบคลุมรายการค้างชำระทั้งงวด ตามขอบเขตสิทธิ์ของคุณ ' +
+        'ไม่ใช่เฉพาะรายชื่อที่ขาดจากไฟล์ที่เพิ่งอัปโหลด\n\n' +
+        `จำนวนที่จะถูกดำเนินการ: ${arrearsCount} ราย\n\n` +
+        'สมาชิกที่ค้างชำระติดต่อกันครบ 3 งวดจะถูกตัดสมาชิกภาพจากการดำเนินการนี้\n\n' +
+        'ยืนยันแจ้งเตือนค้างชำระหรือไม่',
     );
     if (!confirmed) return;
 
