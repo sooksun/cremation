@@ -105,6 +105,8 @@ export default function FinancialStatementsPage() {
           <br />
           งบกระแสเงินสดแยกตามโรงเรียนได้เฉพาะส่วนใบเสร็จและใบสำคัญจ่าย
           ส่วนรายการเดินบัญชีธนาคารเป็นยอดทั้งสมาคมเสมอ ด้วยเหตุผลเดียวกัน
+          เมื่อเลือกโรงเรียน ยอดสุทธิจะนับเฉพาะใบเสร็จและใบสำคัญจ่ายของโรงเรียนนั้น
+          ไม่รวมยอดธนาคาร เพื่อไม่ให้ได้ตัวเลขที่ไม่ใช่ของทั้งสมาคมและไม่ใช่ของโรงเรียนใด
         </div>
       </div>
 
@@ -202,7 +204,12 @@ export default function FinancialStatementsPage() {
         </div>
 
         <div className="card p-6">
-          <h2 className="font-semibold mb-4">งบกระแสเงินสด (Cash Flow)</h2>
+          <h2 className="font-semibold mb-4 flex items-center gap-2">
+            งบกระแสเงินสด (Cash Flow)
+            <span className="rounded bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-600">
+              {cashFlow?.scope?.operatingActivities === 'SCHOOL' ? 'เฉพาะโรงเรียนที่เลือก' : 'ทั้งสมาคม'}
+            </span>
+          </h2>
           {loadingCashFlow ? (
             <div className="h-20 flex items-center justify-center">Loading...</div>
           ) : cashFlow ? (
@@ -210,7 +217,27 @@ export default function FinancialStatementsPage() {
               <div>เงินสดรับจากใบเสร็จ: {fmt(cashFlow.cashFlows?.operatingActivities?.cashReceipts || 0)}</div>
               <div>เงินสดจ่ายตามใบสำคัญ: {fmt(cashFlow.cashFlows?.operatingActivities?.cashPayments || 0)}</div>
               <div className="font-bold">สุทธิจากกิจกรรมดำเนินงาน: {fmt(cashFlow.cashFlows?.operatingActivities?.net || 0)}</div>
-              <div className="border-t pt-2">เงินสดสุทธิในงวด: {fmt(cashFlow.netCashFlow || 0)}</div>
+
+              <div className="border-t pt-2 space-y-1">
+                <div className="flex items-center gap-2 text-slate-600">
+                  <span>รายการเดินบัญชีธนาคาร</span>
+                  <span className="rounded bg-amber-100 px-2 py-0.5 text-[11px] font-medium text-amber-700">
+                    ทั้งสมาคม
+                    {cashFlow.cashFlows?.bankActivities?.includedInTotals === false && ' — ไม่รวมในยอดสุทธิ'}
+                  </span>
+                </div>
+                <div>เงินฝากเข้า: {fmt(cashFlow.cashFlows?.bankActivities?.deposits || 0)}</div>
+                <div>เงินถอนออก: {fmt(cashFlow.cashFlows?.bankActivities?.withdrawals || 0)}</div>
+              </div>
+
+              <div className="border-t pt-2 font-medium">
+                เงินสดสุทธิในงวด: {fmt(cashFlow.netCashFlow || 0)}
+                {cashFlow.cashFlows?.bankActivities?.includedInTotals === false && (
+                  <span className="ml-2 text-xs font-normal text-slate-500">
+                    (นับเฉพาะใบเสร็จและใบสำคัญจ่ายของโรงเรียนที่เลือก)
+                  </span>
+                )}
+              </div>
             </div>
           ) : <div>ไม่มีข้อมูล</div>}
         </div>

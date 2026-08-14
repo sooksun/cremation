@@ -72,6 +72,14 @@ export default function DailyMovementPage() {
         <div className="flex justify-center py-20"><div className="w-8 h-8 border-4 border-primary-500 border-t-transparent rounded-full animate-spin" /></div>
       ) : data ? (
         <div ref={contentRef}>
+          {data.summary.bankIncludedInTotals === false && (
+            <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+              เลือกโรงเรียนอยู่ — <span className="font-semibold">เงินรับ/เงินจ่าย/สุทธิ</span> ด้านล่างเป็นของโรงเรียนที่เลือกเท่านั้น
+              ส่วน <span className="font-semibold">ธุรกรรมธนาคาร</span> เป็นยอดทั้งสมาคม
+              เพราะบัญชีธนาคารใช้ร่วมกันทั้งเขต จึงไม่ถูกรวมเข้ายอดสุทธิ
+            </div>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="card p-4 flex items-center gap-3">
               <ArrowDownLeft className="text-emerald-600" />
@@ -91,18 +99,29 @@ export default function DailyMovementPage() {
 
           <TxnTable title={`ใบเสร็จ (${data.receipts.length})`} rows={data.receipts.map((r: any) => [r.receiptNo, r.type, r.school || '-', fmt(r.amount)])} />
           <TxnTable title={`ใบสำคัญจ่าย (${data.payments.length})`} rows={data.payments.map((p: any) => [p.voucherNo, p.type, p.school || '-', fmt(p.amount)])} />
-          <TxnTable title={`ธุรกรรมธนาคาร (${data.bankTransactions.length})`} rows={data.bankTransactions.map((t: any) => [t.transactionNo, t.type, t.bankAccount, fmt(t.amount)])} />
+          <TxnTable
+            title={`ธุรกรรมธนาคาร (${data.bankTransactions.length})`}
+            badge={data.summary.bankIncludedInTotals === false ? 'ทั้งสมาคม — ไม่รวมในยอดสุทธิ' : undefined}
+            rows={data.bankTransactions.map((t: any) => [t.transactionNo, t.type, t.bankAccount, fmt(t.amount)])}
+          />
         </div>
       ) : null}
     </motion.div>
   );
 }
 
-function TxnTable({ title, rows }: { title: string; rows: string[][] }) {
+function TxnTable({ title, rows, badge }: { title: string; rows: string[][]; badge?: string }) {
   if (!rows.length) return null;
   return (
     <div className="card overflow-hidden">
-      <h3 className="font-semibold px-4 py-3 border-b bg-slate-50">{title}</h3>
+      <h3 className="font-semibold px-4 py-3 border-b bg-slate-50 flex items-center gap-2">
+        {title}
+        {badge && (
+          <span className="rounded bg-amber-100 px-2 py-0.5 text-[11px] font-medium text-amber-700">
+            {badge}
+          </span>
+        )}
+      </h3>
       <table className="w-full text-sm">
         <tbody>
           {rows.map((row, i) => (

@@ -268,26 +268,37 @@ export class ReportsService {
         orderBy: { date: 'asc' },
       }),
       this.prisma.bankTransaction.findMany({
-        where: { date: { gte: start, lte: end } },
+        // BankTransaction ไม่มีคอลัมน์ schoolId — กรองตามโรงเรียนไม่ได้ ยอดนี้เป็นของทั้งสมาคมเสมอ
+        where: { date: { gte: start, lte: end }, deletedAt: null },
         include: { bankAccount: true },
         orderBy: { date: 'asc' },
       }),
     ]);
 
+    const bankIn = bankTransactions
+      .filter((t) => t.type === 'DEPOSIT')
+      .reduce((s, t) => s + Number(t.amount), 0);
+    const bankOut = bankTransactions
+      .filter((t) => t.type === 'WITHDRAWAL')
+      .reduce((s, t) => s + Number(t.amount), 0);
+
+    // เมื่อเลือกโรงเรียน ห้ามเอายอดธนาคารทั้งสมาคมไปบวกกับใบเสร็จของโรงเรียนเดียว
+    // ตัวเลขที่ได้จะไม่ใช่ของทั้งสมาคมและไม่ใช่ของโรงเรียนนั้นด้วย
+    const bankIncludedInTotals = !schoolId;
+
     const cashIn =
-      receipts.reduce((s, r) => s + Number(r.amount), 0) +
-      bankTransactions
-        .filter((t) => t.type === 'DEPOSIT')
-        .reduce((s, t) => s + Number(t.amount), 0);
+      receipts.reduce((s, r) => s + Number(r.amount), 0) + (bankIncludedInTotals ? bankIn : 0);
 
     const cashOut =
-      payments.reduce((s, p) => s + Number(p.amount), 0) +
-      bankTransactions
-        .filter((t) => t.type === 'WITHDRAWAL')
-        .reduce((s, t) => s + Number(t.amount), 0);
+      payments.reduce((s, p) => s + Number(p.amount), 0) + (bankIncludedInTotals ? bankOut : 0);
 
     return {
       date: start,
+      scope: {
+        schoolId: schoolId ?? null,
+        receiptsAndPayments: schoolId ? 'SCHOOL' : 'ASSOCIATION',
+        bankTransactions: 'ASSOCIATION',
+      },
       receipts: receipts.map((r) => ({
         id: r.id,
         receiptNo: r.receiptNo,
@@ -316,6 +327,9 @@ export class ReportsService {
         cashIn,
         cashOut,
         netMovement: cashIn - cashOut,
+        bankIn,
+        bankOut,
+        bankIncludedInTotals,
         receiptCount: receipts.length,
         paymentCount: payments.length,
         bankTxnCount: bankTransactions.length,
@@ -337,11 +351,12 @@ export class ReportsService {
         where: { ...where, ...dateFilter },
         _sum: { amount: true },
       }),
+      // BankTransaction ไม่มีคอลัมน์ schoolId — สองยอดนี้เป็นของทั้งสมาคมเสมอ
       this.prisma.bankTransaction.aggregate({
         where: {
-          type: BankTransactionType.DEPOSIT, // assume enum or 'DEPOSIT'
+          type: BankTransactionType.DEPOSIT,
           date: { gte: startDate, lte: endDate },
-          // if bank has school, add filter
+          deletedAt: null,
         },
         _sum: { amount: true },
       }),
@@ -349,6 +364,7 @@ export class ReportsService {
         where: {
           type: BankTransactionType.WITHDRAWAL,
           date: { gte: startDate, lte: endDate },
+          deletedAt: null,
         },
         _sum: { amount: true },
       }),
@@ -359,11 +375,19 @@ export class ReportsService {
     const bankIn = Number(bankDeposits._sum.amount || 0);
     const bankOut = Number(bankWithdrawals._sum.amount || 0);
 
-    const totalIn = cashInFromReceipts + bankIn;
-    const totalOut = cashOutToPayments + bankOut;
+    // เลือกโรงเรียนแล้วยอดธนาคารยังเป็นของทั้งเขต บวกรวมกันจะได้ตัวเลขที่ไม่ใช่ของใครทั้งนั้น
+    const bankIncludedInTotals = !schoolId;
+
+    const totalIn = cashInFromReceipts + (bankIncludedInTotals ? bankIn : 0);
+    const totalOut = cashOutToPayments + (bankIncludedInTotals ? bankOut : 0);
 
     return {
-      period: { startDate, endDate, schoolId },
+      period: { startDate, endDate },
+      scope: {
+        schoolId: schoolId ?? null,
+        operatingActivities: schoolId ? 'SCHOOL' : 'ASSOCIATION',
+        bankActivities: 'ASSOCIATION',
+      },
       cashFlows: {
         operatingActivities: {
           cashReceipts: cashInFromReceipts,
@@ -374,6 +398,7 @@ export class ReportsService {
           deposits: bankIn,
           withdrawals: bankOut,
           net: bankIn - bankOut,
+          includedInTotals: bankIncludedInTotals,
         },
       },
       netCashFlow: totalIn - totalOut,
