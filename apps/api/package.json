@@ -23,7 +23,8 @@
     "db:seed": "npx ts-node --project tsconfig.json prisma/seed.ts",
     "db:studio": "prisma studio",
     "db:excel-to-migration": "ts-node scripts/excel-to-migration.ts",
-    "db:reset-password": "npx ts-node --project tsconfig.json scripts/reset-password.ts"
+    "db:reset-password": "npx ts-node --project tsconfig.json scripts/reset-password.ts",
+    "db:rename-school-admins": "npx ts-node --project tsconfig.json scripts/rename-school-admin-usernames.ts"
   },
   "dependencies": {
     "@nestjs/common": "^10.3.0",

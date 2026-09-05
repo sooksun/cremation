@@ -7,6 +7,7 @@ import { Plus, Edit, Trash2, X, Building2, UserCog } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { showSuccess, showError, showConfirm } from '@/lib/toast';
 import { api } from '@/lib/api';
+import { buildDefaultSchoolAdminUsername } from '@/lib/school-admin';
 
 interface SchoolInfo {
   id: string;
@@ -99,7 +100,7 @@ export default function SchoolAdminsPage() {
       });
     } else {
       reset({
-        username: `admin-${row.school.code.toLowerCase()}`,
+        username: buildDefaultSchoolAdminUsername(row.school.code),
         password: '',
         fullName: `ผู้ดูแล ${row.school.name}`,
       });
@@ -270,7 +271,7 @@ export default function SchoolAdminsPage() {
                   <input
                     {...register('username', { required: 'กรุณากรอกชื่อผู้ใช้' })}
                     className="input"
-                    placeholder="admin-sch001"
+                    placeholder="admin01"
                   />
                   {errors.username && (
                     <p className="text-sm text-red-500 mt-1">{errors.username.message}</p>

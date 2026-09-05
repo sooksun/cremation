@@ -17,6 +17,7 @@ import {
   computeWorkflowDeadlines,
 } from '../src/death-claims/death-claim-workflow.constants';
 import * as bcrypt from 'bcrypt';
+import { buildDefaultSchoolAdminUsername } from '../src/school-admins/school-admins.service';
 
 const prisma = new PrismaClient();
 
@@ -222,7 +223,7 @@ async function main() {
 
   for (const school of [schoolA, schoolB, schoolC]) {
     await ensureUser({
-      username: `admin-${school.code.toLowerCase()}`,
+      username: buildDefaultSchoolAdminUsername(school.code),
       fullName: `ผู้ดูแล ${school.name}`,
       role: Role.SCHOOL_ADMIN,
       schoolId: school.id,

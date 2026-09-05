@@ -14,8 +14,19 @@ import { AuditAction } from '@prisma/client';
 import { ScopedUser } from '../common/security/school-scope.service';
 import { validateStrongPassword } from '../common/utils/password.util';
 
+/**
+ * ชื่อผู้ใช้ของผู้ดูแลโรงเรียน = "admin" + ลำดับโรงเรียน 2 หลัก (admin01, admin02, ...)
+ *
+ * ลำดับอ่านจากตัวเลขใน School.code รูปแบบ `SCH_001_ชื่อโรงเรียน` เท่านั้น
+ * รหัสที่ไม่มีตัวคั่นหลัง SCH (เช่น `SCH001` ของข้อมูลตัวอย่าง) หรือไม่มีตัวเลขเลย
+ * (เช่น `SCH_UNKNOWN`) จะคงรูปแบบเดิม `admin-<code>` ไว้ เพื่อไม่ให้ชนกับลำดับจริง
+ */
 export function buildDefaultSchoolAdminUsername(schoolCode: string): string {
-  return `admin-${schoolCode.toLowerCase()}`;
+  const ordinal = /^SCH[_-](\d{1,3})(?:[_-]|$)/i.exec(schoolCode ?? '');
+  if (ordinal) {
+    return `admin${String(Number(ordinal[1])).padStart(2, '0')}`;
+  }
+  return `admin-${(schoolCode ?? '').toLowerCase()}`;
 }
 
 @Injectable()
