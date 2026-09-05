@@ -3,6 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { DocumentNumberService, DocumentType } from '../common/document-number.service';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import { AuditAction, PaymentType, Prisma } from '@prisma/client';
+import { PAYMENT_EXPENSE_ACCOUNT, FALLBACK_EXPENSE_ACCOUNT } from '../common/ledger-account-map';
 import { SchoolScopeService, ScopedUser } from '../common/security/school-scope.service';
 import { AuditLogService } from '../common/services/audit-log.service';
 import { CashBookService } from '../cash-book/cash-book.service';
@@ -122,6 +123,19 @@ export class PaymentsService {
       _count: true,
     });
 
+    // ใบสำคัญจ่ายออกในนามสมาคมและหักจากเงินรายได้ 10% ที่หักเข้าสมาคม
+    // เงินก้อนนี้เป็นของสมาคมทั้งก้อน ไม่ได้แยกตามโรงเรียน จึงไม่กรองด้วย schoolId
+    const associationIncome = await this.prisma.memberContribution.aggregate({
+      where: {
+        paidAmount: { gt: 0 },
+        ...(startDate && endDate ? { paidDate: { gte: startDate, lte: endDate } } : {}),
+      },
+      _sum: { serviceAmount: true },
+    });
+
+    const totalPaid = Number(total._sum.amount || 0);
+    const income = Number(associationIncome._sum.serviceAmount || 0);
+
     return {
       byType: byType.map((item) => ({
         type: item.type,
@@ -130,7 +144,11 @@ export class PaymentsService {
       })),
       total: {
         count: total._count,
-        amount: Number(total._sum.amount || 0),
+        amount: totalPaid,
+      },
+      associationIncome: {
+        amount: income,
+        remaining: income - totalPaid,
       },
     };
   }
@@ -152,11 +170,20 @@ export class PaymentsService {
     }
 
     const creditAccountId = payment.bankAccountId ? bankAccount?.id : cashAccount.id;
-    let debitAccountId = deathBenefitExpense.id;
 
-    // Determine debit account based on payment type
-    if (payment.type === PaymentType.DEATH_BENEFIT) {
-      debitAccountId = deathBenefitExpense.id;
+    // เดิม if ตรงนี้กำหนดค่าเดิมทับตัวเอง ทำให้ OPERATING_EXPENSE / BANK_FEE / OTHER
+    // ถูกลงเป็น "ค่าใช้จ่ายเงินสงเคราะห์ศพ" ทั้งหมด รายงานค่าใช้จ่ายจึงผิดทุกใบที่ไม่ใช่เงินสงเคราะห์
+    const expenseCode = PAYMENT_EXPENSE_ACCOUNT[payment.type as PaymentType] ?? FALLBACK_EXPENSE_ACCOUNT;
+    let debitAccountId = deathBenefitExpense.id;
+    if (expenseCode !== FALLBACK_EXPENSE_ACCOUNT) {
+      const expenseAccount = await tx.account.findFirst({ where: { code: expenseCode } });
+      if (expenseAccount) {
+        debitAccountId = expenseAccount.id;
+      } else {
+        this.logger.warn(
+          `createLedgerEntries: ไม่พบบัญชี ${expenseCode} สำหรับใบสำคัญจ่ายประเภท ${payment.type} — ใช้ ${FALLBACK_EXPENSE_ACCOUNT} แทน (รัน prisma db seed เพื่อเพิ่มบัญชีที่ขาด)`,
+        );
+      }
     }
 
     if (debitAccountId && creditAccountId) {

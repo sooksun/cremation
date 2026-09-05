@@ -3,6 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { DocumentNumberService, DocumentType } from '../common/document-number.service';
 import { CreateReceiptDto } from './dto/create-receipt.dto';
 import { AuditAction, Prisma, ReceiptType, Role } from '@prisma/client';
+import { RECEIPT_REVENUE_ACCOUNT, FALLBACK_REVENUE_ACCOUNT } from '../common/ledger-account-map';
 import { SchoolScopeService, ScopedUser } from '../common/security/school-scope.service';
 import { AuditLogService } from '../common/services/audit-log.service';
 import { CashBookService } from '../cash-book/cash-book.service';
@@ -153,7 +154,6 @@ export class ReceiptsService {
     const cashAccount = await tx.account.findFirst({ where: { code: '101' } });
     const bankAccount = await tx.account.findFirst({ where: { code: '102' } });
     const welfareRevenue = await tx.account.findFirst({ where: { code: '401' } });
-    const serviceRevenue = await tx.account.findFirst({ where: { code: '402' } });
 
     if (!cashAccount || !welfareRevenue) {
       const missing = [!cashAccount && '101 (เงินสด)', !welfareRevenue && '401 (รายได้เงินสงเคราะห์)']
@@ -166,11 +166,20 @@ export class ReceiptsService {
     }
 
     const debitAccountId = receipt.bankAccountId ? bankAccount?.id : cashAccount.id;
-    let creditAccountId = welfareRevenue.id;
 
-    // Determine credit account based on receipt type
-    if (receipt.type === ReceiptType.MEMBER_CONTRIBUTION) {
-      creditAccountId = welfareRevenue.id;
+    // เลือกบัญชีรายได้ตามประเภทใบเสร็จจริง ๆ (ค่าสมัคร/ค่าคู่มือ/ค่าบำรุง ไม่ใช่เงินสงเคราะห์)
+    // ถ้าผังบัญชียังไม่มีรหัสนั้น ให้ถอยกลับไป 401 พร้อมเตือน แทนที่จะทำให้ออกใบเสร็จไม่ได้
+    const revenueCode = RECEIPT_REVENUE_ACCOUNT[receipt.type as ReceiptType] ?? FALLBACK_REVENUE_ACCOUNT;
+    let creditAccountId = welfareRevenue.id;
+    if (revenueCode !== FALLBACK_REVENUE_ACCOUNT) {
+      const revenueAccount = await tx.account.findFirst({ where: { code: revenueCode } });
+      if (revenueAccount) {
+        creditAccountId = revenueAccount.id;
+      } else {
+        this.logger.warn(
+          `createLedgerEntries: ไม่พบบัญชี ${revenueCode} สำหรับใบเสร็จประเภท ${receipt.type} — ใช้ ${FALLBACK_REVENUE_ACCOUNT} แทน (รัน prisma db seed เพื่อเพิ่มบัญชีที่ขาด)`,
+        );
+      }
     }
 
     if (debitAccountId && creditAccountId) {

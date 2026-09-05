@@ -83,9 +83,15 @@ export class AccountsService {
 
   // Get trial balance
   async getTrialBalance(startDate?: Date, endDate?: Date) {
+    // ต้องรับขอบเขตเดียวได้ด้วย: getBalanceSheet เรียกมาแบบ (undefined, asOfDate)
+    // ถ้าบังคับให้มีครบสองขอบเขต ตัวกรองจะถูกทิ้งเงียบ ๆ แล้ว "ณ วันที่" ของงบดุล
+    // ไม่มีผลจริง ทำให้งบแสดงการเปลี่ยนแปลงส่วนทุนได้ต้นงวด = ปลายงวดเสมอ
     const where: any = {};
-    if (startDate && endDate) {
-      where.date = { gte: startDate, lte: endDate };
+    if (startDate || endDate) {
+      where.date = {
+        ...(startDate ? { gte: startDate } : {}),
+        ...(endDate ? { lte: endDate } : {}),
+      };
     }
 
     const accounts = await this.prisma.account.findMany({

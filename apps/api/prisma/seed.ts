@@ -240,11 +240,6 @@ async function main() {
     create: { code: '401', name: 'รายได้เงินสงเคราะห์', type: AccountType.INCOME },
     update: {},
   });
-  const serviceRevenue = await prisma.account.upsert({
-    where: { code: '402' },
-    create: { code: '402', name: 'รายได้ค่าบริการ', type: AccountType.INCOME },
-    update: {},
-  });
   const deathBenefitExpense = await prisma.account.upsert({
     where: { code: '501' },
     create: { code: '501', name: 'ค่าใช้จ่ายเงินสงเคราะห์ศพ', type: AccountType.EXPENSE },
@@ -259,11 +254,6 @@ async function main() {
   await prisma.account.upsert({
     where: { code: '403' },
     create: { code: '403', name: 'ดอกเบี้ยรับ', type: AccountType.INCOME },
-    update: {},
-  });
-  await prisma.account.upsert({
-    where: { code: '404' },
-    create: { code: '404', name: 'เงินบริจาค', type: AccountType.INCOME },
     update: {},
   });
   // ค่าเสื่อมราคา (assets.service.ts recordDepreciation ใช้ 503/152 — ไม่มีใน seed เดิม)
@@ -289,6 +279,35 @@ async function main() {
   await prisma.account.upsert({
     where: { code: '399' },
     create: { code: '399', name: 'สรุปรายได้-ค่าใช้จ่าย (กำไรสะสม)', type: AccountType.EQUITY },
+    update: {},
+  });
+
+  // รายได้ที่ไม่ใช่เงินสงเคราะห์ (ค่าสมัคร ค่าคู่มือ ค่าบำรุงรายปี) — เดิมถูกบันทึกรวมเข้า 401
+  // ทำให้รายงานรายได้เงินสงเคราะห์สูงเกินจริง
+  await prisma.account.upsert({
+    where: { code: '402' },
+    create: { code: '402', name: 'รายได้ค่าสมัครและค่าบำรุง', type: AccountType.INCOME },
+    update: {},
+  });
+  await prisma.account.upsert({
+    where: { code: '409' },
+    create: { code: '409', name: 'รายได้อื่น', type: AccountType.INCOME },
+    update: {},
+  });
+  // ค่าใช้จ่ายที่ไม่ใช่เงินสงเคราะห์ศพ — เดิมถูกบันทึกรวมเข้า 501 ทั้งหมด
+  await prisma.account.upsert({
+    where: { code: '502' },
+    create: { code: '502', name: 'ค่าใช้จ่ายดำเนินงาน', type: AccountType.EXPENSE },
+    update: {},
+  });
+  await prisma.account.upsert({
+    where: { code: '504' },
+    create: { code: '504', name: 'ค่าธรรมเนียมธนาคาร', type: AccountType.EXPENSE },
+    update: {},
+  });
+  await prisma.account.upsert({
+    where: { code: '509' },
+    create: { code: '509', name: 'ค่าใช้จ่ายอื่น', type: AccountType.EXPENSE },
     update: {},
   });
 
@@ -649,15 +668,7 @@ async function main() {
           date: new Date('2024-12-05'),
           description: `รายได้เงินสงเคราะห์ ${am.firstName} ${am.lastName}`,
           debit: 0,
-          credit: welfareAmount,
-          receiptId: receipt.id,
-        },
-        {
-          accountId: serviceRevenue.id,
-          date: new Date('2024-12-05'),
-          description: `รายได้ค่าบริการ ${am.firstName} ${am.lastName}`,
-          debit: 0,
-          credit: serviceAmount,
+          credit: totalAmount,
           receiptId: receipt.id,
         },
       ],
@@ -792,6 +803,37 @@ async function main() {
   console.log('✅ Created death claim and payment');
   } else {
     console.log('⏭️ Sample contributions/death claim already exist, skipped');
+  }
+
+  // 17) Thai addresses (ฐานข้อมูลที่อยู่ประเทศไทย)
+  try {
+    const fs = await import('fs');
+    const path = await import('path');
+    const dataPath = path.join(__dirname, 'data', 'thai-addresses.json');
+    if (fs.existsSync(dataPath)) {
+      const countRes: any = await prisma.$queryRawUnsafe('SELECT COUNT(*) as count FROM thaiaddress');
+      const count = Number(countRes[0]?.count ?? 0);
+      if (count === 0) {
+        const list = JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
+        for (let i = 0; i < list.length; i += 500) {
+          const chunk = list.slice(i, i + 500);
+          const values = chunk
+            .map(
+              (x: any) =>
+                `(${x.id}, ${JSON.stringify(x.subdistrict)}, ${JSON.stringify(x.district)}, ${JSON.stringify(x.province)}, ${JSON.stringify(x.zipCode)})`
+            )
+            .join(',');
+          await prisma.$executeRawUnsafe(
+            `INSERT IGNORE INTO thaiaddress (id, subdistrict, district, province, zipCode) VALUES ${values}`
+          );
+        }
+        console.log(`✅ Seeded ${list.length} Thai addresses`);
+      } else {
+        console.log(`⏭️ Thai addresses already seeded (${count} records)`);
+      }
+    }
+  } catch (err) {
+    console.warn('Skipped Thai address seeding:', err);
   }
 
   console.log('');

@@ -22,6 +22,10 @@ describe('ReportsService.getExecutiveDashboard — จำนวนค้าง�
       receipt: { aggregate: jest.fn().mockResolvedValue({ _sum: { amount: null }, _count: 0 }) },
       paymentVoucher: { aggregate: jest.fn().mockResolvedValue({ _sum: { amount: null }, _count: 0 }) },
       memberContribution: { count: contributionCount },
+      // อัตราเงินสงเคราะห์อ่านจากงวดล่าสุดแทนค่าคงที่ 100 ที่เคย hardcode ไว้
+      contributionPeriod: {
+        findFirst: jest.fn().mockResolvedValue({ welfareRate: 120 }),
+      },
     };
 
     const service = new ReportsService(

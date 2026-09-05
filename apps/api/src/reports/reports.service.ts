@@ -3,7 +3,6 @@ import { PrismaService } from '../prisma/prisma.service';
 import {
   DeathClaimStatus,
   MemberStatus,
-  Role,
   BankTransactionType,
   ReceiptType,
   PaymentType,
@@ -1152,7 +1151,7 @@ export class ReportsService {
         return date;
       }).map(async (date) => {
         const startOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
-        const endOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+        const endOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0, 23, 59, 59, 999);
 
         const [receipts, payments] = await Promise.all([
           this.prisma.receipt.aggregate({
@@ -1228,10 +1227,13 @@ export class ReportsService {
       }),
     ]);
 
-    // ดึงอัตราเงินสงเคราะห์ต่อคนจากสมาชิกที่ active
-    const activeMembers = await this.prisma.member.count({
-      where: { ...memberWhere, status: MemberStatus.ACTIVE },
+    // อัตราเงินสงเคราะห์ต่อคนต้องอ่านจากงวดล่าสุดจริง ๆ ไม่ใช่ค่าคงที่ 100
+    // (เดิม hardcode ไว้ ทำให้แดชบอร์ดผู้บริหารแสดงอัตราผิดทันทีที่คณะกรรมการปรับอัตรา)
+    const latestPeriod = await this.prisma.contributionPeriod.findFirst({
+      orderBy: [{ year: 'desc' }, { month: 'desc' }],
+      select: { welfareRate: true },
     });
+    const welfareRate = Number(latestPeriod?.welfareRate ?? 0);
 
     return {
       summary: {
@@ -1240,7 +1242,7 @@ export class ReportsService {
         deathClaimsThisYear: deathClaimsByYear[0]?.totalClaims || 0,
         pendingPayments: pendingPaymentsCount,
         pendingPaymentAmount: Number(pendingPaymentsAgg._sum.netToPay || 0),
-        welfareRate: 100,
+        welfareRate,
         fundReserveThisYear: deathClaimsByYear[0]?.fundReserve || 0,
         pendingApproval: pendingApprovalCount,
         arrearsCount,
@@ -1295,7 +1297,7 @@ export class ReportsService {
     const monthlyReceipts = await Promise.all(
       Array.from({ length: 12 }, (_, i) => i + 1).map(async (month) => {
         const startOfMonth = new Date(year, month - 1, 1);
-        const endOfMonth = new Date(year, month, 0);
+        const endOfMonth = new Date(year, month, 0, 23, 59, 59, 999);
 
         const result = await this.prisma.receipt.aggregate({
           where: { ...where, ...NOT_VOIDED, date: { gte: startOfMonth, lte: endOfMonth } },
@@ -1310,7 +1312,7 @@ export class ReportsService {
     const monthlyPayments = await Promise.all(
       Array.from({ length: 12 }, (_, i) => i + 1).map(async (month) => {
         const startOfMonth = new Date(year, month - 1, 1);
-        const endOfMonth = new Date(year, month, 0);
+        const endOfMonth = new Date(year, month, 0, 23, 59, 59, 999);
 
         const result = await this.prisma.paymentVoucher.aggregate({
           where: { ...where, date: { gte: startOfMonth, lte: endOfMonth } },
@@ -1489,8 +1491,11 @@ export class ReportsService {
    * (งบดุลใช้ schoolId แค่กรองสินทรัพย์ถาวร ซึ่งไม่ได้เข้ายอด totals.equity)
    */
   async getChangesInEquity(startDate: Date, endDate: Date) {
+    // ส่วนทุน "ต้นงวด" คือยอด ณ ก่อนวันเริ่มงวด ถ้าใช้ startDate ตรง ๆ รายการของวันแรก
+    // จะถูกนับทั้งในต้นงวดและในกำไรสุทธิของงวด ทำให้ otherAdjustments เพี้ยน
+    const beginningAsOf = new Date(startDate.getTime() - 1);
     const [startBS, endBS] = await Promise.all([
-      this.accountsService.getBalanceSheet(startDate),
+      this.accountsService.getBalanceSheet(beginningAsOf),
       this.accountsService.getBalanceSheet(endDate),
     ]);
 
@@ -1500,8 +1505,12 @@ export class ReportsService {
     const netIncome = pl.totals.netProfit || 0;
     const endingEquity = endBS.totals.equity || 0;
 
-    // Simple changes (no other adjustments assumed)
-    const otherAdjustments = endingEquity - (beginningEquity + netIncome);
+    // otherAdjustments นิยามเป็น "ส่วนต่างที่อธิบายด้วยกำไรสุทธิไม่ได้"
+    // เดิมมี isConsistent ที่เช็ค endingEquity === beginningEquity + netIncome + otherAdjustments
+    // ซึ่งเป็นจริงเสมอโดยนิยาม (tautology) จึงไม่เคยจับความผิดปกติอะไรได้เลย
+    // เปลี่ยนเป็นเช็คว่าส่วนทุนขยับเท่ากับกำไรสุทธิพอดีหรือไม่ ซึ่งเป็นคำถามที่มีคำตอบจริง
+    const equityChange = endingEquity - beginningEquity;
+    const otherAdjustments = equityChange - netIncome;
 
     return {
       period: { startDate, endDate },
@@ -1510,8 +1519,15 @@ export class ReportsService {
         netIncome,
         otherAdjustments,
         endingEquity,
+        equityChange,
       },
-      isConsistent: Math.abs(endingEquity - (beginningEquity + netIncome + otherAdjustments)) < 0.01,
+      // เป็นเท็จได้จริง เช่น ปีที่ยังไม่ได้ปิดบัญชี กำไรจะยังค้างอยู่ในหมวดรายได้/ค่าใช้จ่าย
+      // ไม่ถูกโอนเข้าส่วนทุน ผู้ใช้จะเห็นว่ายังต้องปิดงวดก่อน
+      isConsistent: Math.abs(otherAdjustments) < 0.01,
+      note:
+        Math.abs(otherAdjustments) < 0.01
+          ? undefined
+          : 'ส่วนทุนขยับไม่เท่ากับกำไรสุทธิของงวด — ปกติเกิดเมื่อยังไม่ได้ปิดบัญชีปี หรือมีรายการปรับปรุงส่วนทุนโดยตรง',
     };
   }
 }
