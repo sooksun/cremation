@@ -334,7 +334,10 @@ model Member {
   id                        String               @id @default(cuid())
   associationMember         AssociationMember    @relation(fields: [associationMemberId], references: [id], onDelete: Cascade)
   associationMemberId       String               @unique
-  memberNo                  String // เลขสมาชิกฌาปนกิจ (running number)
+  // running number ที่ DocumentNumberService ออกให้ และเป็นคีย์จับคู่ไฟล์ Excel นำเข้าเงิน
+  // ต้อง unique จริงที่ฐานข้อมูล ไม่งั้นสองคำขอพร้อมกันได้เลขเดียวกันแบบเงียบ ๆ
+  // แล้วการค้นด้วย findFirst จะเครดิตเงินเข้าคนใดคนหนึ่งแบบสุ่ม
+  memberNo                  String               @unique
   school                    School               @relation(fields: [schoolId], references: [id])
   schoolId                  String
   group                     Group?               @relation(fields: [groupId], references: [id])
@@ -375,6 +378,8 @@ model Member {
   // (ACTIVE, ARREARS) ทั้งแบบรวมและแยกรายโรงเรียน
   @@index([status])
   @@index([schoolId, status])
+  // ตารางสมาชิกเรียงตาม memberNo ทุกหน้า — ไม่มี index นี้ MySQL ทำ filesort ทั้งตาราง
+  @@index([schoolId, memberNo])
 }
 
 model Beneficiary {
@@ -450,71 +455,85 @@ model MemberContribution {
   arrearsNoticeSentAt DateTime?
   createdAt           DateTime           @default(now())
   updatedAt           DateTime           @updatedAt
-
-  @@unique([memberId, periodId])
   // การกรองด้วย periodId อย่างเดียว (หน้าสรุปงวด/การกระทบยอด) ใช้ unique ข้างบนไม่ได้
   // เพราะขึ้นต้นด้วย memberId — แต่ MySQL สร้าง index ให้คอลัมน์ foreign key อยู่แล้ว
   // (MemberContribution_periodId_fkey) จึงไม่ต้องประกาศซ้ำ ดูรายละเอียดใน backend-report.md
+
+  @@unique([memberId, periodId])
 }
 
 model DeathClaim {
-  id                      String                 @id @default(cuid())
-  member                  Member                 @relation("ClaimSubjectMember", fields: [memberId], references: [id])
-  memberId                String
-  school                  School                 @relation(fields: [schoolId], references: [id])
-  schoolId                String
-  claimNo                 String                 @unique
-  claimType               DeathClaimType         @default(MEMBER_DEATH)
-  deceasedType            DeceasedType           @default(MEMBER)
-  deceasedName            String?
-  relationshipNote        String?
-  protectedPerson         ProtectedPerson?       @relation(fields: [protectedPersonId], references: [id], onDelete: SetNull)
-  protectedPersonId       String?
-  reportedDate            DateTime
-  deathDate               DateTime
-  causeOfDeath            String?
-  mainBeneficiary         String
-  beneficiaryPhone        String?
+  id                       String                 @id @default(cuid())
+  member                   Member                 @relation("ClaimSubjectMember", fields: [memberId], references: [id])
+  memberId                 String
+  school                   School                 @relation(fields: [schoolId], references: [id])
+  schoolId                 String
+  claimNo                  String                 @unique
+  claimType                DeathClaimType         @default(MEMBER_DEATH)
+  deceasedType             DeceasedType           @default(MEMBER)
+  deceasedName             String?
+  relationshipNote         String?
+  protectedPerson          ProtectedPerson?       @relation(fields: [protectedPersonId], references: [id], onDelete: SetNull)
+  protectedPersonId        String?
+  reportedDate             DateTime
+  deathDate                DateTime
+  causeOfDeath             String?
+  mainBeneficiary          String
+  beneficiaryPhone         String?
   // snapshot ตามระเบียบ ข้อ 13–16 (welfareRate=อัตราเก็บ, totalContribution=ยอดรวมเก็บ, associationSupport=เข้ากองทุน 10%)
-  activeMemberCount       Int
-  welfareRate             Decimal                @db.Decimal(10, 2)
-  totalContribution       Decimal                @db.Decimal(12, 2)
-  associationSupport      Decimal                @db.Decimal(12, 2)
-  payoutRatio             Decimal                @default(0.9) @db.Decimal(5, 4)
-  otherDeductions         Decimal                @db.Decimal(12, 2)
-  netToPay                Decimal                @db.Decimal(12, 2)
+  activeMemberCount        Int
+  welfareRate              Decimal                @db.Decimal(10, 2)
+  totalContribution        Decimal                @db.Decimal(12, 2)
+  associationSupport       Decimal                @db.Decimal(12, 2)
+  payoutRatio              Decimal                @default(0.9) @db.Decimal(5, 4)
+  otherDeductions          Decimal                @db.Decimal(12, 2)
+  netToPay                 Decimal                @db.Decimal(12, 2)
   // Fixed benefit support (ตามมติคณะกรรมการ)
-  isFixedBenefit          Boolean                @default(false)
-  fixedBenefitAmount      Decimal?               @db.Decimal(12, 2)
+  isFixedBenefit           Boolean                @default(false)
+  fixedBenefitAmount       Decimal?               @db.Decimal(12, 2)
   // Phase D — workflow เก็บเงิน + เอกสาร (ข้อ 13.3, 17, 18)
-  status                  DeathClaimStatus       @default(REPORTED)
-  collectionChannel       DeathCollectionChannel
-  notifyAuthorityDeadline DateTime?
-  collectionDeadline      DateTime
-  documentDeadline        DateTime
-  paymentDeadline         DateTime
-  collectedAmount         Decimal                @default(0) @db.Decimal(12, 2)
-  collectionCompletedAt   DateTime?
-  documentsComplete       Boolean                @default(false)
-  documentChecklist       Json
-  workflowNotes           String?                @db.Text
+  status                   DeathClaimStatus       @default(REPORTED)
+  collectionChannel        DeathCollectionChannel
+  notifyAuthorityDeadline  DateTime?
+  collectionDeadline       DateTime
+  documentDeadline         DateTime
+  paymentDeadline          DateTime
+  collectedAmount          Decimal                @default(0) @db.Decimal(12, 2)
+  collectionCompletedAt    DateTime?
+  documentsComplete        Boolean                @default(false)
+  documentChecklist        Json
+  workflowNotes            String?                @db.Text
   // Phase E — อนุมัติเบิกเงิน (ข้อ 13.6)
-  approvedBy              User?                  @relation("DeathClaimApprover", fields: [approvedById], references: [id], onDelete: SetNull)
-  approvedById            String?
-  approvedAt              DateTime?
-  approverName            String?
-  approverSignature       String?                @db.Text
-  payment                 DeathBenefitPayment?
+  approvedBy               User?                  @relation("DeathClaimApprover", fields: [approvedById], references: [id], onDelete: SetNull)
+  approvedById             String?
+  approvedAt               DateTime?
+  approverName             String?
+  approverSignature        String?                @db.Text
+  payment                  DeathBenefitPayment?
   // เอกสารบัญชีที่ผูกตอนจ่ายจริง (ข้อ 13/16 — เก็บ gross ขาเข้า + จ่าย net ขาออก + กองทุน 10%)
-  collectionReceipt       Receipt?               @relation("ClaimCollectionReceipt", fields: [collectionReceiptId], references: [id])
-  collectionReceiptId     String?                @unique
-  benefitVoucher          PaymentVoucher?        @relation("ClaimBenefitVoucher", fields: [benefitVoucherId], references: [id])
-  benefitVoucherId        String?                @unique
+  collectionReceipt        Receipt?               @relation("ClaimCollectionReceipt", fields: [collectionReceiptId], references: [id])
+  collectionReceiptId      String?                @unique
+  benefitVoucher           PaymentVoucher?        @relation("ClaimBenefitVoucher", fields: [benefitVoucherId], references: [id])
+  benefitVoucherId         String?                @unique
   // ข้อ 18 — การสงเคราะห์ (18.1 พวงหรีด, 18.2 ร่วมเป็นเจ้าภาพสวดอภิธรรม)
-  condolenceWreathAt      DateTime?
-  funeralPrayerAt         DateTime?
-  createdAt               DateTime               @default(now())
-  updatedAt               DateTime               @updatedAt
+  condolenceWreathAt       DateTime?
+  funeralPrayerAt          DateTime?
+  // ยอด ณ "วันจ่ายจริง" (ข้อ 16) — เก็บแยกจาก snapshot ตอนสร้างเรื่องข้างบน
+  // เดิมเขียนทับ snapshot เดิมทิ้ง ทำให้ตรวจย้อนหลังไม่ได้ว่าเก็บเงินตามเป้าที่ตั้งไว้ตอนแจ้งหรือไม่
+  // (totalContribution เป็นตัวเดียวกับที่ใช้ตัดสินว่าเก็บครบพอจะจ่ายได้แล้ว)
+  payoutMemberCount        Int?
+  payoutWelfareRate        Decimal?               @db.Decimal(10, 2)
+  payoutTotalContribution  Decimal?               @db.Decimal(12, 2)
+  payoutAssociationSupport Decimal?               @db.Decimal(12, 2)
+  payoutNetToPay           Decimal?               @db.Decimal(12, 2)
+  createdAt                DateTime               @default(now())
+  updatedAt                DateTime               @updatedAt
+
+  // รายงานฌาปนกิจกรองด้วยช่วง reportedDate และเรียงตามคอลัมน์นี้แทบทุกใบ
+  // เดิมตารางนี้ไม่มี index สักตัว ทำให้ EXPLAIN ออกมาเป็น full scan + filesort
+  @@index([reportedDate])
+  @@index([schoolId, reportedDate])
+  @@index([status])
 }
 
 model DeathBenefitPayment {
@@ -696,4 +715,18 @@ model CashBook {
   deletedAt   DateTime? // soft-delete (retention 10 ปี ตามข้อบังคับสมาคม ข้อ 30)
 
   @@index([schoolId, date])
+}
+
+// ฐานข้อมูลที่อยู่ประเทศไทย (ตำบล อำเภอ จังหวัด รหัสไปรษณีย์) สำหรับเลือกระบุที่อยู่
+model ThaiAddress {
+  id          Int    @id
+  subdistrict String // ตำบล / แขวง
+  district    String // อำเภอ / เขต
+  province    String // จังหวัด
+  zipCode     String // รหัสไปรษณีย์
+
+  @@index([subdistrict])
+  @@index([district])
+  @@index([province])
+  @@index([zipCode])
 }

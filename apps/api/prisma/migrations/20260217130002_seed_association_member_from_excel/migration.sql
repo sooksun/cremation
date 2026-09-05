@@ -1,3 +1,8 @@
+-- หมายเหตุ (แก้ภายหลัง): migration นำเข้าข้อมูลชุดนี้ต้องมี MemberType อยู่ก่อน ซึ่งมาจาก
+-- `prisma db seed` ที่รันหลัง `migrate deploy` ในขั้นตอน deploy จริง เดิมจึงล้มด้วย error 1048
+-- ทุกครั้งที่ติดตั้งจากฐานข้อมูลเปล่า เพิ่มเงื่อนไข EXISTS เพื่อให้ข้ามไปเงียบ ๆ แทนที่จะพัง
+-- (ฐานข้อมูลที่นำเข้าข้อมูลชุดนี้ไปแล้วไม่ได้รับผลกระทบ เพราะถูกบันทึกว่า applied ไปแล้ว)
+
 -- Migration: Seed AssociationMember จาก doc/member_data.xlsx
 -- สร้างโดย excel-to-migration.ts | รวมข้อมูลทุก sheet
 -- จำนวน: 731 รายการ
@@ -22,6 +27,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางกรองแก้ว'
   AND m.lastName = 'พรมรักษ์'
   AND (s.name = 'โรงเรียนชุมชนศึกษา (บ้านแม่สะแลป) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนชุมชนศึกษา (บ้านแม่สะแลป) กลุ่มเครือข่ายพั%' OR s.code = 'SCH_001_ชุมชนศึกษา_บ้านแม่สะ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -43,6 +49,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวพัชรี'
   AND m.lastName = 'สิงห์ฉลาด'
   AND (s.name = 'โรงเรียนชุมชนศึกษา (บ้านแม่สะแลป) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนชุมชนศึกษา (บ้านแม่สะแลป) กลุ่มเครือข่ายพั%' OR s.code = 'SCH_001_ชุมชนศึกษา_บ้านแม่สะ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -64,6 +71,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาววนิดา'
   AND m.lastName = 'อยู่อินทร์'
   AND (s.name = 'โรงเรียนชุมชนศึกษา (บ้านแม่สะแลป) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนชุมชนศึกษา (บ้านแม่สะแลป) กลุ่มเครือข่ายพั%' OR s.code = 'SCH_001_ชุมชนศึกษา_บ้านแม่สะ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -85,6 +93,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายอนุรักษ์'
   AND m.lastName = 'ใจปัญธิ'
   AND (s.name = 'โรงเรียนชุมชนศึกษา (บ้านแม่สะแลป) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนชุมชนศึกษา (บ้านแม่สะแลป) กลุ่มเครือข่ายพั%' OR s.code = 'SCH_001_ชุมชนศึกษา_บ้านแม่สะ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -106,6 +115,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวภัณฑิรา'
   AND m.lastName = 'หวายคำ'
   AND (s.name = 'โรงเรียนชุมชนศึกษา (บ้านแม่สะแลป) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนชุมชนศึกษา (บ้านแม่สะแลป) กลุ่มเครือข่ายพั%' OR s.code = 'SCH_001_ชุมชนศึกษา_บ้านแม่สะ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -127,6 +137,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายสมทรัพย์'
   AND m.lastName = 'รัตตพิทักษ์'
   AND (s.name = 'โรงเรียนชุมชนศึกษา (บ้านแม่สะแลป) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนชุมชนศึกษา (บ้านแม่สะแลป) กลุ่มเครือข่ายพั%' OR s.code = 'SCH_001_ชุมชนศึกษา_บ้านแม่สะ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -148,6 +159,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวอรอนงค์'
   AND m.lastName = 'บุตรแสน'
   AND (s.name = 'โรงเรียนชุมชนศึกษา (บ้านแม่สะแลป) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนชุมชนศึกษา (บ้านแม่สะแลป) กลุ่มเครือข่ายพั%' OR s.code = 'SCH_001_ชุมชนศึกษา_บ้านแม่สะ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -169,6 +181,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายพิชญ์ยุทธ์'
   AND m.lastName = 'นาวา'
   AND (s.name = 'โรงเรียนชุมชนศึกษา (บ้านแม่สะแลป) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนชุมชนศึกษา (บ้านแม่สะแลป) กลุ่มเครือข่ายพั%' OR s.code = 'SCH_001_ชุมชนศึกษา_บ้านแม่สะ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -190,6 +203,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวจิราวรรณ'
   AND m.lastName = 'อภิรมย์ฤทัย'
   AND (s.name = 'โรงเรียนชุมชนศึกษา (บ้านแม่สะแลป) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนชุมชนศึกษา (บ้านแม่สะแลป) กลุ่มเครือข่ายพั%' OR s.code = 'SCH_001_ชุมชนศึกษา_บ้านแม่สะ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -211,6 +225,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวนุชนาถ'
   AND m.lastName = 'ศรีบัวบาน'
   AND (s.name = 'โรงเรียนชุมชนศึกษา (บ้านแม่สะแลป) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนชุมชนศึกษา (บ้านแม่สะแลป) กลุ่มเครือข่ายพั%' OR s.code = 'SCH_001_ชุมชนศึกษา_บ้านแม่สะ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -232,6 +247,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายกันต์ณภัทร'
   AND m.lastName = 'สิริโชติชัยกุล'
   AND (s.name = 'โรงเรียนชุมชนศึกษา (บ้านแม่สะแลป) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนชุมชนศึกษา (บ้านแม่สะแลป) กลุ่มเครือข่ายพั%' OR s.code = 'SCH_001_ชุมชนศึกษา_บ้านแม่สะ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -253,6 +269,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายภาณุพงศ์'
   AND m.lastName = 'นภัสกรชัย'
   AND (s.name = 'โรงเรียนชุมชนศึกษา (บ้านแม่สะแลป) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนชุมชนศึกษา (บ้านแม่สะแลป) กลุ่มเครือข่ายพั%' OR s.code = 'SCH_001_ชุมชนศึกษา_บ้านแม่สะ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -274,6 +291,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวอัญชลี'
   AND m.lastName = 'โปทา'
   AND (s.name = 'โรงเรียนชุมชนศึกษา (บ้านแม่สะแลป) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนชุมชนศึกษา (บ้านแม่สะแลป) กลุ่มเครือข่ายพั%' OR s.code = 'SCH_001_ชุมชนศึกษา_บ้านแม่สะ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -295,6 +313,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวอรจิรา'
   AND m.lastName = 'สมบูรณ์'
   AND (s.name = 'โรงเรียนชุมชนศึกษา (บ้านแม่สะแลป) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนชุมชนศึกษา (บ้านแม่สะแลป) กลุ่มเครือข่ายพั%' OR s.code = 'SCH_001_ชุมชนศึกษา_บ้านแม่สะ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -316,6 +335,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวภารุจีร์'
   AND m.lastName = 'แซ่ลี'
   AND (s.name = 'โรงเรียนชุมชนศึกษา (บ้านแม่สะแลป) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนชุมชนศึกษา (บ้านแม่สะแลป) กลุ่มเครือข่ายพั%' OR s.code = 'SCH_001_ชุมชนศึกษา_บ้านแม่สะ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -337,6 +357,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายกิตติกร'
   AND m.lastName = 'ต๊ะคำ'
   AND (s.name = 'โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอนุสรณ์ 4) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอ%' OR s.code = 'SCH_002_.ตชด.เจ้าพ่อหลวงอุปถ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -358,6 +379,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายไกรวิชญ์'
   AND m.lastName = 'วงค์สุรินทร์'
   AND (s.name = 'โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอนุสรณ์ 4) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอ%' OR s.code = 'SCH_002_.ตชด.เจ้าพ่อหลวงอุปถ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -379,6 +401,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางพูลศิริ'
   AND m.lastName = 'เมธีรัตนกูล'
   AND (s.name = 'โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอนุสรณ์ 4) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอ%' OR s.code = 'SCH_002_.ตชด.เจ้าพ่อหลวงอุปถ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -400,6 +423,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายพิพัฒน์'
   AND m.lastName = 'เมธีรัตนกูล'
   AND (s.name = 'โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอนุสรณ์ 4) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอ%' OR s.code = 'SCH_002_.ตชด.เจ้าพ่อหลวงอุปถ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -421,6 +445,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายสุรชัย'
   AND m.lastName = 'คำมงคล'
   AND (s.name = 'โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอนุสรณ์ 4) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอ%' OR s.code = 'SCH_002_.ตชด.เจ้าพ่อหลวงอุปถ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -442,6 +467,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวนิภาพร'
   AND m.lastName = 'ทองขันนาค'
   AND (s.name = 'โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอนุสรณ์ 4) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอ%' OR s.code = 'SCH_002_.ตชด.เจ้าพ่อหลวงอุปถ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -463,6 +489,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวพิมพ์ใจ'
   AND m.lastName = 'นารีรักษ์'
   AND (s.name = 'โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอนุสรณ์ 4) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอ%' OR s.code = 'SCH_002_.ตชด.เจ้าพ่อหลวงอุปถ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -484,6 +511,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาววัชรีพร'
   AND m.lastName = 'ก้อนคำ'
   AND (s.name = 'โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอนุสรณ์ 4) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอ%' OR s.code = 'SCH_002_.ตชด.เจ้าพ่อหลวงอุปถ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -505,6 +533,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวปฐมาภรณ์'
   AND m.lastName = 'เคร่งครัด'
   AND (s.name = 'โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอนุสรณ์ 4) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอ%' OR s.code = 'SCH_002_.ตชด.เจ้าพ่อหลวงอุปถ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -526,6 +555,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวนิชาภัทร'
   AND m.lastName = 'สว่างถาวรกุล'
   AND (s.name = 'โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอนุสรณ์ 4) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอ%' OR s.code = 'SCH_002_.ตชด.เจ้าพ่อหลวงอุปถ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -547,6 +577,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวดวงพร'
   AND m.lastName = 'สมเมือง'
   AND (s.name = 'โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอนุสรณ์ 4) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอ%' OR s.code = 'SCH_002_.ตชด.เจ้าพ่อหลวงอุปถ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -568,6 +599,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวชญาน์ทิพย์'
   AND m.lastName = 'กาสม'
   AND (s.name = 'โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอนุสรณ์ 4) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอ%' OR s.code = 'SCH_002_.ตชด.เจ้าพ่อหลวงอุปถ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -589,6 +621,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวอัมพิกา'
   AND m.lastName = 'สมศักดิ์'
   AND (s.name = 'โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอนุสรณ์ 4) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอ%' OR s.code = 'SCH_002_.ตชด.เจ้าพ่อหลวงอุปถ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -610,6 +643,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายณรงค์ฤทธิ์'
   AND m.lastName = 'ชัยประดล'
   AND (s.name = 'โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอนุสรณ์ 4) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอ%' OR s.code = 'SCH_002_.ตชด.เจ้าพ่อหลวงอุปถ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -631,6 +665,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายรัฐพงศ์'
   AND m.lastName = 'สมทิพย์'
   AND (s.name = 'โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอนุสรณ์ 4) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอ%' OR s.code = 'SCH_002_.ตชด.เจ้าพ่อหลวงอุปถ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -652,6 +687,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายอิทธิพัทธ์'
   AND m.lastName = 'นัยติ๊บ'
   AND (s.name = 'โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอนุสรณ์ 4) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอ%' OR s.code = 'SCH_002_.ตชด.เจ้าพ่อหลวงอุปถ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -673,6 +709,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายชานนท์'
   AND m.lastName = 'วงศ์นันทเจริญ'
   AND (s.name = 'โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอนุสรณ์ 4) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอ%' OR s.code = 'SCH_002_.ตชด.เจ้าพ่อหลวงอุปถ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -694,6 +731,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวทองประกาย'
   AND m.lastName = 'ก้างออนตา'
   AND (s.name = 'โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอนุสรณ์ 4) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอ%' OR s.code = 'SCH_002_.ตชด.เจ้าพ่อหลวงอุปถ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -715,6 +753,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวพรรณนิกา'
   AND m.lastName = 'เขื่อนเชียงสา'
   AND (s.name = 'โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอนุสรณ์ 4) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอ%' OR s.code = 'SCH_002_.ตชด.เจ้าพ่อหลวงอุปถ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -736,6 +775,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวธีร์จุฑา'
   AND m.lastName = 'แจ้งสว่าง'
   AND (s.name = 'โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอนุสรณ์ 4) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอ%' OR s.code = 'SCH_002_.ตชด.เจ้าพ่อหลวงอุปถ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -757,6 +797,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวเพชรา'
   AND m.lastName = 'คชเพชร'
   AND (s.name = 'โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอนุสรณ์ 4) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอ%' OR s.code = 'SCH_002_.ตชด.เจ้าพ่อหลวงอุปถ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -778,6 +819,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวกัญจนพร'
   AND m.lastName = 'มาเยอะ'
   AND (s.name = 'โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอนุสรณ์ 4) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอ%' OR s.code = 'SCH_002_.ตชด.เจ้าพ่อหลวงอุปถ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -799,6 +841,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวเมขลา'
   AND m.lastName = 'เยอะหนื่อ'
   AND (s.name = 'โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอนุสรณ์ 4) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอ%' OR s.code = 'SCH_002_.ตชด.เจ้าพ่อหลวงอุปถ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -820,6 +863,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวพัทธ์ธีรา'
   AND m.lastName = 'กิจตาวงค์'
   AND (s.name = 'โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอนุสรณ์ 4) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอ%' OR s.code = 'SCH_002_.ตชด.เจ้าพ่อหลวงอุปถ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -841,6 +885,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวศิริลักษณ์'
   AND m.lastName = 'งามหมู่'
   AND (s.name = 'โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอนุสรณ์ 4) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอ%' OR s.code = 'SCH_002_.ตชด.เจ้าพ่อหลวงอุปถ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -862,6 +907,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายณัฐวุฒิ'
   AND m.lastName = 'เป็กยันเมือง'
   AND (s.name = 'โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอนุสรณ์ 4) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอ%' OR s.code = 'SCH_002_.ตชด.เจ้าพ่อหลวงอุปถ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -883,6 +929,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวมยุรฉัตร'
   AND m.lastName = 'ปรารมณ์'
   AND (s.name = 'โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอนุสรณ์ 4) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอ%' OR s.code = 'SCH_002_.ตชด.เจ้าพ่อหลวงอุปถ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -904,6 +951,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายศรายุทธ'
   AND m.lastName = 'บุญคำ'
   AND (s.name = 'โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอนุสรณ์ 4) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอ%' OR s.code = 'SCH_002_.ตชด.เจ้าพ่อหลวงอุปถ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -925,6 +973,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายสมจิตร'
   AND m.lastName = 'คําปา'
   AND (s.name = 'โรงเรียนบ้านผาเดื่อ กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านผาเดื่อ กลุ่มเครือข่ายพัฒนาการศึกษาแม่%' OR s.code = 'SCH_003_บ้านผาเดื่อ_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -946,6 +995,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวเมธิญา'
   AND m.lastName = 'ยะขาว'
   AND (s.name = 'โรงเรียนบ้านผาเดื่อ กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านผาเดื่อ กลุ่มเครือข่ายพัฒนาการศึกษาแม่%' OR s.code = 'SCH_003_บ้านผาเดื่อ_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -967,6 +1017,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายคนองเมฆ'
   AND m.lastName = 'ใจสุข'
   AND (s.name = 'โรงเรียนบ้านผาเดื่อ กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านผาเดื่อ กลุ่มเครือข่ายพัฒนาการศึกษาแม่%' OR s.code = 'SCH_003_บ้านผาเดื่อ_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -988,6 +1039,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายทรงกรด'
   AND m.lastName = 'ทายะนา'
   AND (s.name = 'โรงเรียนบ้านผาเดื่อ กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านผาเดื่อ กลุ่มเครือข่ายพัฒนาการศึกษาแม่%' OR s.code = 'SCH_003_บ้านผาเดื่อ_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -1009,6 +1061,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวณฐมน'
   AND m.lastName = 'จิตรประสาร'
   AND (s.name = 'โรงเรียนบ้านผาเดื่อ กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านผาเดื่อ กลุ่มเครือข่ายพัฒนาการศึกษาแม่%' OR s.code = 'SCH_003_บ้านผาเดื่อ_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -1030,6 +1083,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายนภจร'
   AND m.lastName = 'โยธาภักดิ์'
   AND (s.name = 'โรงเรียนบ้านผาเดื่อ กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านผาเดื่อ กลุ่มเครือข่ายพัฒนาการศึกษาแม่%' OR s.code = 'SCH_003_บ้านผาเดื่อ_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -1051,6 +1105,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายธนาวุฒิ'
   AND m.lastName = 'ศรีบริบูรณ์'
   AND (s.name = 'โรงเรียนบ้านผาเดื่อ กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านผาเดื่อ กลุ่มเครือข่ายพัฒนาการศึกษาแม่%' OR s.code = 'SCH_003_บ้านผาเดื่อ_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -1072,6 +1127,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวนันทนา'
   AND m.lastName = 'เสรีสวัสดิ์ศรี'
   AND (s.name = 'โรงเรียนบ้านผาเดื่อ กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านผาเดื่อ กลุ่มเครือข่ายพัฒนาการศึกษาแม่%' OR s.code = 'SCH_003_บ้านผาเดื่อ_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -1093,6 +1149,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาววิมลสิริ'
   AND m.lastName = 'เคนทรภักดิ์'
   AND (s.name = 'โรงเรียนบ้านผาเดื่อ กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านผาเดื่อ กลุ่มเครือข่ายพัฒนาการศึกษาแม่%' OR s.code = 'SCH_003_บ้านผาเดื่อ_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -1114,6 +1171,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวศรสวรรค์'
   AND m.lastName = 'มาเยอ'
   AND (s.name = 'โรงเรียนบ้านผาเดื่อ กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านผาเดื่อ กลุ่มเครือข่ายพัฒนาการศึกษาแม่%' OR s.code = 'SCH_003_บ้านผาเดื่อ_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -1135,6 +1193,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายฤทธี'
   AND m.lastName = 'วังเอี่ยม'
   AND (s.name = 'โรงเรียนบ้านผาเดื่อ กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านผาเดื่อ กลุ่มเครือข่ายพัฒนาการศึกษาแม่%' OR s.code = 'SCH_003_บ้านผาเดื่อ_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -1156,6 +1215,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวกมลลักษณ์'
   AND m.lastName = 'จันทร์หลวง'
   AND (s.name = 'โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่%' OR s.code = 'SCH_004__ตชด.บ้านนาโต่_วปอ.3')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -1177,6 +1237,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายสมชาย'
   AND m.lastName = 'วจนะพระคุณไพศาล'
   AND (s.name = 'โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่%' OR s.code = 'SCH_004__ตชด.บ้านนาโต่_วปอ.3')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -1198,6 +1259,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวกาญจนาพร'
   AND m.lastName = 'วงค์ชัย'
   AND (s.name = 'โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่%' OR s.code = 'SCH_004__ตชด.บ้านนาโต่_วปอ.3')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -1219,6 +1281,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายลิลิณชยา'
   AND m.lastName = 'พราหมณ์แก้ว'
   AND (s.name = 'โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่%' OR s.code = 'SCH_004__ตชด.บ้านนาโต่_วปอ.3')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -1240,6 +1303,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายวงศกร'
   AND m.lastName = 'หลวงสา'
   AND (s.name = 'โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่%' OR s.code = 'SCH_004__ตชด.บ้านนาโต่_วปอ.3')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -1261,6 +1325,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายศุภณัฐ'
   AND m.lastName = 'เม่นแย้ม'
   AND (s.name = 'โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่%' OR s.code = 'SCH_004__ตชด.บ้านนาโต่_วปอ.3')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -1282,6 +1347,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายสิงหา'
   AND m.lastName = 'ภูธิเบศน์'
   AND (s.name = 'โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่%' OR s.code = 'SCH_004__ตชด.บ้านนาโต่_วปอ.3')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -1303,6 +1369,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวเจนจิรา'
   AND m.lastName = 'สีสะอาด'
   AND (s.name = 'โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่%' OR s.code = 'SCH_004__ตชด.บ้านนาโต่_วปอ.3')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -1324,6 +1391,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายธีร์'
   AND m.lastName = 'โพธิ์เกตุ'
   AND (s.name = 'โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่%' OR s.code = 'SCH_004__ตชด.บ้านนาโต่_วปอ.3')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -1345,6 +1413,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายพิชญพันธ์'
   AND m.lastName = 'จันทรา'
   AND (s.name = 'โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่%' OR s.code = 'SCH_004__ตชด.บ้านนาโต่_วปอ.3')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -1366,6 +1435,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวอัชชนา'
   AND m.lastName = 'ศรีแก้ว'
   AND (s.name = 'โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่%' OR s.code = 'SCH_004__ตชด.บ้านนาโต่_วปอ.3')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -1387,6 +1457,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายกันต์พล'
   AND m.lastName = 'เชื้อเมืองพาน'
   AND (s.name = 'โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่%' OR s.code = 'SCH_004__ตชด.บ้านนาโต่_วปอ.3')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -1408,6 +1479,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวสุธาสินี'
   AND m.lastName = 'คำเผ่า'
   AND (s.name = 'โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่%' OR s.code = 'SCH_004__ตชด.บ้านนาโต่_วปอ.3')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -1429,6 +1501,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวณัฐชา'
   AND m.lastName = 'วงค์แสง'
   AND (s.name = 'โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่%' OR s.code = 'SCH_004__ตชด.บ้านนาโต่_วปอ.3')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -1450,6 +1523,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวลักขนา'
   AND m.lastName = 'แซ่เติ๋น'
   AND (s.name = 'โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่%' OR s.code = 'SCH_004__ตชด.บ้านนาโต่_วปอ.3')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -1471,6 +1545,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายอนุภัทร'
   AND m.lastName = 'แซ่ฟุ้ง'
   AND (s.name = 'โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่%' OR s.code = 'SCH_004__ตชด.บ้านนาโต่_วปอ.3')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -1492,6 +1567,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวพนิดา'
   AND m.lastName = 'ขจรเจริญเดช'
   AND (s.name = 'โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่%' OR s.code = 'SCH_004__ตชด.บ้านนาโต่_วปอ.3')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -1513,6 +1589,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวพิมพร'
   AND m.lastName = 'พัฒนพงษ์ธรรม'
   AND (s.name = 'โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่%' OR s.code = 'SCH_004__ตชด.บ้านนาโต่_วปอ.3')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -1534,6 +1611,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวนภัสสร'
   AND m.lastName = 'เมอโปดู่'
   AND (s.name = 'โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่%' OR s.code = 'SCH_004__ตชด.บ้านนาโต่_วปอ.3')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -1555,6 +1633,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางชมกนก'
   AND m.lastName = 'รัตนจำรูญสกุล'
   AND (s.name = 'โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่%' OR s.code = 'SCH_004__ตชด.บ้านนาโต่_วปอ.3')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -1576,6 +1655,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวจิตรา'
   AND m.lastName = 'ปาสาบุตร'
   AND (s.name = 'โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่%' OR s.code = 'SCH_004__ตชด.บ้านนาโต่_วปอ.3')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -1597,6 +1677,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายพงศกร'
   AND m.lastName = 'ใจโปธา(น้าสาม)'
   AND (s.name = 'โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่%' OR s.code = 'SCH_004__ตชด.บ้านนาโต่_วปอ.3')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -1618,6 +1699,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวบัวฟอง'
   AND m.lastName = 'ไทยใหญ่'
   AND (s.name = 'โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่%' OR s.code = 'SCH_004__ตชด.บ้านนาโต่_วปอ.3')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -1639,6 +1721,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายณัฐพล'
   AND m.lastName = 'ศรีวิชัย'
   AND (s.name = 'โรงเรียนบ้านห้วยหก กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยหก กลุ่มเครือข่ายพัฒนาการศึกษาแม่ส%' OR s.code = 'SCH_005_บ้านห้วยหก_กลุ่มเครื')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -1660,6 +1743,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวเกศริน'
   AND m.lastName = 'ธิยศ'
   AND (s.name = 'โรงเรียนบ้านห้วยหก กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยหก กลุ่มเครือข่ายพัฒนาการศึกษาแม่ส%' OR s.code = 'SCH_005_บ้านห้วยหก_กลุ่มเครื')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -1681,6 +1765,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายวรายุทธ'
   AND m.lastName = 'ไชยช่อฟ้า'
   AND (s.name = 'โรงเรียนบ้านห้วยหก กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยหก กลุ่มเครือข่ายพัฒนาการศึกษาแม่ส%' OR s.code = 'SCH_005_บ้านห้วยหก_กลุ่มเครื')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -1702,6 +1787,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวสรัลชนา'
   AND m.lastName = 'นันตา'
   AND (s.name = 'โรงเรียนบ้านห้วยหก กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยหก กลุ่มเครือข่ายพัฒนาการศึกษาแม่ส%' OR s.code = 'SCH_005_บ้านห้วยหก_กลุ่มเครื')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -1723,6 +1809,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวพรธิตา'
   AND m.lastName = 'สีใจมา'
   AND (s.name = 'โรงเรียนบ้านห้วยหก กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยหก กลุ่มเครือข่ายพัฒนาการศึกษาแม่ส%' OR s.code = 'SCH_005_บ้านห้วยหก_กลุ่มเครื')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -1744,6 +1831,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวนฤมล'
   AND m.lastName = 'อภิวงษา'
   AND (s.name = 'โรงเรียนบ้านห้วยหก กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยหก กลุ่มเครือข่ายพัฒนาการศึกษาแม่ส%' OR s.code = 'SCH_005_บ้านห้วยหก_กลุ่มเครื')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -1765,6 +1853,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวธัญญารักษ์'
   AND m.lastName = 'ไชยวงค์คำ'
   AND (s.name = 'โรงเรียนบ้านห้วยหก กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยหก กลุ่มเครือข่ายพัฒนาการศึกษาแม่ส%' OR s.code = 'SCH_005_บ้านห้วยหก_กลุ่มเครื')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -1786,6 +1875,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวสุชาดา'
   AND m.lastName = 'ก้อนทองไทย'
   AND (s.name = 'โรงเรียนบ้านห้วยหก กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยหก กลุ่มเครือข่ายพัฒนาการศึกษาแม่ส%' OR s.code = 'SCH_005_บ้านห้วยหก_กลุ่มเครื')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -1807,6 +1897,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายสมพร'
   AND m.lastName = 'ประเสริฐไทย'
   AND (s.name = 'โรงเรียนบ้านห้วยหก กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยหก กลุ่มเครือข่ายพัฒนาการศึกษาแม่ส%' OR s.code = 'SCH_005_บ้านห้วยหก_กลุ่มเครื')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -1828,6 +1919,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวณัณภัส'
   AND m.lastName = 'กันแก้ว'
   AND (s.name = 'โรงเรียนบ้านห้วยหก กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยหก กลุ่มเครือข่ายพัฒนาการศึกษาแม่ส%' OR s.code = 'SCH_005_บ้านห้วยหก_กลุ่มเครื')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -1849,6 +1941,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวธัญนันท์'
   AND m.lastName = 'สุขเกษม'
   AND (s.name = 'โรงเรียนบ้านห้วยหยวกป่าโซ กลุ่มเครือข่ายแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยหยวกป่าโซ กลุ่มเครือข่ายแม่สลองกาข%' OR s.code = 'SCH_006_บ้านห้วยหยวกป่าโซ_กล')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -1870,6 +1963,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาววรัญญา'
   AND m.lastName = 'จันทร์พรมมา'
   AND (s.name = 'โรงเรียนบ้านห้วยหยวกป่าโซ กลุ่มเครือข่ายแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยหยวกป่าโซ กลุ่มเครือข่ายแม่สลองกาข%' OR s.code = 'SCH_006_บ้านห้วยหยวกป่าโซ_กล')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -1891,6 +1985,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวนภาพร'
   AND m.lastName = 'ปินทรายมูล'
   AND (s.name = 'โรงเรียนบ้านห้วยหยวกป่าโซ กลุ่มเครือข่ายแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยหยวกป่าโซ กลุ่มเครือข่ายแม่สลองกาข%' OR s.code = 'SCH_006_บ้านห้วยหยวกป่าโซ_กล')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -1912,6 +2007,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวจันทนี'
   AND m.lastName = 'คำดี'
   AND (s.name = 'โรงเรียนบ้านห้วยหยวกป่าโซ กลุ่มเครือข่ายแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยหยวกป่าโซ กลุ่มเครือข่ายแม่สลองกาข%' OR s.code = 'SCH_006_บ้านห้วยหยวกป่าโซ_กล')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -1933,6 +2029,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวภณิดา'
   AND m.lastName = 'วังแก้ว'
   AND (s.name = 'โรงเรียนบ้านห้วยหยวกป่าโซ กลุ่มเครือข่ายแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยหยวกป่าโซ กลุ่มเครือข่ายแม่สลองกาข%' OR s.code = 'SCH_006_บ้านห้วยหยวกป่าโซ_กล')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -1954,6 +2051,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายนนท์'
   AND m.lastName = 'ศรีวิชัย'
   AND (s.name = 'โรงเรียนบ้านห้วยหยวกป่าโซ กลุ่มเครือข่ายแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยหยวกป่าโซ กลุ่มเครือข่ายแม่สลองกาข%' OR s.code = 'SCH_006_บ้านห้วยหยวกป่าโซ_กล')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -1975,6 +2073,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางชวัลลักษณ์'
   AND m.lastName = 'อินเรือง'
   AND (s.name = 'โรงเรียนบ้านห้วยหยวกป่าโซ กลุ่มเครือข่ายแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยหยวกป่าโซ กลุ่มเครือข่ายแม่สลองกาข%' OR s.code = 'SCH_006_บ้านห้วยหยวกป่าโซ_กล')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -1996,6 +2095,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวสุชาดา'
   AND m.lastName = 'ยานะ'
   AND (s.name = 'โรงเรียนบ้านห้วยหยวกป่าโซ กลุ่มเครือข่ายแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยหยวกป่าโซ กลุ่มเครือข่ายแม่สลองกาข%' OR s.code = 'SCH_006_บ้านห้วยหยวกป่าโซ_กล')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -2017,6 +2117,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวนริศรา'
   AND m.lastName = 'วงค์สุรินทร์'
   AND (s.name = 'โรงเรียนบ้านห้วยหยวกป่าโซ กลุ่มเครือข่ายแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยหยวกป่าโซ กลุ่มเครือข่ายแม่สลองกาข%' OR s.code = 'SCH_006_บ้านห้วยหยวกป่าโซ_กล')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -2038,6 +2139,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายสุรพันธ์'
   AND m.lastName = 'วัฒนปัญญานนท์'
   AND (s.name = 'โรงเรียนบ้านห้วยหยวกป่าโซ กลุ่มเครือข่ายแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยหยวกป่าโซ กลุ่มเครือข่ายแม่สลองกาข%' OR s.code = 'SCH_006_บ้านห้วยหยวกป่าโซ_กล')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -2059,6 +2161,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายสุรชาติ'
   AND m.lastName = 'อาหยิ'
   AND (s.name = 'โรงเรียนบ้านห้วยหยวกป่าโซ กลุ่มเครือข่ายแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยหยวกป่าโซ กลุ่มเครือข่ายแม่สลองกาข%' OR s.code = 'SCH_006_บ้านห้วยหยวกป่าโซ_กล')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -2080,6 +2183,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายภานุวัฒน์'
   AND m.lastName = 'นะที'
   AND (s.name = 'โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนา%' OR s.code = 'SCH_007_ดอยแสนใจ_ตชด.อนุสรณ์')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -2101,6 +2205,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'จ.ส.อ.นัทธพงศ์'
   AND m.lastName = 'คําแผ่นชัย'
   AND (s.name = 'โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนา%' OR s.code = 'SCH_007_ดอยแสนใจ_ตชด.อนุสรณ์')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -2122,6 +2227,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายวีระศักดิ์'
   AND m.lastName = 'อุดทา'
   AND (s.name = 'โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนา%' OR s.code = 'SCH_007_ดอยแสนใจ_ตชด.อนุสรณ์')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -2143,6 +2249,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นาวสาวมานิดา'
   AND m.lastName = 'เสาวรส'
   AND (s.name = 'โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนา%' OR s.code = 'SCH_007_ดอยแสนใจ_ตชด.อนุสรณ์')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -2164,6 +2271,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายฤทธิชัย'
   AND m.lastName = 'ใหญ่พงค์'
   AND (s.name = 'โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนา%' OR s.code = 'SCH_007_ดอยแสนใจ_ตชด.อนุสรณ์')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -2185,6 +2293,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายอัครา'
   AND m.lastName = 'ปินตารักษ์'
   AND (s.name = 'โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนา%' OR s.code = 'SCH_007_ดอยแสนใจ_ตชด.อนุสรณ์')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -2206,6 +2315,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวยุพาพร'
   AND m.lastName = 'ถมหนวด'
   AND (s.name = 'โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนา%' OR s.code = 'SCH_007_ดอยแสนใจ_ตชด.อนุสรณ์')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -2227,6 +2337,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายพิรุฬห์วัฒน์'
   AND m.lastName = 'วัดคํา'
   AND (s.name = 'โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนา%' OR s.code = 'SCH_007_ดอยแสนใจ_ตชด.อนุสรณ์')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -2248,6 +2359,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวแสงเทียน'
   AND m.lastName = 'คําน้อย'
   AND (s.name = 'โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนา%' OR s.code = 'SCH_007_ดอยแสนใจ_ตชด.อนุสรณ์')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -2269,6 +2381,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาววารี'
   AND m.lastName = 'ศรีวรนันท์'
   AND (s.name = 'โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนา%' OR s.code = 'SCH_007_ดอยแสนใจ_ตชด.อนุสรณ์')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -2290,6 +2403,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายไกรสร'
   AND m.lastName = 'แซ่ฟุ้ง'
   AND (s.name = 'โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนา%' OR s.code = 'SCH_007_ดอยแสนใจ_ตชด.อนุสรณ์')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -2311,6 +2425,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางพัชรินทร์'
   AND m.lastName = 'คีรีแสนใจ'
   AND (s.name = 'โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนา%' OR s.code = 'SCH_007_ดอยแสนใจ_ตชด.อนุสรณ์')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -2332,6 +2447,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวปวีณา'
   AND m.lastName = 'จํามิ่ง'
   AND (s.name = 'โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนา%' OR s.code = 'SCH_007_ดอยแสนใจ_ตชด.อนุสรณ์')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -2353,6 +2469,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายจิรภัทร'
   AND m.lastName = 'ตันมา'
   AND (s.name = 'โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนา%' OR s.code = 'SCH_007_ดอยแสนใจ_ตชด.อนุสรณ์')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -2374,6 +2491,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวเกวลี'
   AND m.lastName = 'พินิจ'
   AND (s.name = 'โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนา%' OR s.code = 'SCH_007_ดอยแสนใจ_ตชด.อนุสรณ์')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -2395,6 +2513,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวปณิตา'
   AND m.lastName = 'แสนปัญญา'
   AND (s.name = 'โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนา%' OR s.code = 'SCH_007_ดอยแสนใจ_ตชด.อนุสรณ์')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -2416,6 +2535,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาววราพร'
   AND m.lastName = 'ก๋าแปง'
   AND (s.name = 'โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนา%' OR s.code = 'SCH_007_ดอยแสนใจ_ตชด.อนุสรณ์')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -2437,6 +2557,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวสุนิสา'
   AND m.lastName = 'สุกุล'
   AND (s.name = 'โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนา%' OR s.code = 'SCH_007_ดอยแสนใจ_ตชด.อนุสรณ์')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -2458,6 +2579,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวจิราพร'
   AND m.lastName = 'ปัญญาฟู'
   AND (s.name = 'โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนา%' OR s.code = 'SCH_007_ดอยแสนใจ_ตชด.อนุสรณ์')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -2479,6 +2601,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาณัฐกาญ'
   AND m.lastName = 'จันทะวงค์'
   AND (s.name = 'โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนา%' OR s.code = 'SCH_007_ดอยแสนใจ_ตชด.อนุสรณ์')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -2500,6 +2623,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวอัมรา'
   AND m.lastName = 'นันท์โภคินวงษ์'
   AND (s.name = 'โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนา%' OR s.code = 'SCH_007_ดอยแสนใจ_ตชด.อนุสรณ์')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -2521,6 +2645,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวอารีรัตน์'
   AND m.lastName = 'มณีจันทร์สุข'
   AND (s.name = 'โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนา%' OR s.code = 'SCH_007_ดอยแสนใจ_ตชด.อนุสรณ์')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -2542,6 +2667,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายวรเชษฐ'
   AND m.lastName = 'ทิพย์ดวง'
   AND (s.name = 'โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนา%' OR s.code = 'SCH_007_ดอยแสนใจ_ตชด.อนุสรณ์')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -2563,6 +2689,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวมลธิรา'
   AND m.lastName = 'ใจปิง'
   AND (s.name = 'โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนา%' OR s.code = 'SCH_007_ดอยแสนใจ_ตชด.อนุสรณ์')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -2584,6 +2711,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาววิไลรัตน์'
   AND m.lastName = 'มาเยอะ'
   AND (s.name = 'โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนา%' OR s.code = 'SCH_007_ดอยแสนใจ_ตชด.อนุสรณ์')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -2605,6 +2733,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางภัทรวดี'
   AND m.lastName = 'ชํานาญยา'
   AND (s.name = 'โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนา%' OR s.code = 'SCH_007_ดอยแสนใจ_ตชด.อนุสรณ์')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -2626,6 +2755,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวเอณิกา'
   AND m.lastName = 'วงค์เมืองแล'
   AND (s.name = 'โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนา%' OR s.code = 'SCH_007_ดอยแสนใจ_ตชด.อนุสรณ์')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -2647,6 +2777,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายธีรพล'
   AND m.lastName = 'ทาใหม่'
   AND (s.name = 'โรงเรียนบ้านมนตรีวิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านมนตรีวิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_008_บ้านมนตรีวิทยา_กลุ่ม')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -2668,6 +2799,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางรัตนา'
   AND m.lastName = 'วะไลใจ'
   AND (s.name = 'โรงเรียนบ้านมนตรีวิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านมนตรีวิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_008_บ้านมนตรีวิทยา_กลุ่ม')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -2689,6 +2821,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวบานเย็น'
   AND m.lastName = 'ศรีคำ'
   AND (s.name = 'โรงเรียนบ้านมนตรีวิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านมนตรีวิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_008_บ้านมนตรีวิทยา_กลุ่ม')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -2710,6 +2843,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวณปภัช'
   AND m.lastName = 'ทองหลอม'
   AND (s.name = 'โรงเรียนบ้านมนตรีวิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านมนตรีวิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_008_บ้านมนตรีวิทยา_กลุ่ม')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -2731,6 +2865,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายฤทธินนท์'
   AND m.lastName = 'จันดีวันนา'
   AND (s.name = 'โรงเรียนบ้านมนตรีวิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านมนตรีวิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_008_บ้านมนตรีวิทยา_กลุ่ม')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -2752,6 +2887,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายธนาธิป'
   AND m.lastName = 'อุทธิยา'
   AND (s.name = 'โรงเรียนบ้านมนตรีวิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านมนตรีวิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_008_บ้านมนตรีวิทยา_กลุ่ม')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -2773,6 +2909,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายคมภูศิษฐ์'
   AND m.lastName = 'นัฐธนากาญจน์'
   AND (s.name = 'โรงเรียนบ้านมนตรีวิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านมนตรีวิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_008_บ้านมนตรีวิทยา_กลุ่ม')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -2794,6 +2931,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวธัญสีนี'
   AND m.lastName = 'ชูเพชรสมบูรณ์'
   AND (s.name = 'โรงเรียนบ้านมนตรีวิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านมนตรีวิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_008_บ้านมนตรีวิทยา_กลุ่ม')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -2815,6 +2953,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวภัทราพร'
   AND m.lastName = 'โนจิตร'
   AND (s.name = 'โรงเรียนบ้านมนตรีวิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านมนตรีวิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_008_บ้านมนตรีวิทยา_กลุ่ม')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -2836,6 +2975,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวกานต์ชนิต'
   AND m.lastName = 'แสงแก้ว'
   AND (s.name = 'โรงเรียนบ้านมนตรีวิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านมนตรีวิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_008_บ้านมนตรีวิทยา_กลุ่ม')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -2857,6 +2997,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวฐิตาพร'
   AND m.lastName = 'ชูทอง'
   AND (s.name = 'โรงเรียนบ้านมนตรีวิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านมนตรีวิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_008_บ้านมนตรีวิทยา_กลุ่ม')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -2878,6 +3019,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางกรพันธุ์'
   AND m.lastName = 'จินะเทศ'
   AND (s.name = 'โรงเรียนบ้านมนตรีวิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านมนตรีวิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_008_บ้านมนตรีวิทยา_กลุ่ม')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -2899,6 +3041,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายยุทธติกาล'
   AND m.lastName = 'มหายศกุล'
   AND (s.name = 'โรงเรียนบ้านมนตรีวิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านมนตรีวิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_008_บ้านมนตรีวิทยา_กลุ่ม')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -2920,6 +3063,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวอภิสรา'
   AND m.lastName = 'อนันต์พระคุณ'
   AND (s.name = 'โรงเรียนบ้านมนตรีวิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านมนตรีวิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_008_บ้านมนตรีวิทยา_กลุ่ม')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -2941,6 +3085,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายอริญชย์'
   AND m.lastName = 'วะรีวะราช'
   AND (s.name = 'โรงเรียนบ้านมนตรีวิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านมนตรีวิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_008_บ้านมนตรีวิทยา_กลุ่ม')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -2962,6 +3107,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายธนฤทธิ์'
   AND m.lastName = 'ชัยวรรณ์'
   AND (s.name = 'โรงเรียนบ้านมนตรีวิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านมนตรีวิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_008_บ้านมนตรีวิทยา_กลุ่ม')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -2983,6 +3129,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายบุญคง'
   AND m.lastName = 'คืนมาเมือง'
   AND (s.name = 'โรงเรียนบ้านมนตรีวิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านมนตรีวิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_008_บ้านมนตรีวิทยา_กลุ่ม')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -3004,6 +3151,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายวันชัย'
   AND m.lastName = 'ชื่นตา'
   AND (s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%' OR s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -3025,6 +3173,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายปิยวัฒน์'
   AND m.lastName = 'ก๋าใจคำ'
   AND (s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%' OR s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -3046,6 +3195,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายพิชัย'
   AND m.lastName = 'ก่ำแก้ว'
   AND (s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%' OR s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -3067,6 +3217,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายสงคราม'
   AND m.lastName = 'กิตติกาจ'
   AND (s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%' OR s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -3088,6 +3239,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายประเชิญ'
   AND m.lastName = 'ต๊ะวิชัย'
   AND (s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%' OR s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -3109,6 +3261,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายพิทยุตม์'
   AND m.lastName = 'จุมปา'
   AND (s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%' OR s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -3130,6 +3283,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายพิเชษฐ์'
   AND m.lastName = 'แสนสุข'
   AND (s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%' OR s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -3151,6 +3305,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายทัศนัย'
   AND m.lastName = 'ใจกาวิน'
   AND (s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%' OR s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -3172,6 +3327,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายมาโนช'
   AND m.lastName = 'สุวรรณ'
   AND (s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%' OR s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -3193,6 +3349,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวดวงพิกุล'
   AND m.lastName = 'ชัยวร'
   AND (s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%' OR s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -3214,6 +3371,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางณัชชา'
   AND m.lastName = 'ภูมิเรศสุนทร'
   AND (s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%' OR s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -3235,6 +3393,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางรสรินทร์'
   AND m.lastName = 'กิตติกาจ'
   AND (s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%' OR s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -3256,6 +3415,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางกนกพร'
   AND m.lastName = 'อานุ'
   AND (s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%' OR s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -3277,6 +3437,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวนิตยา'
   AND m.lastName = 'สักแสน'
   AND (s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%' OR s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -3298,6 +3459,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวปัทมาภรณ์'
   AND m.lastName = 'ถิ่นการ์'
   AND (s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%' OR s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -3319,6 +3481,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวชยาภรณ์'
   AND m.lastName = 'แซ่เฮ่อ'
   AND (s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%' OR s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -3340,6 +3503,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวรุ่งทิวา'
   AND m.lastName = 'ยวงอินแปลง'
   AND (s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%' OR s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -3361,6 +3525,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวกนกอร'
   AND m.lastName = 'จิตอ่อนน้อม'
   AND (s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%' OR s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -3382,6 +3547,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวเปรมยุดา'
   AND m.lastName = 'รากะรินทร์'
   AND (s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%' OR s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -3403,6 +3569,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวกนกพร'
   AND m.lastName = 'ทิศเชย'
   AND (s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%' OR s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -3424,6 +3591,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายกฤษขจร'
   AND m.lastName = 'ฟ้าเลิศ'
   AND (s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%' OR s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -3445,6 +3613,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายภากร'
   AND m.lastName = 'บัวทิม'
   AND (s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%' OR s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -3466,6 +3635,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาววันพร'
   AND m.lastName = 'เขื่อนคำ'
   AND (s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%' OR s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -3487,6 +3657,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวอาภัสรา'
   AND m.lastName = 'วังทิพย์'
   AND (s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%' OR s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -3508,6 +3679,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวพิมพ์พร'
   AND m.lastName = 'ผัดขัน'
   AND (s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%' OR s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -3529,6 +3701,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวกนกพิชญ์'
   AND m.lastName = 'กาญจนวาส'
   AND (s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%' OR s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -3550,6 +3723,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวชวัลรัตน์'
   AND m.lastName = 'สุริยะ'
   AND (s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%' OR s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -3571,6 +3745,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวนิตฐินันท์'
   AND m.lastName = 'สนธิคุณ'
   AND (s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%' OR s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -3592,6 +3767,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวภาณุมาศ'
   AND m.lastName = 'พลวิทย์'
   AND (s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%' OR s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -3613,6 +3789,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายธนากร'
   AND m.lastName = 'ทองเงา'
   AND (s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%' OR s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -3634,6 +3811,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายพิสิทธิ์'
   AND m.lastName = 'โกเสนตอ'
   AND (s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%' OR s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -3655,6 +3833,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายธวัชชัย'
   AND m.lastName = 'จันติ๊บ'
   AND (s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%' OR s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -3676,6 +3855,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวพิมวิไล'
   AND m.lastName = 'ตาบุญใจ'
   AND (s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%' OR s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -3697,6 +3877,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวสุทธิดา'
   AND m.lastName = 'มุงเมือง'
   AND (s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%' OR s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -3718,6 +3899,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายนัทธวุฒิ'
   AND m.lastName = 'โสรินทร์'
   AND (s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%' OR s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -3739,6 +3921,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายเอกรินทร์'
   AND m.lastName = 'อิ่นคำ'
   AND (s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%' OR s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -3760,6 +3943,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายศุภกฤต'
   AND m.lastName = 'ฝั้นใจ'
   AND (s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%' OR s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -3781,6 +3965,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวภาสินี'
   AND m.lastName = 'ทองรอบพิทักษ์'
   AND (s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%' OR s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -3802,6 +3987,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายสิงหา'
   AND m.lastName = 'สุวรรณโค'
   AND (s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%' OR s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -3823,6 +4009,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายวิกาวี'
   AND m.lastName = 'ชัยอารีย์'
   AND (s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%' OR s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -3844,6 +4031,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายณัฐวุฒิ'
   AND m.lastName = 'แดงปัดแหว๋ว'
   AND (s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%' OR s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -3865,6 +4053,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาววรัญญา'
   AND m.lastName = 'ทับทิมหิน'
   AND (s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%' OR s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -3886,6 +4075,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวพิชามญชุ์'
   AND m.lastName = 'สายเพียร'
   AND (s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%' OR s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -3907,6 +4097,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายเสกสรรค์'
   AND m.lastName = 'จันแปงเงิน'
   AND (s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%' OR s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -3928,6 +4119,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวพิทยา'
   AND m.lastName = 'พรรดา'
   AND (s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%' OR s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -3949,6 +4141,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายพิเชฐ'
   AND m.lastName = 'พินิจ'
   AND (s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%' OR s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -3970,6 +4163,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาววริชญา'
   AND m.lastName = 'ชาวน่าน'
   AND (s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%' OR s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -3991,6 +4185,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายชยากร'
   AND m.lastName = 'อุ่นธง'
   AND (s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%' OR s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -4012,6 +4207,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวศุภกานต์'
   AND m.lastName = 'ไชยโย'
   AND (s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%' OR s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -4033,6 +4229,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายญาณัคร์พนิต'
   AND m.lastName = 'คำผง'
   AND (s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%' OR s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -4054,6 +4251,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวพัณณกร'
   AND m.lastName = 'วังแจ่ม'
   AND (s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%' OR s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -4075,6 +4273,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายสมพร'
   AND m.lastName = 'แสนก่อ'
   AND (s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%' OR s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -4096,6 +4295,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายสายไทย'
   AND m.lastName = 'สีอมย'
   AND (s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%' OR s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -4117,6 +4317,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวนิตยา'
   AND m.lastName = 'หน่อวัน'
   AND (s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%' OR s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -4138,6 +4339,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายศักดา'
   AND m.lastName = 'ธนพชรรัชต์'
   AND (s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%' OR s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -4159,6 +4361,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายภีรดาดลย์'
   AND m.lastName = 'ไชยพูน'
   AND (s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%' OR s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -4180,6 +4383,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'น.ส.ประไพ'
   AND m.lastName = 'เชอมือ'
   AND (s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%' OR s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -4201,6 +4405,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายนามติ๊บ'
   AND m.lastName = 'ธรรมใส'
   AND (s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%' OR s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -4222,6 +4427,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวมัญชุสา'
   AND m.lastName = 'เพ็ชรชนะ'
   AND (s.name = 'โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_010_รัฐราษฎร์วิทยา_กลุ่ม')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -4243,6 +4449,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาววรรณภัทร'
   AND m.lastName = 'วรวัฒน์รัชกุล'
   AND (s.name = 'โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_010_รัฐราษฎร์วิทยา_กลุ่ม')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -4264,6 +4471,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายรุ่งโรจน์'
   AND m.lastName = 'ร้องสาคร'
   AND (s.name = 'โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_010_รัฐราษฎร์วิทยา_กลุ่ม')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -4285,6 +4493,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายสมเกียรติ'
   AND m.lastName = 'กิติคำ'
   AND (s.name = 'โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_010_รัฐราษฎร์วิทยา_กลุ่ม')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -4306,6 +4515,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาววิรัญชนา'
   AND m.lastName = 'พระคุณวรกาญจน์'
   AND (s.name = 'โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_010_รัฐราษฎร์วิทยา_กลุ่ม')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -4327,6 +4537,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวอมรรัตน์'
   AND m.lastName = 'ปนคำปิน'
   AND (s.name = 'โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_010_รัฐราษฎร์วิทยา_กลุ่ม')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -4348,6 +4559,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายธนาวุธ'
   AND m.lastName = 'นามวงค์'
   AND (s.name = 'โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_010_รัฐราษฎร์วิทยา_กลุ่ม')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -4369,6 +4581,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายไกรระวี'
   AND m.lastName = 'จันต๊ะคาด'
   AND (s.name = 'โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_010_รัฐราษฎร์วิทยา_กลุ่ม')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -4390,6 +4603,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวธณัชชา'
   AND m.lastName = 'ใจอารีย์'
   AND (s.name = 'โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_010_รัฐราษฎร์วิทยา_กลุ่ม')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -4411,6 +4625,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาววรัชยาสิริ'
   AND m.lastName = 'บัวผัด'
   AND (s.name = 'โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_010_รัฐราษฎร์วิทยา_กลุ่ม')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -4432,6 +4647,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวสิรินันท์'
   AND m.lastName = 'แก้วยองผาง'
   AND (s.name = 'โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_010_รัฐราษฎร์วิทยา_กลุ่ม')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -4453,6 +4669,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวจริยา'
   AND m.lastName = 'เอกจันทร์'
   AND (s.name = 'โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_010_รัฐราษฎร์วิทยา_กลุ่ม')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -4474,6 +4691,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวฐิติรัตน์'
   AND m.lastName = 'ใจอ้าย'
   AND (s.name = 'โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_010_รัฐราษฎร์วิทยา_กลุ่ม')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -4495,6 +4713,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายสุวิจักขณ์'
   AND m.lastName = 'บุญวงศ์'
   AND (s.name = 'โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_010_รัฐราษฎร์วิทยา_กลุ่ม')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -4516,6 +4735,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายภานุพงศ์'
   AND m.lastName = 'แจขจัด'
   AND (s.name = 'โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_010_รัฐราษฎร์วิทยา_กลุ่ม')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -4537,6 +4757,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางอักษรา'
   AND m.lastName = 'ตาลำ'
   AND (s.name = 'โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_010_รัฐราษฎร์วิทยา_กลุ่ม')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -4558,6 +4779,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวธัญญารัตน์'
   AND m.lastName = 'ยาวิละ'
   AND (s.name = 'โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_010_รัฐราษฎร์วิทยา_กลุ่ม')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -4579,6 +4801,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายนิธิศ'
   AND m.lastName = 'จะตุแสน'
   AND (s.name = 'โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_010_รัฐราษฎร์วิทยา_กลุ่ม')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -4600,6 +4823,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวปัทมา'
   AND m.lastName = 'สุวรรณ์'
   AND (s.name = 'โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_010_รัฐราษฎร์วิทยา_กลุ่ม')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -4621,6 +4845,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวการต์พิชชา'
   AND m.lastName = 'ขันโท'
   AND (s.name = 'โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_010_รัฐราษฎร์วิทยา_กลุ่ม')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -4642,6 +4867,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวนิรมล'
   AND m.lastName = 'ศรีทอง'
   AND (s.name = 'โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_010_รัฐราษฎร์วิทยา_กลุ่ม')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -4663,6 +4889,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวนภัสสร'
   AND m.lastName = 'อรุณฟอง'
   AND (s.name = 'โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_010_รัฐราษฎร์วิทยา_กลุ่ม')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -4684,6 +4911,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวเจนจิรา'
   AND m.lastName = 'จันทาพูน'
   AND (s.name = 'โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_010_รัฐราษฎร์วิทยา_กลุ่ม')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -4705,6 +4933,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวทิพวรรณ์'
   AND m.lastName = 'จันทร์เพ็ญ'
   AND (s.name = 'โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_010_รัฐราษฎร์วิทยา_กลุ่ม')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -4726,6 +4955,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวเมธยา'
   AND m.lastName = 'ทะคำ'
   AND (s.name = 'โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_010_รัฐราษฎร์วิทยา_กลุ่ม')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -4747,6 +4977,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวพิยดา'
   AND m.lastName = 'ไชยลังกา'
   AND (s.name = 'โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_010_รัฐราษฎร์วิทยา_กลุ่ม')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -4768,6 +4999,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวศศิกานต์'
   AND m.lastName = 'เตจ๊ะวันดี'
   AND (s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -4789,6 +5021,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายเสน่ห์'
   AND m.lastName = 'สุธรรม'
   AND (s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -4810,6 +5043,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวจิราภรณ์'
   AND m.lastName = 'มงคลดี'
   AND (s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -4831,6 +5065,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายสุรศักดิ์'
   AND m.lastName = 'นารี'
   AND (s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -4852,6 +5087,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวปทมา'
   AND m.lastName = 'ชัยโรจน์วงศ์'
   AND (s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -4873,6 +5109,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวนฤมล'
   AND m.lastName = 'โนฤทธิ'
   AND (s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -4894,6 +5131,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวสิริรัตน์'
   AND m.lastName = 'พันธ์วิไล'
   AND (s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -4915,6 +5153,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาววดี'
   AND m.lastName = 'ดีปัญญา'
   AND (s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -4936,6 +5175,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวสุจิตรา'
   AND m.lastName = 'กว้าง'
   AND (s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -4957,6 +5197,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวอัญชลี'
   AND m.lastName = 'สุธีราช'
   AND (s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -4978,6 +5219,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายอภิรักษ์'
   AND m.lastName = 'สุวรรณ'
   AND (s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -4999,6 +5241,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายพิทักษ์'
   AND m.lastName = 'วงศ์บุญมา'
   AND (s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -5020,6 +5263,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวณัฏฐินดา'
   AND m.lastName = 'สีปโภคา'
   AND (s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -5041,6 +5285,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวกรกฏ'
   AND m.lastName = 'อินทร์การทุม'
   AND (s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -5062,6 +5307,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายปรีชา'
   AND m.lastName = 'เชยบุญเรือง'
   AND (s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -5083,6 +5329,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวพัชรา'
   AND m.lastName = 'ทะยืน'
   AND (s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -5104,6 +5351,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายชัชชุพงศ์'
   AND m.lastName = 'กรรณิกา'
   AND (s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -5125,6 +5373,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวกรกนก'
   AND m.lastName = 'สัญเพ็ชร'
   AND (s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -5146,6 +5395,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวรุ่งนภา'
   AND m.lastName = 'รินแก้ว'
   AND (s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -5167,6 +5417,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาววรรณพร'
   AND m.lastName = 'รักห้วม'
   AND (s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -5188,6 +5439,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาววาสินี'
   AND m.lastName = 'สุวรรณกาน'
   AND (s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -5209,6 +5461,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวชมนุษย์'
   AND m.lastName = 'สวัสดิ์กิจ'
   AND (s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -5230,6 +5483,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวอภิญญา'
   AND m.lastName = 'เกิดสกล'
   AND (s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -5251,6 +5505,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายสมเกตุ'
   AND m.lastName = 'แสงจันทร์'
   AND (s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -5272,6 +5527,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวไอรดา'
   AND m.lastName = 'ศรีสวัสดิ์'
   AND (s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -5293,6 +5549,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวภัทรศิริ'
   AND m.lastName = 'หอมดี'
   AND (s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -5314,6 +5571,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาววิญญา'
   AND m.lastName = 'อินต๊ะ'
   AND (s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -5335,6 +5593,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายศราวุธ'
   AND m.lastName = 'ยิ้มงาม'
   AND (s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -5356,6 +5615,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายเกริกพล'
   AND m.lastName = 'ชัตตะ'
   AND (s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -5377,6 +5637,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายสรชัย'
   AND m.lastName = 'แซ่ห้าง'
   AND (s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -5398,6 +5659,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวณัสสร'
   AND m.lastName = 'แซ่ย่าง'
   AND (s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -5419,6 +5681,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวนิกาพร'
   AND m.lastName = 'มีชัย'
   AND (s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -5440,6 +5703,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวกรกัญญา'
   AND m.lastName = 'ชมภูเกตุ'
   AND (s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -5461,6 +5725,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวปริชาติ'
   AND m.lastName = 'งานดี'
   AND (s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -5482,6 +5747,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายทศพล'
   AND m.lastName = 'สุคำ'
   AND (s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -5503,6 +5769,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวมาลินี'
   AND m.lastName = 'รักษ์อินทร์'
   AND (s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -5524,6 +5791,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวมณีรัตน์'
   AND m.lastName = 'สมฤทธิ์'
   AND (s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -5545,6 +5813,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวภัทรา'
   AND m.lastName = 'ใจผ่อง'
   AND (s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -5566,6 +5835,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวอรุณนาท'
   AND m.lastName = 'ตั้งศิริ'
   AND (s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -5587,6 +5857,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายวชิรชัย'
   AND m.lastName = 'มีบุญ'
   AND (s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -5608,6 +5879,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวพิมพ์รัตน์'
   AND m.lastName = 'เชื้อเมืองพาน'
   AND (s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -5629,6 +5901,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายพรรษา'
   AND m.lastName = 'ทำโมนะ'
   AND (s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -5650,6 +5923,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวโชตินภา'
   AND m.lastName = 'สมองฟ้าไกร'
   AND (s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -5671,6 +5945,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายจิราวุฒิ'
   AND m.lastName = 'แก้วสี'
   AND (s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%' OR s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -5692,6 +5967,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายพิชชากร'
   AND m.lastName = 'อานุ'
   AND (s.name = 'โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเ%' OR s.code = 'SCH_012_บ้านแม่หม้อ_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -5713,6 +5989,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางกฤษกร'
   AND m.lastName = 'เรืองวิทยนันท์'
   AND (s.name = 'โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเ%' OR s.code = 'SCH_012_บ้านแม่หม้อ_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -5734,6 +6011,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาววรรนิสา'
   AND m.lastName = 'กุญชร'
   AND (s.name = 'โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเ%' OR s.code = 'SCH_012_บ้านแม่หม้อ_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -5755,6 +6033,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวณัฐิภา'
   AND m.lastName = 'ปัญญาแก้ว'
   AND (s.name = 'โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเ%' OR s.code = 'SCH_012_บ้านแม่หม้อ_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -5776,6 +6055,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวภัควลัญจน์'
   AND m.lastName = 'จันทร์ไชยวงศ์'
   AND (s.name = 'โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเ%' OR s.code = 'SCH_012_บ้านแม่หม้อ_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -5797,6 +6077,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวขวัญมนัส'
   AND m.lastName = 'ทำทาน'
   AND (s.name = 'โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเ%' OR s.code = 'SCH_012_บ้านแม่หม้อ_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -5818,6 +6099,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายสุธินันท์'
   AND m.lastName = 'คำแสน'
   AND (s.name = 'โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเ%' OR s.code = 'SCH_012_บ้านแม่หม้อ_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -5839,6 +6121,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางประภัสวรรณ'
   AND m.lastName = 'เชื้อเมืองพาน'
   AND (s.name = 'โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเ%' OR s.code = 'SCH_012_บ้านแม่หม้อ_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -5860,6 +6143,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายเดชณรงค์'
   AND m.lastName = 'คบลา'
   AND (s.name = 'โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเ%' OR s.code = 'SCH_012_บ้านแม่หม้อ_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -5881,6 +6165,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวอชิรญา'
   AND m.lastName = 'ช่างเขียน'
   AND (s.name = 'โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเ%' OR s.code = 'SCH_012_บ้านแม่หม้อ_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -5902,6 +6187,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางธารทิพย์'
   AND m.lastName = 'นรรัตน์'
   AND (s.name = 'โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเ%' OR s.code = 'SCH_012_บ้านแม่หม้อ_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -5923,6 +6209,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวณัฐณิชา'
   AND m.lastName = 'แสงนิล'
   AND (s.name = 'โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเ%' OR s.code = 'SCH_012_บ้านแม่หม้อ_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -5944,6 +6231,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวปรารถนา'
   AND m.lastName = 'สร้างโศรก'
   AND (s.name = 'โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเ%' OR s.code = 'SCH_012_บ้านแม่หม้อ_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -5965,6 +6253,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายสุทิน'
   AND m.lastName = 'เขื่อนคำแสน'
   AND (s.name = 'โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเ%' OR s.code = 'SCH_012_บ้านแม่หม้อ_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -5986,6 +6275,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายยศพล'
   AND m.lastName = 'ศรีอัญชลีกร'
   AND (s.name = 'โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเ%' OR s.code = 'SCH_012_บ้านแม่หม้อ_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -6007,6 +6297,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาววิเศษลักษณ์'
   AND m.lastName = 'วงศ์เป็ง'
   AND (s.name = 'โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเ%' OR s.code = 'SCH_012_บ้านแม่หม้อ_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -6028,6 +6319,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวเจษสุภาภรณ์'
   AND m.lastName = 'คำปวน'
   AND (s.name = 'โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเ%' OR s.code = 'SCH_012_บ้านแม่หม้อ_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -6049,6 +6341,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายภูริทัต'
   AND m.lastName = 'อินทรประเสริฐ'
   AND (s.name = 'โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเ%' OR s.code = 'SCH_012_บ้านแม่หม้อ_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -6070,6 +6363,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวสุภนุช'
   AND m.lastName = 'จิตสวา'
   AND (s.name = 'โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเ%' OR s.code = 'SCH_012_บ้านแม่หม้อ_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -6091,6 +6385,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายอะแล'
   AND m.lastName = 'มาเยอะ'
   AND (s.name = 'โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเ%' OR s.code = 'SCH_012_บ้านแม่หม้อ_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -6112,6 +6407,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวหมี่ตุ'
   AND m.lastName = 'แซ่จ๋าว'
   AND (s.name = 'โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเ%' OR s.code = 'SCH_012_บ้านแม่หม้อ_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -6133,6 +6429,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางวิรศรา'
   AND m.lastName = 'แซ่ฮ่อ'
   AND (s.name = 'โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเ%' OR s.code = 'SCH_012_บ้านแม่หม้อ_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -6154,6 +6451,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวหมี่โผ่'
   AND m.lastName = 'แซ่จ๋าว'
   AND (s.name = 'โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเ%' OR s.code = 'SCH_012_บ้านแม่หม้อ_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -6175,6 +6473,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายชำนาญ'
   AND m.lastName = 'บอแฉ่'
   AND (s.name = 'โรงเรียนบ้านผาจี กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านผาจี กลุ่มเครือข่ายเทอดไทย%' OR s.code = 'SCH_013_บ้านผาจี_กลุ่มเครือข')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -6196,6 +6495,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวชามรี'
   AND m.lastName = 'ระวังทรัพย์'
   AND (s.name = 'โรงเรียนบ้านผาจี กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านผาจี กลุ่มเครือข่ายเทอดไทย%' OR s.code = 'SCH_013_บ้านผาจี_กลุ่มเครือข')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -6217,6 +6517,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวสุพรรณษา'
   AND m.lastName = 'คอง'
   AND (s.name = 'โรงเรียนบ้านผาจี กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านผาจี กลุ่มเครือข่ายเทอดไทย%' OR s.code = 'SCH_013_บ้านผาจี_กลุ่มเครือข')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -6238,6 +6539,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายกฤษฎาภูมิ'
   AND m.lastName = 'ไชยภูมิ'
   AND (s.name = 'โรงเรียนบ้านผาจี กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านผาจี กลุ่มเครือข่ายเทอดไทย%' OR s.code = 'SCH_013_บ้านผาจี_กลุ่มเครือข')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -6259,6 +6561,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวปิ่นทิพย์'
   AND m.lastName = 'ผาสุวรรณ'
   AND (s.name = 'โรงเรียนบ้านผาจี กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านผาจี กลุ่มเครือข่ายเทอดไทย%' OR s.code = 'SCH_013_บ้านผาจี_กลุ่มเครือข')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -6280,6 +6583,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวชญานี'
   AND m.lastName = 'โพธิ์'
   AND (s.name = 'โรงเรียนบ้านผาจี กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านผาจี กลุ่มเครือข่ายเทอดไทย%' OR s.code = 'SCH_013_บ้านผาจี_กลุ่มเครือข')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -6301,6 +6605,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวเบญจวรรณ'
   AND m.lastName = 'เตปินใจ'
   AND (s.name = 'โรงเรียนบ้านผาจี กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านผาจี กลุ่มเครือข่ายเทอดไทย%' OR s.code = 'SCH_013_บ้านผาจี_กลุ่มเครือข')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -6322,6 +6627,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวธัญญพัทธ์'
   AND m.lastName = 'ธนกฤษไพศย์'
   AND (s.name = 'โรงเรียนบ้านผาจี กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านผาจี กลุ่มเครือข่ายเทอดไทย%' OR s.code = 'SCH_013_บ้านผาจี_กลุ่มเครือข')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -6343,6 +6649,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวตุ๊ดนันท์'
   AND m.lastName = 'ชาวเหนือ'
   AND (s.name = 'โรงเรียนบ้านผาจี กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านผาจี กลุ่มเครือข่ายเทอดไทย%' OR s.code = 'SCH_013_บ้านผาจี_กลุ่มเครือข')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -6364,6 +6671,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางวิชญาดา'
   AND m.lastName = 'จันลา'
   AND (s.name = 'โรงเรียนบ้านผาจี กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านผาจี กลุ่มเครือข่ายเทอดไทย%' OR s.code = 'SCH_013_บ้านผาจี_กลุ่มเครือข')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -6385,6 +6693,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายดนัยวัฒน์'
   AND m.lastName = 'มณี'
   AND (s.name = 'โรงเรียนบ้านปางมะหัน กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านปางมะหัน กลุ่มเครือข่ายเทอดไทย%' OR s.code = 'SCH_014_บ้านปางมะหัน_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -6406,6 +6715,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายภูมินทร์'
   AND m.lastName = 'แสงสร้อย'
   AND (s.name = 'โรงเรียนบ้านปางมะหัน กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านปางมะหัน กลุ่มเครือข่ายเทอดไทย%' OR s.code = 'SCH_014_บ้านปางมะหัน_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -6427,6 +6737,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายสหัสวรรษ'
   AND m.lastName = 'ศักภิวัล'
   AND (s.name = 'โรงเรียนบ้านปางมะหัน กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านปางมะหัน กลุ่มเครือข่ายเทอดไทย%' OR s.code = 'SCH_014_บ้านปางมะหัน_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -6448,6 +6759,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวสุดา'
   AND m.lastName = 'พรมตา'
   AND (s.name = 'โรงเรียนบ้านปางมะหัน กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านปางมะหัน กลุ่มเครือข่ายเทอดไทย%' OR s.code = 'SCH_014_บ้านปางมะหัน_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -6469,6 +6781,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายยุทธพงษ์'
   AND m.lastName = 'สุยะ'
   AND (s.name = 'โรงเรียนบ้านปางมะหัน กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านปางมะหัน กลุ่มเครือข่ายเทอดไทย%' OR s.code = 'SCH_014_บ้านปางมะหัน_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -6490,6 +6803,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายภัทรพล'
   AND m.lastName = 'ศรีผาย'
   AND (s.name = 'โรงเรียนบ้านปางมะหัน กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านปางมะหัน กลุ่มเครือข่ายเทอดไทย%' OR s.code = 'SCH_014_บ้านปางมะหัน_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -6511,6 +6825,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวภัณฑิรา'
   AND m.lastName = 'ยอดคีรี'
   AND (s.name = 'โรงเรียนบ้านปางมะหัน กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านปางมะหัน กลุ่มเครือข่ายเทอดไทย%' OR s.code = 'SCH_014_บ้านปางมะหัน_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -6532,6 +6847,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวชลธิชา'
   AND m.lastName = 'เขื่อนปัญญา'
   AND (s.name = 'โรงเรียนบ้านปางมะหัน กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านปางมะหัน กลุ่มเครือข่ายเทอดไทย%' OR s.code = 'SCH_014_บ้านปางมะหัน_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -6553,6 +6869,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวรมณีย์'
   AND m.lastName = 'หล้าธิ'
   AND (s.name = 'โรงเรียนบ้านปางมะหัน กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านปางมะหัน กลุ่มเครือข่ายเทอดไทย%' OR s.code = 'SCH_014_บ้านปางมะหัน_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -6574,6 +6891,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวไหนจ้อย'
   AND m.lastName = 'แซ่ลี'
   AND (s.name = 'โรงเรียนบ้านปางมะหัน กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านปางมะหัน กลุ่มเครือข่ายเทอดไทย%' OR s.code = 'SCH_014_บ้านปางมะหัน_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -6595,6 +6913,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายชยาวุธ'
   AND m.lastName = 'ปิติว่าเจริญ'
   AND (s.name = 'โรงเรียนบ้านปางมะหัน กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านปางมะหัน กลุ่มเครือข่ายเทอดไทย%' OR s.code = 'SCH_014_บ้านปางมะหัน_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -6616,6 +6935,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'วาที่รอยเอกบรรจงฤทธิ์'
   AND m.lastName = 'สุทธสม'
   AND (s.name = 'โรงเรียนตํารวจตระเวนชายแดนบํารุงที่  87 กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนตํารวจตระเวนชายแดนบํารุงที่  87 กลุ่มเครือ%' OR s.code = 'SCH_015_ตํารวจตระเวนชายแดนบํ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -6637,6 +6957,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายสุทิวัส'
   AND m.lastName = 'ตติยะตนตระกูล'
   AND (s.name = 'โรงเรียนตํารวจตระเวนชายแดนบํารุงที่  87 กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนตํารวจตระเวนชายแดนบํารุงที่  87 กลุ่มเครือ%' OR s.code = 'SCH_015_ตํารวจตระเวนชายแดนบํ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -6658,6 +6979,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวกานทชญา'
   AND m.lastName = 'พรมเสน'
   AND (s.name = 'โรงเรียนตํารวจตระเวนชายแดนบํารุงที่  87 กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนตํารวจตระเวนชายแดนบํารุงที่  87 กลุ่มเครือ%' OR s.code = 'SCH_015_ตํารวจตระเวนชายแดนบํ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -6679,6 +7001,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายชัยกาญจน'
   AND m.lastName = 'นวลกําแหง'
   AND (s.name = 'โรงเรียนตํารวจตระเวนชายแดนบํารุงที่  87 กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนตํารวจตระเวนชายแดนบํารุงที่  87 กลุ่มเครือ%' OR s.code = 'SCH_015_ตํารวจตระเวนชายแดนบํ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -6700,6 +7023,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวธาดารัตน'
   AND m.lastName = 'อุดมปละ'
   AND (s.name = 'โรงเรียนตํารวจตระเวนชายแดนบํารุงที่  87 กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนตํารวจตระเวนชายแดนบํารุงที่  87 กลุ่มเครือ%' OR s.code = 'SCH_015_ตํารวจตระเวนชายแดนบํ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -6721,6 +7045,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวกังสดาล'
   AND m.lastName = 'ใจกลา'
   AND (s.name = 'โรงเรียนตํารวจตระเวนชายแดนบํารุงที่  87 กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนตํารวจตระเวนชายแดนบํารุงที่  87 กลุ่มเครือ%' OR s.code = 'SCH_015_ตํารวจตระเวนชายแดนบํ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -6742,6 +7067,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวเกศินี'
   AND m.lastName = 'วิชัยเนตร'
   AND (s.name = 'โรงเรียนตํารวจตระเวนชายแดนบํารุงที่  87 กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนตํารวจตระเวนชายแดนบํารุงที่  87 กลุ่มเครือ%' OR s.code = 'SCH_015_ตํารวจตระเวนชายแดนบํ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -6763,6 +7089,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวจารุวรรณ'
   AND m.lastName = 'คําเหล็ก'
   AND (s.name = 'โรงเรียนตํารวจตระเวนชายแดนบํารุงที่  87 กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนตํารวจตระเวนชายแดนบํารุงที่  87 กลุ่มเครือ%' OR s.code = 'SCH_015_ตํารวจตระเวนชายแดนบํ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -6784,6 +7111,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายกิตติภพ'
   AND m.lastName = 'แซตัง'
   AND (s.name = 'โรงเรียนตํารวจตระเวนชายแดนบํารุงที่  87 กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนตํารวจตระเวนชายแดนบํารุงที่  87 กลุ่มเครือ%' OR s.code = 'SCH_015_ตํารวจตระเวนชายแดนบํ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -6805,6 +7133,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายวรเชษฐ'
   AND m.lastName = 'แววสี'
   AND (s.name = 'โรงเรียนตํารวจตระเวนชายแดนบํารุงที่  87 กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนตํารวจตระเวนชายแดนบํารุงที่  87 กลุ่มเครือ%' OR s.code = 'SCH_015_ตํารวจตระเวนชายแดนบํ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -6826,6 +7155,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวศันสนา'
   AND m.lastName = 'ปวกหลวง'
   AND (s.name = 'โรงเรียนตํารวจตระเวนชายแดนบํารุงที่  87 กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนตํารวจตระเวนชายแดนบํารุงที่  87 กลุ่มเครือ%' OR s.code = 'SCH_015_ตํารวจตระเวนชายแดนบํ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -6847,6 +7177,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวปยะนุช'
   AND m.lastName = 'สุนาโท'
   AND (s.name = 'โรงเรียนตํารวจตระเวนชายแดนบํารุงที่  87 กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนตํารวจตระเวนชายแดนบํารุงที่  87 กลุ่มเครือ%' OR s.code = 'SCH_015_ตํารวจตระเวนชายแดนบํ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -6868,6 +7199,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวรัชฎา'
   AND m.lastName = 'ตาฮง'
   AND (s.name = 'โรงเรียนตํารวจตระเวนชายแดนบํารุงที่  87 กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนตํารวจตระเวนชายแดนบํารุงที่  87 กลุ่มเครือ%' OR s.code = 'SCH_015_ตํารวจตระเวนชายแดนบํ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -6889,6 +7221,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายสมศักดิ์'
   AND m.lastName = 'แซหมื่อ'
   AND (s.name = 'โรงเรียนตํารวจตระเวนชายแดนบํารุงที่  87 กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนตํารวจตระเวนชายแดนบํารุงที่  87 กลุ่มเครือ%' OR s.code = 'SCH_015_ตํารวจตระเวนชายแดนบํ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -6910,6 +7243,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายธนาพล'
   AND m.lastName = 'มาเยอะ'
   AND (s.name = 'โรงเรียนตํารวจตระเวนชายแดนบํารุงที่  87 กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนตํารวจตระเวนชายแดนบํารุงที่  87 กลุ่มเครือ%' OR s.code = 'SCH_015_ตํารวจตระเวนชายแดนบํ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -6931,6 +7265,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวสุดารัตน์'
   AND m.lastName = 'ปัญญาศิริวงศ์'
   AND (s.name = 'โรงเรียนบ้านห้วยอื้น กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านห้วยอื้น กลุ่มเครือข่ายเทอดไทย%' OR s.code = 'SCH_016_บ้านห้วยอื้น_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -6952,6 +7287,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางจีราพร'
   AND m.lastName = 'อินทะนิล'
   AND (s.name = 'โรงเรียนบ้านห้วยอื้น กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านห้วยอื้น กลุ่มเครือข่ายเทอดไทย%' OR s.code = 'SCH_016_บ้านห้วยอื้น_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -6973,6 +7309,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายพงศ์พันธ์'
   AND m.lastName = 'โพธิ์'
   AND (s.name = 'โรงเรียนบ้านห้วยอื้น กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านห้วยอื้น กลุ่มเครือข่ายเทอดไทย%' OR s.code = 'SCH_016_บ้านห้วยอื้น_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -6994,6 +7331,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายเนตรศักดิ์'
   AND m.lastName = 'เชียงเครือ'
   AND (s.name = 'โรงเรียนบ้านห้วยอื้น กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านห้วยอื้น กลุ่มเครือข่ายเทอดไทย%' OR s.code = 'SCH_016_บ้านห้วยอื้น_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -7015,6 +7353,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวจินดารัตน์'
   AND m.lastName = 'บุปผฤกษ์'
   AND (s.name = 'โรงเรียนบ้านห้วยอื้น กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านห้วยอื้น กลุ่มเครือข่ายเทอดไทย%' OR s.code = 'SCH_016_บ้านห้วยอื้น_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -7036,6 +7375,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวกาญจนา'
   AND m.lastName = 'บุตรี'
   AND (s.name = 'โรงเรียนบ้านห้วยอื้น กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านห้วยอื้น กลุ่มเครือข่ายเทอดไทย%' OR s.code = 'SCH_016_บ้านห้วยอื้น_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -7057,6 +7397,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวชมพร'
   AND m.lastName = 'ติตนากาศ'
   AND (s.name = 'โรงเรียนบ้านห้วยอื้น กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านห้วยอื้น กลุ่มเครือข่ายเทอดไทย%' OR s.code = 'SCH_016_บ้านห้วยอื้น_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -7078,6 +7419,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาววิภาภัค'
   AND m.lastName = 'กันตะยา'
   AND (s.name = 'โรงเรียนบ้านห้วยอื้น กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านห้วยอื้น กลุ่มเครือข่ายเทอดไทย%' OR s.code = 'SCH_016_บ้านห้วยอื้น_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -7099,6 +7441,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวเขมิกา'
   AND m.lastName = 'เตมูลละ'
   AND (s.name = 'โรงเรียนบ้านห้วยอื้น กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านห้วยอื้น กลุ่มเครือข่ายเทอดไทย%' OR s.code = 'SCH_016_บ้านห้วยอื้น_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -7120,6 +7463,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวสิเรชา'
   AND m.lastName = 'รุ่งกานภาค'
   AND (s.name = 'โรงเรียนบ้านห้วยอื้น กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านห้วยอื้น กลุ่มเครือข่ายเทอดไทย%' OR s.code = 'SCH_016_บ้านห้วยอื้น_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -7141,6 +7485,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายคณภัณฑ์'
   AND m.lastName = 'หมั่นสมบัติ'
   AND (s.name = 'โรงเรียนบ้านห้วยอื้น กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านห้วยอื้น กลุ่มเครือข่ายเทอดไทย%' OR s.code = 'SCH_016_บ้านห้วยอื้น_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -7162,6 +7507,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวธัญชนรี'
   AND m.lastName = 'แก้วนภรสิการ'
   AND (s.name = 'โรงเรียนบ้านห้วยอื้น กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านห้วยอื้น กลุ่มเครือข่ายเทอดไทย%' OR s.code = 'SCH_016_บ้านห้วยอื้น_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -7183,6 +7529,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวปรียลักษณ์'
   AND m.lastName = 'โภคาร'
   AND (s.name = 'โรงเรียนบ้านห้วยอื้น กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านห้วยอื้น กลุ่มเครือข่ายเทอดไทย%' OR s.code = 'SCH_016_บ้านห้วยอื้น_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -7204,6 +7551,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวชนากานต์'
   AND m.lastName = 'อภิสริประภา'
   AND (s.name = 'โรงเรียนบ้านห้วยอื้น กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านห้วยอื้น กลุ่มเครือข่ายเทอดไทย%' OR s.code = 'SCH_016_บ้านห้วยอื้น_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -7225,6 +7573,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวรัตตกาล'
   AND m.lastName = 'ยาธรงษ์'
   AND (s.name = 'โรงเรียนบ้านห้วยอื้น กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านห้วยอื้น กลุ่มเครือข่ายเทอดไทย%' OR s.code = 'SCH_016_บ้านห้วยอื้น_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -7246,6 +7595,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายมล'
   AND m.lastName = 'คำจันทร์'
   AND (s.name = 'โรงเรียนบ้านห้วยอื้น กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านห้วยอื้น กลุ่มเครือข่ายเทอดไทย%' OR s.code = 'SCH_016_บ้านห้วยอื้น_กลุ่มเค')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -7267,6 +7617,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายบัญญัติ'
   AND m.lastName = 'ยานะ'
   AND (s.name = 'โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย%' OR s.code = 'SCH_017_พญาไพรไตรมิตร_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -7288,6 +7639,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายวุฒิชัย'
   AND m.lastName = 'กันสุธรรม'
   AND (s.name = 'โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย%' OR s.code = 'SCH_017_พญาไพรไตรมิตร_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -7309,6 +7661,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวธนารัตน์'
   AND m.lastName = 'ลือชัย'
   AND (s.name = 'โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย%' OR s.code = 'SCH_017_พญาไพรไตรมิตร_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -7330,6 +7683,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวพิมบุญ'
   AND m.lastName = 'แสนมงคล'
   AND (s.name = 'โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย%' OR s.code = 'SCH_017_พญาไพรไตรมิตร_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -7351,6 +7705,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวกัลยรัตน์'
   AND m.lastName = 'ชัยธรรม'
   AND (s.name = 'โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย%' OR s.code = 'SCH_017_พญาไพรไตรมิตร_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -7372,6 +7727,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวชญานี'
   AND m.lastName = 'คันทะเนตร'
   AND (s.name = 'โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย%' OR s.code = 'SCH_017_พญาไพรไตรมิตร_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -7393,6 +7749,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'ว่าที่'
   AND m.lastName = 'ร.ต.ภูวดล กุญชร'
   AND (s.name = 'โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย%' OR s.code = 'SCH_017_พญาไพรไตรมิตร_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -7414,6 +7771,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวอัญชลี'
   AND m.lastName = 'หาทองคำ'
   AND (s.name = 'โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย%' OR s.code = 'SCH_017_พญาไพรไตรมิตร_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -7435,6 +7793,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวปฐมาวดี'
   AND m.lastName = 'แมตสอง'
   AND (s.name = 'โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย%' OR s.code = 'SCH_017_พญาไพรไตรมิตร_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -7456,6 +7815,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายคชศักดิ์'
   AND m.lastName = 'ต่างเพ็ชร'
   AND (s.name = 'โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย%' OR s.code = 'SCH_017_พญาไพรไตรมิตร_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -7477,6 +7837,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายณัฐภูมิ'
   AND m.lastName = 'มาแว่น'
   AND (s.name = 'โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย%' OR s.code = 'SCH_017_พญาไพรไตรมิตร_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -7498,6 +7859,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวปรีณาภา'
   AND m.lastName = 'คำภิละ'
   AND (s.name = 'โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย%' OR s.code = 'SCH_017_พญาไพรไตรมิตร_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -7519,6 +7881,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวสุชานันท์'
   AND m.lastName = 'ภักดีบุรี'
   AND (s.name = 'โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย%' OR s.code = 'SCH_017_พญาไพรไตรมิตร_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -7540,6 +7903,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวยุพิน'
   AND m.lastName = 'คำแก้ว'
   AND (s.name = 'โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย%' OR s.code = 'SCH_017_พญาไพรไตรมิตร_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -7561,6 +7925,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายธีรทัช'
   AND m.lastName = 'บุญทา'
   AND (s.name = 'โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย%' OR s.code = 'SCH_017_พญาไพรไตรมิตร_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -7582,6 +7947,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวอริศรา'
   AND m.lastName = 'พิธีเรือง'
   AND (s.name = 'โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย%' OR s.code = 'SCH_017_พญาไพรไตรมิตร_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -7603,6 +7969,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวสุพัตรา'
   AND m.lastName = 'คำสุ'
   AND (s.name = 'โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย%' OR s.code = 'SCH_017_พญาไพรไตรมิตร_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -7624,6 +7991,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาววิลาวรรณ'
   AND m.lastName = 'อินตา'
   AND (s.name = 'โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย%' OR s.code = 'SCH_017_พญาไพรไตรมิตร_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -7645,6 +8013,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายอนุชิต'
   AND m.lastName = 'แข็งแรง'
   AND (s.name = 'โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย%' OR s.code = 'SCH_017_พญาไพรไตรมิตร_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -7666,6 +8035,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวฐิตาภรณ์'
   AND m.lastName = 'สายอิ่นแก้ว'
   AND (s.name = 'โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย%' OR s.code = 'SCH_017_พญาไพรไตรมิตร_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -7687,6 +8057,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายกรกฎ'
   AND m.lastName = 'โรจนนิจ'
   AND (s.name = 'โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย%' OR s.code = 'SCH_017_พญาไพรไตรมิตร_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -7708,6 +8079,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวศิรินกรณ์'
   AND m.lastName = 'สุยะ'
   AND (s.name = 'โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย%' OR s.code = 'SCH_017_พญาไพรไตรมิตร_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -7729,6 +8101,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวสุจินดา'
   AND m.lastName = 'ใจกล้า'
   AND (s.name = 'โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย%' OR s.code = 'SCH_017_พญาไพรไตรมิตร_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -7750,6 +8123,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายพุฒิชัย'
   AND m.lastName = 'ไฝเครือ'
   AND (s.name = 'โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย%' OR s.code = 'SCH_017_พญาไพรไตรมิตร_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -7771,6 +8145,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายภาณุพงค์'
   AND m.lastName = 'ยาจันทร์'
   AND (s.name = 'โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย%' OR s.code = 'SCH_017_พญาไพรไตรมิตร_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -7792,6 +8167,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายฉัตรดนัย'
   AND m.lastName = 'ใยญาติ'
   AND (s.name = 'โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย%' OR s.code = 'SCH_017_พญาไพรไตรมิตร_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -7813,6 +8189,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายเลอพงษ์'
   AND m.lastName = 'ปัญญาดี'
   AND (s.name = 'โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย%' OR s.code = 'SCH_017_พญาไพรไตรมิตร_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -7834,6 +8211,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวจารุวรรณ'
   AND m.lastName = 'กันทะ'
   AND (s.name = 'โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย%' OR s.code = 'SCH_017_พญาไพรไตรมิตร_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -7855,6 +8233,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายจายแสง'
   AND m.lastName = 'มอญคำ'
   AND (s.name = 'โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย%' OR s.code = 'SCH_017_พญาไพรไตรมิตร_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -7876,6 +8255,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายเกรียงศักดิ์'
   AND m.lastName = 'ฝึกฝน'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -7897,6 +8277,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสุรีย์พร'
   AND m.lastName = 'แข็งขันธ์'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -7918,6 +8299,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางนวนันท์'
   AND m.lastName = 'สิทธิวงศ์'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -7939,6 +8321,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวพิมพ์พิกา'
   AND m.lastName = 'จันทร์เทพ'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -7960,6 +8343,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวน้ำเพชร'
   AND m.lastName = 'ชัยชมภู'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -7981,6 +8365,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวพัชรา'
   AND m.lastName = 'สินธรมงคล'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -8002,6 +8387,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'ว่าที่ร้อยตรีโสธร'
   AND m.lastName = 'ศรีอาวุธ'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -8023,6 +8409,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางศรีจันทร์'
   AND m.lastName = 'กันทะนะ'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -8044,6 +8431,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวอัญชลี'
   AND m.lastName = 'เมฆวิบูลย์'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -8065,6 +8453,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวฟ้าใส'
   AND m.lastName = 'วิสารกาญจน'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -8086,6 +8475,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายพีรกร'
   AND m.lastName = 'สมคำ'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -8107,6 +8497,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางธรรยธรฐ์'
   AND m.lastName = 'ดวงสนิท'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -8128,6 +8519,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวฉัตรนิฏฐา'
   AND m.lastName = 'สุนันตา'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -8149,6 +8541,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'ว่าที่ร้อยตรีอนุรักษ์'
   AND m.lastName = 'มั่นอ่วม'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -8170,6 +8563,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวศิริพร'
   AND m.lastName = 'เยอะหนื่อ'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -8191,6 +8585,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายทนงศักดิ์'
   AND m.lastName = 'หวานหอม'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -8212,6 +8607,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวนิลรัตน์'
   AND m.lastName = 'ไชยรังสฤษดิ์'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -8233,6 +8629,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายไพชยนต์'
   AND m.lastName = 'สิทธิยศ'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -8254,6 +8651,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวศรัญญา'
   AND m.lastName = 'เชื้อเมืองพาน'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -8275,6 +8673,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายพิรเศรษฐ์'
   AND m.lastName = 'จินะ'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -8296,6 +8695,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายธนทรัพย์'
   AND m.lastName = 'รัตนไภ'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -8317,6 +8717,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายศักดา'
   AND m.lastName = 'วันเพ็ญ'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -8338,6 +8739,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวภาสินี'
   AND m.lastName = 'ธิศรี'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -8359,6 +8761,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาววรัชญ์ขวัญ'
   AND m.lastName = 'ปัญวิยะ'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -8380,6 +8783,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวปวริศา'
   AND m.lastName = 'สุระจิตต์'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -8401,6 +8805,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางรตีกานต์'
   AND m.lastName = 'เดินแปง'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -8422,6 +8827,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาววารุณี'
   AND m.lastName = 'หลวงไชย'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -8443,6 +8849,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวนพเก้า'
   AND m.lastName = 'นิพัฒน์ศิริผล'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -8464,6 +8871,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวปุญญิสา'
   AND m.lastName = 'ปงลังกา'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -8485,6 +8893,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวหนึ่งฤทัย'
   AND m.lastName = 'สุทธสม'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -8506,6 +8915,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายคามิน'
   AND m.lastName = 'คีรีอยู่ลือ'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -8527,6 +8937,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายชัญญานุช'
   AND m.lastName = 'โพธิ์เงิน'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -8548,6 +8959,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวรัชนี'
   AND m.lastName = 'สุทธิประภา'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -8569,6 +8981,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายเชนร์'
   AND m.lastName = 'อุดอ้าย'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -8590,6 +9003,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายศิวกร'
   AND m.lastName = 'มูลละ'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -8611,6 +9025,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวชนันท์ธิดา'
   AND m.lastName = 'สิริวสุพงศ์'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -8632,6 +9047,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวเนตรนภัทร'
   AND m.lastName = 'แก้วแดง'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -8653,6 +9069,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายภูบดินทร์'
   AND m.lastName = 'อินรส'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -8674,6 +9091,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวกัญญารัตน์'
   AND m.lastName = 'ยะกับ'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -8695,6 +9113,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวกัญญารัตน์'
   AND m.lastName = 'วงศ์หลวง'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -8716,6 +9135,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายจิรายุทธ'
   AND m.lastName = 'ศรีคำเทียม'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -8737,6 +9157,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวรุ้งทราย'
   AND m.lastName = 'ลูนปัน'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -8758,6 +9179,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวกัญจนพร'
   AND m.lastName = 'อภัยกาวี'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -8779,6 +9201,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวพิมพ์พิจิตร'
   AND m.lastName = 'ศรีสงค์ใจ'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -8800,6 +9223,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวรติมา'
   AND m.lastName = 'ภาวงศ์'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -8821,6 +9245,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายศุภกฤต'
   AND m.lastName = 'อภิไชย'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -8842,6 +9267,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวรุ่งทิวา'
   AND m.lastName = 'กาศมณี'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -8863,6 +9289,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวศิรินันท์'
   AND m.lastName = 'อรัญวาส'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -8884,6 +9311,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวชลิดา'
   AND m.lastName = 'ปินคำ'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -8905,6 +9333,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวพุทธกาล'
   AND m.lastName = 'บัณฑิตเทอดสกุล'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -8926,6 +9355,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายยชญ์วิวรรธน์'
   AND m.lastName = 'ชมภูชนะภัย'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -8947,6 +9377,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายณัฐวัฒน์'
   AND m.lastName = 'ภูริธิติมา'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -8968,6 +9399,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายณัฐพล'
   AND m.lastName = 'วัฒนาชัยมงคล'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -8989,6 +9421,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายสัภยา'
   AND m.lastName = 'ตาลำ'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -9010,6 +9443,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวศรัณย์ธร'
   AND m.lastName = 'สังข์เมือง'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -9031,6 +9465,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวจิราพร'
   AND m.lastName = 'ระคาไพ'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -9052,6 +9487,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวกฤษณา'
   AND m.lastName = 'ธรรมศร'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -9073,6 +9509,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวรัญชิดา'
   AND m.lastName = 'พรมมินทร์'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -9094,6 +9531,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาววาริกา'
   AND m.lastName = 'แดนช่างคำ'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -9115,6 +9553,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวจุฑามาศ'
   AND m.lastName = 'ไชยพูน'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -9136,6 +9575,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวยลลดา'
   AND m.lastName = 'สารบัว'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -9157,6 +9597,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวรัฐพร'
   AND m.lastName = 'หมั่นแสวง'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -9178,6 +9619,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวศุภลักษณ์'
   AND m.lastName = 'โพธิ์ทองพร'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -9199,6 +9641,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวณัฐธิชา'
   AND m.lastName = 'ศรีเพชร'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -9220,6 +9663,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวนภัสสร'
   AND m.lastName = 'คำลือ'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -9241,6 +9685,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวชลลดา'
   AND m.lastName = 'แข่งขัน'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -9262,6 +9707,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวจันทิมา'
   AND m.lastName = 'รอบรู้'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -9283,6 +9729,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายธัชกร'
   AND m.lastName = 'ปัญญาอินทร์'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -9304,6 +9751,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวสกาวเดือน'
   AND m.lastName = 'งามพิง'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -9325,6 +9773,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวเสาวนีย์'
   AND m.lastName = 'นามอ้าย'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -9346,6 +9795,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวสุพัตรา'
   AND m.lastName = 'ฉางข้าวไชย'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -9367,6 +9817,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวหนึ่งฤทัย'
   AND m.lastName = 'พนาแสนใจ'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -9388,6 +9839,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาววราพร'
   AND m.lastName = 'สุยะ'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -9409,6 +9861,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายจักรพงษ์'
   AND m.lastName = 'ติ๊บเหล็ก'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -9430,6 +9883,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายรัฐพล'
   AND m.lastName = 'คำพงษ์'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -9451,6 +9905,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวจุฑานาถ'
   AND m.lastName = 'ทองล้วน'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -9472,6 +9927,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวณิชกานต์'
   AND m.lastName = 'ดีคำ'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -9493,6 +9949,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายเอกรัตน์'
   AND m.lastName = 'อายุยืน'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -9514,6 +9971,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาววรรณวิสา'
   AND m.lastName = 'กันทา'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -9535,6 +9993,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายจักรรินทร์'
   AND m.lastName = 'โฆษิตมุธากร'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -9556,6 +10015,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสางธัญธิญาพร'
   AND m.lastName = 'ก๋องแก้ว'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -9577,6 +10037,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวสุชัญญา'
   AND m.lastName = 'ทาทอง'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -9598,6 +10059,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายนัทธพงศ์'
   AND m.lastName = 'ยศวงศ์'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -9619,6 +10081,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวประพิมพ์พร'
   AND m.lastName = 'แก้วมาเมือง'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -9640,6 +10103,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวกนกวรรณ'
   AND m.lastName = 'ธีรโฆษิต'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -9661,6 +10125,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายนิธิรัตน์'
   AND m.lastName = 'สุดสม'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -9682,6 +10147,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวเสาวลักษณ์'
   AND m.lastName = 'บานเย็น'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -9703,6 +10169,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวมาลิสา'
   AND m.lastName = 'คำเงิน'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -9724,6 +10191,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายวิสาร'
   AND m.lastName = 'โลบันลือภพ'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -9745,6 +10213,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวจารุวรรณ'
   AND m.lastName = 'แซ่ฟุ้ง'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -9766,6 +10235,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวศศิธร'
   AND m.lastName = 'เชียวตา'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -9787,6 +10257,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายศราวุฒิ'
   AND m.lastName = 'ฝั้นก๋า'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -9808,6 +10279,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายจิรวัฒน์'
   AND m.lastName = 'วงศ์ประเสริฐ'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -9829,6 +10301,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวมณีวรรณ'
   AND m.lastName = 'คันธวังอินทร์'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -9850,6 +10323,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางกษมา'
   AND m.lastName = 'ทองสุวรรณ'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -9871,6 +10345,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวศรีวรรณ'
   AND m.lastName = 'ปอแฉ่'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -9892,6 +10367,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายยี่'
   AND m.lastName = 'คำอู๋'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -9913,6 +10389,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายแสง'
   AND m.lastName = 'บุญธีราโชติ'
   AND (s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -9934,6 +10411,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายชัชวาลย์'
   AND m.lastName = 'ใจอินทร์'
   AND (s.name = 'โรงเรียนบ้านจะตี  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านจะตี  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไ%' OR s.code = 'SCH_019_บ้านจะตี_กลุ่มเครือข')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -9955,6 +10433,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายสุริยา'
   AND m.lastName = 'วงษ์ตา'
   AND (s.name = 'โรงเรียนบ้านจะตี  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านจะตี  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไ%' OR s.code = 'SCH_019_บ้านจะตี_กลุ่มเครือข')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -9976,6 +10455,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวเบญจพร'
   AND m.lastName = 'พันธะเกษม'
   AND (s.name = 'โรงเรียนบ้านจะตี  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านจะตี  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไ%' OR s.code = 'SCH_019_บ้านจะตี_กลุ่มเครือข')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -9997,6 +10477,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายกิตติพงษ์'
   AND m.lastName = 'ไชยลังการ'
   AND (s.name = 'โรงเรียนบ้านจะตี  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านจะตี  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไ%' OR s.code = 'SCH_019_บ้านจะตี_กลุ่มเครือข')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -10018,6 +10499,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวอัจรียา'
   AND m.lastName = 'นนท์ศรี'
   AND (s.name = 'โรงเรียนบ้านจะตี  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านจะตี  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไ%' OR s.code = 'SCH_019_บ้านจะตี_กลุ่มเครือข')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -10039,6 +10521,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวจุฑารัตน์'
   AND m.lastName = 'คันทะเสน'
   AND (s.name = 'โรงเรียนบ้านจะตี  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านจะตี  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไ%' OR s.code = 'SCH_019_บ้านจะตี_กลุ่มเครือข')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -10060,6 +10543,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวเนตรนภา'
   AND m.lastName = 'เชื้อหมอ'
   AND (s.name = 'โรงเรียนบ้านจะตี  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านจะตี  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไ%' OR s.code = 'SCH_019_บ้านจะตี_กลุ่มเครือข')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -10081,6 +10565,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวเมธาวี'
   AND m.lastName = 'ขัติพรหม'
   AND (s.name = 'โรงเรียนบ้านจะตี  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านจะตี  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไ%' OR s.code = 'SCH_019_บ้านจะตี_กลุ่มเครือข')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -10102,6 +10587,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวธิติยา'
   AND m.lastName = 'ลก'
   AND (s.name = 'โรงเรียนบ้านจะตี  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านจะตี  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไ%' OR s.code = 'SCH_019_บ้านจะตี_กลุ่มเครือข')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -10123,6 +10609,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวชินาทร'
   AND m.lastName = 'บัวแดง'
   AND (s.name = 'โรงเรียนบ้านจะตี  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านจะตี  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไ%' OR s.code = 'SCH_019_บ้านจะตี_กลุ่มเครือข')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -10144,6 +10631,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายเนติพงศ์'
   AND m.lastName = 'เสาร์จันทร์'
   AND (s.name = 'โรงเรียนบ้านจะตี  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านจะตี  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไ%' OR s.code = 'SCH_019_บ้านจะตี_กลุ่มเครือข')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -10165,6 +10653,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายอนุชิต'
   AND m.lastName = 'ตันวงค์ษา'
   AND (s.name = 'โรงเรียนบ้านจะตี  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านจะตี  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไ%' OR s.code = 'SCH_019_บ้านจะตี_กลุ่มเครือข')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -10186,6 +10675,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาววรรณวลี'
   AND m.lastName = 'ดิถีเพ็ง'
   AND (s.name = 'โรงเรียนบ้านจะตี  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านจะตี  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไ%' OR s.code = 'SCH_019_บ้านจะตี_กลุ่มเครือข')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -10207,6 +10697,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายชุติพนธ์'
   AND m.lastName = 'สมบูรณ์วงษ์'
   AND (s.name = 'โรงเรียนบ้านจะตี  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านจะตี  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไ%' OR s.code = 'SCH_019_บ้านจะตี_กลุ่มเครือข')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -10228,6 +10719,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายภาณุพงศ์'
   AND m.lastName = 'กาสอน'
   AND (s.name = 'โรงเรียนบ้านจะตี  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านจะตี  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไ%' OR s.code = 'SCH_019_บ้านจะตี_กลุ่มเครือข')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -10249,6 +10741,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวภัสปชธร'
   AND m.lastName = 'แสนเป็ง'
   AND (s.name = 'โรงเรียนบ้านจะตี  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านจะตี  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไ%' OR s.code = 'SCH_019_บ้านจะตี_กลุ่มเครือข')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -10270,6 +10763,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวพัชรินธรณ์'
   AND m.lastName = 'รวมสุข'
   AND (s.name = 'โรงเรียนบ้านจะตี  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านจะตี  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไ%' OR s.code = 'SCH_019_บ้านจะตี_กลุ่มเครือข')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -10291,6 +10785,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวเปมิกา'
   AND m.lastName = 'เมอแล'
   AND (s.name = 'โรงเรียนบ้านจะตี  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านจะตี  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไ%' OR s.code = 'SCH_019_บ้านจะตี_กลุ่มเครือข')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -10312,6 +10807,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวอำพร'
   AND m.lastName = 'แลเชอะ'
   AND (s.name = 'โรงเรียนบ้านจะตี  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านจะตี  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไ%' OR s.code = 'SCH_019_บ้านจะตี_กลุ่มเครือข')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -10333,6 +10829,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายจะแฮ'
   AND m.lastName = 'มูยี'
   AND (s.name = 'โรงเรียนบ้านจะตี  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านจะตี  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไ%' OR s.code = 'SCH_019_บ้านจะตี_กลุ่มเครือข')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -10354,6 +10851,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายสุขสันต์'
   AND m.lastName = 'สอนนวล'
   AND (s.name = 'โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_020_บ้านพญาไพร_กลุ่มเครื')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -10375,6 +10873,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวปรียนันท์'
   AND m.lastName = 'ทิพากร'
   AND (s.name = 'โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_020_บ้านพญาไพร_กลุ่มเครื')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -10396,6 +10895,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายขวัญชัย'
   AND m.lastName = 'โกแสนตอ'
   AND (s.name = 'โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_020_บ้านพญาไพร_กลุ่มเครื')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -10417,6 +10917,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายชานนท์'
   AND m.lastName = 'จันต๊ะคาด'
   AND (s.name = 'โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_020_บ้านพญาไพร_กลุ่มเครื')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -10438,6 +10939,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางรพีพรรณ'
   AND m.lastName = 'มาลารัตน์'
   AND (s.name = 'โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_020_บ้านพญาไพร_กลุ่มเครื')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -10459,6 +10961,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวภัณฑิรา'
   AND m.lastName = 'เมืองปัญโญ'
   AND (s.name = 'โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_020_บ้านพญาไพร_กลุ่มเครื')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -10480,6 +10983,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายชาญณรงค์'
   AND m.lastName = 'โลดแจ้ง'
   AND (s.name = 'โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_020_บ้านพญาไพร_กลุ่มเครื')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -10501,6 +11005,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'ว่าที่'
   AND m.lastName = 'ร.ต.หญิงวิจิตรา เย็นจิตต์'
   AND (s.name = 'โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_020_บ้านพญาไพร_กลุ่มเครื')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -10522,6 +11027,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวมาลินี'
   AND m.lastName = 'ดอนมูล'
   AND (s.name = 'โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_020_บ้านพญาไพร_กลุ่มเครื')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -10543,6 +11049,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายสุรศักดิ์'
   AND m.lastName = 'เนตรทิพย์'
   AND (s.name = 'โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_020_บ้านพญาไพร_กลุ่มเครื')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -10564,6 +11071,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวศุภกานต์'
   AND m.lastName = 'ชื่นจิต'
   AND (s.name = 'โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_020_บ้านพญาไพร_กลุ่มเครื')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -10585,6 +11093,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวอรปรียา'
   AND m.lastName = 'กาแก้ว'
   AND (s.name = 'โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_020_บ้านพญาไพร_กลุ่มเครื')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -10606,6 +11115,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวนิลาวรรณ'
   AND m.lastName = 'สายพรหม'
   AND (s.name = 'โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_020_บ้านพญาไพร_กลุ่มเครื')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -10627,6 +11137,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายจารุกิตติ์'
   AND m.lastName = 'ยิ่งสมบูรณ์ชัย'
   AND (s.name = 'โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_020_บ้านพญาไพร_กลุ่มเครื')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -10648,6 +11159,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายเอกพงศ์'
   AND m.lastName = 'ใจต๊ะ'
   AND (s.name = 'โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_020_บ้านพญาไพร_กลุ่มเครื')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -10669,6 +11181,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายชัชพล'
   AND m.lastName = 'ลำดวน'
   AND (s.name = 'โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_020_บ้านพญาไพร_กลุ่มเครื')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -10690,6 +11203,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวกัญญาวีร์'
   AND m.lastName = 'เวียงมูล'
   AND (s.name = 'โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_020_บ้านพญาไพร_กลุ่มเครื')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -10711,6 +11225,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายปฏิภาณ'
   AND m.lastName = 'สมฟองทอง'
   AND (s.name = 'โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_020_บ้านพญาไพร_กลุ่มเครื')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -10732,6 +11247,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายณัฐพล'
   AND m.lastName = 'เหม็งทะเหล็ก'
   AND (s.name = 'โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_020_บ้านพญาไพร_กลุ่มเครื')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -10753,6 +11269,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวฐิตาภรณ์'
   AND m.lastName = 'สายอิ่นแก้ว'
   AND (s.name = 'โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_020_บ้านพญาไพร_กลุ่มเครื')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -10774,6 +11291,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายกรกฎ'
   AND m.lastName = 'โรจนนิจ'
   AND (s.name = 'โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_020_บ้านพญาไพร_กลุ่มเครื')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -10795,6 +11313,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวศิรินกรณ์'
   AND m.lastName = 'สุยะ'
   AND (s.name = 'โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_020_บ้านพญาไพร_กลุ่มเครื')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -10816,6 +11335,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวสุจินดา'
   AND m.lastName = 'ใจกล้า'
   AND (s.name = 'โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_020_บ้านพญาไพร_กลุ่มเครื')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -10837,6 +11357,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายพุฒิชัย'
   AND m.lastName = 'ไฝเครือ'
   AND (s.name = 'โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_020_บ้านพญาไพร_กลุ่มเครื')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -10858,6 +11379,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายภาณุพงค์'
   AND m.lastName = 'ยาจันทร์'
   AND (s.name = 'โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_020_บ้านพญาไพร_กลุ่มเครื')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -10879,6 +11401,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายฉัตรดนัย'
   AND m.lastName = 'ใยญาติ'
   AND (s.name = 'โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_020_บ้านพญาไพร_กลุ่มเครื')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -10900,6 +11423,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายเลอพงษ์'
   AND m.lastName = 'ปัญญาดี'
   AND (s.name = 'โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_020_บ้านพญาไพร_กลุ่มเครื')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -10921,6 +11445,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวจารุวรรณ'
   AND m.lastName = 'กันทะ'
   AND (s.name = 'โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_020_บ้านพญาไพร_กลุ่มเครื')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -10942,6 +11467,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายจายแสง'
   AND m.lastName = 'มอญคำ'
   AND (s.name = 'โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเท%' OR s.code = 'SCH_020_บ้านพญาไพร_กลุ่มเครื')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -10963,6 +11489,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายบรรหาญ'
   AND m.lastName = '—'
   AND (s.name = 'โรงเรียนบ้านกลาง   กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านกลาง   กลุ่มเครือข่ายพัฒนาการศึกษาดอยแ%' OR s.code = 'SCH_021_บ้านกลาง_กลุ่มเครือข')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -10984,6 +11511,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวพิมพ์พิชมญชุ์'
   AND m.lastName = '—'
   AND (s.name = 'โรงเรียนบ้านกลาง   กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านกลาง   กลุ่มเครือข่ายพัฒนาการศึกษาดอยแ%' OR s.code = 'SCH_021_บ้านกลาง_กลุ่มเครือข')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -11005,6 +11533,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวอัญชลี'
   AND m.lastName = '—'
   AND (s.name = 'โรงเรียนบ้านกลาง   กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านกลาง   กลุ่มเครือข่ายพัฒนาการศึกษาดอยแ%' OR s.code = 'SCH_021_บ้านกลาง_กลุ่มเครือข')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -11026,6 +11555,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวชไมพร'
   AND m.lastName = '—'
   AND (s.name = 'โรงเรียนบ้านกลาง   กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านกลาง   กลุ่มเครือข่ายพัฒนาการศึกษาดอยแ%' OR s.code = 'SCH_021_บ้านกลาง_กลุ่มเครือข')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -11047,6 +11577,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวสุพิชชา'
   AND m.lastName = '—'
   AND (s.name = 'โรงเรียนบ้านกลาง   กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านกลาง   กลุ่มเครือข่ายพัฒนาการศึกษาดอยแ%' OR s.code = 'SCH_021_บ้านกลาง_กลุ่มเครือข')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -11068,6 +11599,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายสมรัตชัย'
   AND m.lastName = '—'
   AND (s.name = 'โรงเรียนบ้านกลาง   กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านกลาง   กลุ่มเครือข่ายพัฒนาการศึกษาดอยแ%' OR s.code = 'SCH_021_บ้านกลาง_กลุ่มเครือข')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -11089,6 +11621,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวจันทรา'
   AND m.lastName = '—'
   AND (s.name = 'โรงเรียนบ้านกลาง   กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านกลาง   กลุ่มเครือข่ายพัฒนาการศึกษาดอยแ%' OR s.code = 'SCH_021_บ้านกลาง_กลุ่มเครือข')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -11110,6 +11643,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวพรอภิมล'
   AND m.lastName = '—'
   AND (s.name = 'โรงเรียนบ้านกลาง   กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านกลาง   กลุ่มเครือข่ายพัฒนาการศึกษาดอยแ%' OR s.code = 'SCH_021_บ้านกลาง_กลุ่มเครือข')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -11131,6 +11665,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวสโรชา'
   AND m.lastName = '—'
   AND (s.name = 'โรงเรียนบ้านกลาง   กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านกลาง   กลุ่มเครือข่ายพัฒนาการศึกษาดอยแ%' OR s.code = 'SCH_021_บ้านกลาง_กลุ่มเครือข')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -11152,6 +11687,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวสุรีย์รัตน์'
   AND m.lastName = '—'
   AND (s.name = 'โรงเรียนบ้านกลาง   กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านกลาง   กลุ่มเครือข่ายพัฒนาการศึกษาดอยแ%' OR s.code = 'SCH_021_บ้านกลาง_กลุ่มเครือข')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -11173,6 +11709,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายจักรกฤษณ์'
   AND m.lastName = '—'
   AND (s.name = 'โรงเรียนบ้านกลาง   กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านกลาง   กลุ่มเครือข่ายพัฒนาการศึกษาดอยแ%' OR s.code = 'SCH_021_บ้านกลาง_กลุ่มเครือข')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -11194,6 +11731,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายวรรณ์ธนัย'
   AND m.lastName = '—'
   AND (s.name = 'โรงเรียนบ้านกลาง   กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านกลาง   กลุ่มเครือข่ายพัฒนาการศึกษาดอยแ%' OR s.code = 'SCH_021_บ้านกลาง_กลุ่มเครือข')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -11215,6 +11753,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวสิริยากร'
   AND m.lastName = '—'
   AND (s.name = 'โรงเรียนบ้านกลาง   กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านกลาง   กลุ่มเครือข่ายพัฒนาการศึกษาดอยแ%' OR s.code = 'SCH_021_บ้านกลาง_กลุ่มเครือข')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -11236,6 +11775,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวลัดดาวัลย์'
   AND m.lastName = '—'
   AND (s.name = 'โรงเรียนบ้านกลาง   กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านกลาง   กลุ่มเครือข่ายพัฒนาการศึกษาดอยแ%' OR s.code = 'SCH_021_บ้านกลาง_กลุ่มเครือข')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -11257,6 +11797,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายนิคม'
   AND m.lastName = '—'
   AND (s.name = 'โรงเรียนบ้านกลาง   กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านกลาง   กลุ่มเครือข่ายพัฒนาการศึกษาดอยแ%' OR s.code = 'SCH_021_บ้านกลาง_กลุ่มเครือข')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -11278,6 +11819,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวณัจฉรียา'
   AND m.lastName = '—'
   AND (s.name = 'โรงเรียนบ้านกลาง   กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านกลาง   กลุ่มเครือข่ายพัฒนาการศึกษาดอยแ%' OR s.code = 'SCH_021_บ้านกลาง_กลุ่มเครือข')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -11299,6 +11841,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายวีระพงษ์'
   AND m.lastName = '—'
   AND (s.name = 'โรงเรียนบ้านกลาง   กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านกลาง   กลุ่มเครือข่ายพัฒนาการศึกษาดอยแ%' OR s.code = 'SCH_021_บ้านกลาง_กลุ่มเครือข')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -11320,6 +11863,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายกิตติพงษ์'
   AND m.lastName = '—'
   AND (s.name = 'โรงเรียนบ้านกลาง   กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านกลาง   กลุ่มเครือข่ายพัฒนาการศึกษาดอยแ%' OR s.code = 'SCH_021_บ้านกลาง_กลุ่มเครือข')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -11341,6 +11885,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวชโลทร'
   AND m.lastName = '—'
   AND (s.name = 'โรงเรียนบ้านกลาง   กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านกลาง   กลุ่มเครือข่ายพัฒนาการศึกษาดอยแ%' OR s.code = 'SCH_021_บ้านกลาง_กลุ่มเครือข')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -11362,6 +11907,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางนายยาแบ'
   AND m.lastName = '—'
   AND (s.name = 'โรงเรียนบ้านกลาง   กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านกลาง   กลุ่มเครือข่ายพัฒนาการศึกษาดอยแ%' OR s.code = 'SCH_021_บ้านกลาง_กลุ่มเครือข')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -11383,6 +11929,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายสมคิด'
   AND m.lastName = 'อนุเคราะห์'
   AND (s.name = 'โรงเรียนบ้านพนาสวรรค์ กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านพนาสวรรค์ กลุ่มเครือข่ายพัฒนาการศึกษาด%' OR s.code = 'SCH_022_บ้านพนาสวรรค์_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -11404,6 +11951,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายศรายุทธ'
   AND m.lastName = 'อุ่นใจ'
   AND (s.name = 'โรงเรียนบ้านพนาสวรรค์ กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านพนาสวรรค์ กลุ่มเครือข่ายพัฒนาการศึกษาด%' OR s.code = 'SCH_022_บ้านพนาสวรรค์_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -11425,6 +11973,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายจิตอิสรภาพ'
   AND m.lastName = 'ใจอารีย์'
   AND (s.name = 'โรงเรียนบ้านพนาสวรรค์ กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านพนาสวรรค์ กลุ่มเครือข่ายพัฒนาการศึกษาด%' OR s.code = 'SCH_022_บ้านพนาสวรรค์_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -11446,6 +11995,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายชญตว์'
   AND m.lastName = 'ปานนับร้อย'
   AND (s.name = 'โรงเรียนบ้านพนาสวรรค์ กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านพนาสวรรค์ กลุ่มเครือข่ายพัฒนาการศึกษาด%' OR s.code = 'SCH_022_บ้านพนาสวรรค์_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -11467,6 +12017,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวเกศรา'
   AND m.lastName = 'อินตาพรม'
   AND (s.name = 'โรงเรียนบ้านพนาสวรรค์ กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านพนาสวรรค์ กลุ่มเครือข่ายพัฒนาการศึกษาด%' OR s.code = 'SCH_022_บ้านพนาสวรรค์_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -11488,6 +12039,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวมุกดา'
   AND m.lastName = 'วารีขจร'
   AND (s.name = 'โรงเรียนบ้านพนาสวรรค์ กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านพนาสวรรค์ กลุ่มเครือข่ายพัฒนาการศึกษาด%' OR s.code = 'SCH_022_บ้านพนาสวรรค์_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -11509,6 +12061,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาววิรรณ'
   AND m.lastName = 'อย่างวรโชติ'
   AND (s.name = 'โรงเรียนบ้านพนาสวรรค์ กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านพนาสวรรค์ กลุ่มเครือข่ายพัฒนาการศึกษาด%' OR s.code = 'SCH_022_บ้านพนาสวรรค์_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -11530,6 +12083,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวมาติกา'
   AND m.lastName = 'จิระณชานนท์'
   AND (s.name = 'โรงเรียนบ้านพนาสวรรค์ กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านพนาสวรรค์ กลุ่มเครือข่ายพัฒนาการศึกษาด%' OR s.code = 'SCH_022_บ้านพนาสวรรค์_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -11551,6 +12105,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวริศรา'
   AND m.lastName = 'กรสวรรค์'
   AND (s.name = 'โรงเรียนบ้านพนาสวรรค์ กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านพนาสวรรค์ กลุ่มเครือข่ายพัฒนาการศึกษาด%' OR s.code = 'SCH_022_บ้านพนาสวรรค์_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -11572,6 +12127,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวหมี่ซาง'
   AND m.lastName = 'มาเยอะ'
   AND (s.name = 'โรงเรียนบ้านพนาสวรรค์ กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านพนาสวรรค์ กลุ่มเครือข่ายพัฒนาการศึกษาด%' OR s.code = 'SCH_022_บ้านพนาสวรรค์_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -11593,6 +12149,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายศิวนาถ'
   AND m.lastName = 'ประสาวะถา'
   AND (s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%' OR s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -11614,6 +12171,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายธนันชัย'
   AND m.lastName = 'พิพิธพงศ์สันต์'
   AND (s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%' OR s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -11635,6 +12193,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวปภัสสร'
   AND m.lastName = 'จงตรอง'
   AND (s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%' OR s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -11656,6 +12215,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวศิริลักษณ์'
   AND m.lastName = 'สุดแสวง'
   AND (s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%' OR s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -11677,6 +12237,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวศันสนีย์'
   AND m.lastName = 'เทพคำ'
   AND (s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%' OR s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -11698,6 +12259,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางพิชาภัส'
   AND m.lastName = 'วงค์จรณบูรณ์'
   AND (s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%' OR s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -11719,6 +12281,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวสุธัมวดี'
   AND m.lastName = 'ใจยะ'
   AND (s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%' OR s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -11740,6 +12303,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวกนกพร'
   AND m.lastName = 'ชุมภู'
   AND (s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%' OR s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -11761,6 +12325,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'ว่าที่ร้อยตรีหญิงอชิรญาณ์'
   AND m.lastName = 'สีชา'
   AND (s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%' OR s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -11782,6 +12347,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายนิวัฒ'
   AND m.lastName = 'บัวติ๊บ'
   AND (s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%' OR s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -11803,6 +12369,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวกิ่งกาญจน์'
   AND m.lastName = 'สายสูงเนิน'
   AND (s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%' OR s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -11824,6 +12391,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายเอกภพ'
   AND m.lastName = 'คำรส'
   AND (s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%' OR s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -11845,6 +12413,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายศุภการ'
   AND m.lastName = 'แก้วรากมุข'
   AND (s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%' OR s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -11866,6 +12435,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวณัฐวลัญช์'
   AND m.lastName = 'เรือนสอน'
   AND (s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%' OR s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -11887,6 +12457,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวณัฏฐนันท์'
   AND m.lastName = 'บำเพ็ญกุล'
   AND (s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%' OR s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -11908,6 +12479,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวนภาพร'
   AND m.lastName = 'สุขธงไชยกูล'
   AND (s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%' OR s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -11929,6 +12501,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวปาริชาติ'
   AND m.lastName = 'เพ็ชรพลอย'
   AND (s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%' OR s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -11950,6 +12523,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวชบาไพร'
   AND m.lastName = 'ปัญโญ'
   AND (s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%' OR s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -11971,6 +12545,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวสุฎาพร'
   AND m.lastName = 'ธนสารพิพัฒน์คุณ'
   AND (s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%' OR s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -11992,6 +12567,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวภิญญดา'
   AND m.lastName = 'ไชยวัง'
   AND (s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%' OR s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -12013,6 +12589,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวชรินทร์รัตน์'
   AND m.lastName = 'บุญเลา'
   AND (s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%' OR s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -12034,6 +12611,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายฌัชวิทย์'
   AND m.lastName = 'รัตนเดชา'
   AND (s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%' OR s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -12055,6 +12633,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวเมธาพร'
   AND m.lastName = 'ญาวิระ'
   AND (s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%' OR s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -12076,6 +12655,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายธนากร'
   AND m.lastName = 'แสนคำมา'
   AND (s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%' OR s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -12097,6 +12677,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายทรงภพ'
   AND m.lastName = 'ขุนยวมอนุรักษ์'
   AND (s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%' OR s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -12118,6 +12699,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวกันติยา'
   AND m.lastName = 'น่วมฟั่น'
   AND (s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%' OR s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -12139,6 +12721,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวนันทวัน'
   AND m.lastName = 'จันทรังษี'
   AND (s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%' OR s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -12160,6 +12743,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายพงษ์สิทธิ์'
   AND m.lastName = 'นันต๊ะภูมิ'
   AND (s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%' OR s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -12181,6 +12765,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวจุฑาลักษณ์'
   AND m.lastName = 'ศักดิ์เรืองฤทธิ์'
   AND (s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%' OR s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -12202,6 +12787,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวธัญญาลักษณ์'
   AND m.lastName = 'จินะเขียว'
   AND (s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%' OR s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -12223,6 +12809,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวสุภาวรรณ'
   AND m.lastName = 'อ่อนนวล'
   AND (s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%' OR s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -12244,6 +12831,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวเกศรินทร์'
   AND m.lastName = 'แสนคำหล่อ'
   AND (s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%' OR s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -12265,6 +12853,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวธัญญา'
   AND m.lastName = 'แหวนเพชร'
   AND (s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%' OR s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -12286,6 +12875,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวศิริลักษณ์'
   AND m.lastName = 'วงศ์ไชย'
   AND (s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%' OR s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -12307,6 +12897,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวนวลจันทร์'
   AND m.lastName = 'ชัยชนะ'
   AND (s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%' OR s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -12328,6 +12919,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'ว่าที่ร้อยตรีสุทธินันต์'
   AND m.lastName = 'สรรเสริญบุญ'
   AND (s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%' OR s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -12349,6 +12941,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวสิริวิมล'
   AND m.lastName = 'ปิ่นญาติ'
   AND (s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%' OR s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -12370,6 +12963,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวภูษณิศา'
   AND m.lastName = 'ยะโหนด'
   AND (s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%' OR s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -12391,6 +12985,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวอิชยา'
   AND m.lastName = 'บุญอินเขียว'
   AND (s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%' OR s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -12412,6 +13007,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวสุทามาศ'
   AND m.lastName = 'สุริยะวงศ์'
   AND (s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%' OR s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -12433,6 +13029,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางชนันทภรณ์'
   AND m.lastName = 'รูปะวิเชตร์'
   AND (s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%' OR s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -12454,6 +13051,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวสุกัญญา'
   AND m.lastName = 'แสงทอง'
   AND (s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%' OR s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -12475,6 +13073,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายธีรวัฒน์'
   AND m.lastName = 'แสนคำ'
   AND (s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%' OR s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -12496,6 +13095,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวสุภัสสร'
   AND m.lastName = 'ทิพย์อุบล'
   AND (s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%' OR s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -12517,6 +13117,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวเกษร'
   AND m.lastName = 'พิพิธพงศ์สันต์'
   AND (s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%' OR s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -12538,6 +13139,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวแดงน้อย'
   AND m.lastName = 'แซ่ย่าง'
   AND (s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%' OR s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -12559,6 +13161,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวเซียวกวง'
   AND m.lastName = 'แซ่จาง'
   AND (s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%' OR s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -12580,6 +13183,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางอาเซียว'
   AND m.lastName = 'มาเยอะ'
   AND (s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%' OR s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -12601,6 +13205,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายหล่อปา'
   AND m.lastName = 'หวุ่ยเมียะ'
   AND (s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%' OR s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -12622,6 +13227,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวกัญญา'
   AND m.lastName = 'ยาผ่า'
   AND (s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%' OR s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -12643,6 +13249,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายหล่อโย'
   AND m.lastName = '—'
   AND (s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%' OR s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -12664,6 +13271,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวหมี่ซอ'
   AND m.lastName = 'เชกอ'
   AND (s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%' OR s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -12685,6 +13293,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายณัฐวุฒิ'
   AND m.lastName = 'ม่านอินทนิล'
   AND (s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%' OR s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -12706,6 +13315,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวพรทิพย์'
   AND m.lastName = 'หวุ่ยยือกู่'
   AND (s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%' OR s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -12727,6 +13337,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวจวงจันทร์'
   AND m.lastName = 'เชอมือ'
   AND (s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%' OR s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -12748,6 +13359,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายมานะ'
   AND m.lastName = 'เรืองสา'
   AND (s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%' OR s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -12769,6 +13381,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวหมี่จู'
   AND m.lastName = 'มาเยอะ'
   AND (s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%' OR s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -12790,6 +13403,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวฤดี'
   AND m.lastName = 'โสเช'
   AND (s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%' OR s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -12811,6 +13425,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางบุญชนิต'
   AND m.lastName = 'ธรรมสาร'
   AND (s.name = 'โรงเรียนราษฎร์พัฒนา กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนราษฎร์พัฒนา กลุ่มเครือข่ายพัฒนาการศึกษาดอย%' OR s.code = 'SCH_024_ราษฎร์พัฒนา_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -12832,6 +13447,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวอังคณา'
   AND m.lastName = 'ยานะตระกูล'
   AND (s.name = 'โรงเรียนราษฎร์พัฒนา กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนราษฎร์พัฒนา กลุ่มเครือข่ายพัฒนาการศึกษาดอย%' OR s.code = 'SCH_024_ราษฎร์พัฒนา_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -12853,6 +13469,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวศิริพร'
   AND m.lastName = 'สวัสดิ์สุข'
   AND (s.name = 'โรงเรียนราษฎร์พัฒนา กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนราษฎร์พัฒนา กลุ่มเครือข่ายพัฒนาการศึกษาดอย%' OR s.code = 'SCH_024_ราษฎร์พัฒนา_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -12874,6 +13491,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวเวฬุวัน'
   AND m.lastName = 'ดีศรี'
   AND (s.name = 'โรงเรียนราษฎร์พัฒนา กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนราษฎร์พัฒนา กลุ่มเครือข่ายพัฒนาการศึกษาดอย%' OR s.code = 'SCH_024_ราษฎร์พัฒนา_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -12895,6 +13513,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวภัควลัญชน์'
   AND m.lastName = 'ผาบพิชวงศ์'
   AND (s.name = 'โรงเรียนราษฎร์พัฒนา กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนราษฎร์พัฒนา กลุ่มเครือข่ายพัฒนาการศึกษาดอย%' OR s.code = 'SCH_024_ราษฎร์พัฒนา_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -12916,6 +13535,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวรัตนวดี'
   AND m.lastName = 'ศรีมา'
   AND (s.name = 'โรงเรียนราษฎร์พัฒนา กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนราษฎร์พัฒนา กลุ่มเครือข่ายพัฒนาการศึกษาดอย%' OR s.code = 'SCH_024_ราษฎร์พัฒนา_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -12937,6 +13557,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายจิรภัทร'
   AND m.lastName = 'แสนศักดิ์หาญ'
   AND (s.name = 'โรงเรียนราษฎร์พัฒนา กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนราษฎร์พัฒนา กลุ่มเครือข่ายพัฒนาการศึกษาดอย%' OR s.code = 'SCH_024_ราษฎร์พัฒนา_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -12958,6 +13579,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวสุธารทิพย์'
   AND m.lastName = 'วุยแบ'
   AND (s.name = 'โรงเรียนราษฎร์พัฒนา กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนราษฎร์พัฒนา กลุ่มเครือข่ายพัฒนาการศึกษาดอย%' OR s.code = 'SCH_024_ราษฎร์พัฒนา_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -12979,6 +13601,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายชนนภูมิ'
   AND m.lastName = 'เดชเดิม'
   AND (s.name = 'โรงเรียนราษฎร์พัฒนา กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนราษฎร์พัฒนา กลุ่มเครือข่ายพัฒนาการศึกษาดอย%' OR s.code = 'SCH_024_ราษฎร์พัฒนา_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -13000,6 +13623,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายวรภัทร'
   AND m.lastName = 'จันทร์สิริทอง'
   AND (s.name = 'โรงเรียนราษฎร์พัฒนา กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนราษฎร์พัฒนา กลุ่มเครือข่ายพัฒนาการศึกษาดอย%' OR s.code = 'SCH_024_ราษฎร์พัฒนา_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -13021,6 +13645,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายยุทธนา'
   AND m.lastName = 'กันทาเดช'
   AND (s.name = 'โรงเรียนบ้านแม่เต๋อ กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านแม่เต๋อ กลุ่มเครือข่ายพัฒนาการศึกษาดอย%' OR s.code = 'SCH_025_บ้านแม่เต๋อ_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -13042,6 +13667,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายธีร์วรา'
   AND m.lastName = 'ใจเย็น'
   AND (s.name = 'โรงเรียนบ้านแม่เต๋อ กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านแม่เต๋อ กลุ่มเครือข่ายพัฒนาการศึกษาดอย%' OR s.code = 'SCH_025_บ้านแม่เต๋อ_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -13063,6 +13689,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวสุวิมล'
   AND m.lastName = 'ศรีคำ'
   AND (s.name = 'โรงเรียนบ้านแม่เต๋อ กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านแม่เต๋อ กลุ่มเครือข่ายพัฒนาการศึกษาดอย%' OR s.code = 'SCH_025_บ้านแม่เต๋อ_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -13084,6 +13711,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวอรอุมา'
   AND m.lastName = 'ไชยชิน'
   AND (s.name = 'โรงเรียนบ้านแม่เต๋อ กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านแม่เต๋อ กลุ่มเครือข่ายพัฒนาการศึกษาดอย%' OR s.code = 'SCH_025_บ้านแม่เต๋อ_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -13105,6 +13733,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวอาคิรา'
   AND m.lastName = 'อุทธิยา'
   AND (s.name = 'โรงเรียนบ้านแม่เต๋อ กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านแม่เต๋อ กลุ่มเครือข่ายพัฒนาการศึกษาดอย%' OR s.code = 'SCH_025_บ้านแม่เต๋อ_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -13126,6 +13755,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายอัฒชัย'
   AND m.lastName = 'ใจเผิน'
   AND (s.name = 'โรงเรียนบ้านแม่เต๋อ กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านแม่เต๋อ กลุ่มเครือข่ายพัฒนาการศึกษาดอย%' OR s.code = 'SCH_025_บ้านแม่เต๋อ_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -13147,6 +13777,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวเก็จมณี'
   AND m.lastName = 'กวางกระโดด'
   AND (s.name = 'โรงเรียนบ้านแม่เต๋อ กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านแม่เต๋อ กลุ่มเครือข่ายพัฒนาการศึกษาดอย%' OR s.code = 'SCH_025_บ้านแม่เต๋อ_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -13168,6 +13799,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายสุรศักดิ์'
   AND m.lastName = 'กานิล'
   AND (s.name = 'โรงเรียนบ้านแม่เต๋อ กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านแม่เต๋อ กลุ่มเครือข่ายพัฒนาการศึกษาดอย%' OR s.code = 'SCH_025_บ้านแม่เต๋อ_กลุ่มเคร')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -13189,6 +13821,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'โรเรียนบ้านใหม่สันติ'
   AND m.lastName = 'กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง'
   AND (s.name = 'รร.บ้านใหม่สันติ' OR s.name LIKE '%รร.บ้านใหม่สันติ%' OR s.code = 'SCH_026_รร.บ้านใหม่สันติ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -13210,6 +13843,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายเอกชัย'
   AND m.lastName = 'ใจอ้าย'
   AND (s.name = 'รร.บ้านใหม่สันติ' OR s.name LIKE '%รร.บ้านใหม่สันติ%' OR s.code = 'SCH_026_รร.บ้านใหม่สันติ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -13231,6 +13865,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายเอกรัฐ'
   AND m.lastName = 'น้อยมา'
   AND (s.name = 'รร.บ้านใหม่สันติ' OR s.name LIKE '%รร.บ้านใหม่สันติ%' OR s.code = 'SCH_026_รร.บ้านใหม่สันติ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -13252,6 +13887,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวกะรัต'
   AND m.lastName = 'รัตนจำเริญ'
   AND (s.name = 'รร.บ้านใหม่สันติ' OR s.name LIKE '%รร.บ้านใหม่สันติ%' OR s.code = 'SCH_026_รร.บ้านใหม่สันติ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -13273,6 +13909,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวชนัญธิดา'
   AND m.lastName = 'นุธรรม'
   AND (s.name = 'รร.บ้านใหม่สันติ' OR s.name LIKE '%รร.บ้านใหม่สันติ%' OR s.code = 'SCH_026_รร.บ้านใหม่สันติ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -13294,6 +13931,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายธนรัฐ'
   AND m.lastName = 'วรรณดี'
   AND (s.name = 'รร.บ้านใหม่สันติ' OR s.name LIKE '%รร.บ้านใหม่สันติ%' OR s.code = 'SCH_026_รร.บ้านใหม่สันติ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -13315,6 +13953,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวปัฐภัธ'
   AND m.lastName = 'ญาณพันธ์'
   AND (s.name = 'รร.บ้านใหม่สันติ' OR s.name LIKE '%รร.บ้านใหม่สันติ%' OR s.code = 'SCH_026_รร.บ้านใหม่สันติ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -13336,6 +13975,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวอริญช์ณิชา'
   AND m.lastName = 'เดชธนาอัครพงศ์'
   AND (s.name = 'รร.บ้านใหม่สันติ' OR s.name LIKE '%รร.บ้านใหม่สันติ%' OR s.code = 'SCH_026_รร.บ้านใหม่สันติ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -13357,6 +13997,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาววรรณกานต์'
   AND m.lastName = 'กะโพ'
   AND (s.name = 'รร.บ้านใหม่สันติ' OR s.name LIKE '%รร.บ้านใหม่สันติ%' OR s.code = 'SCH_026_รร.บ้านใหม่สันติ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -13378,6 +14019,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'ว่าที่ร้อยตรีเนติพงษ์'
   AND m.lastName = 'จักรดี'
   AND (s.name = 'รร.บ้านใหม่สันติ' OR s.name LIKE '%รร.บ้านใหม่สันติ%' OR s.code = 'SCH_026_รร.บ้านใหม่สันติ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -13399,6 +14041,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายสมศักดิ์'
   AND m.lastName = 'อุดมประสิทธิ์'
   AND (s.name = 'รร.บ้านใหม่สันติ' OR s.name LIKE '%รร.บ้านใหม่สันติ%' OR s.code = 'SCH_026_รร.บ้านใหม่สันติ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -13420,6 +14063,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวพิมพ์ภัช'
   AND m.lastName = 'แสงดาว'
   AND (s.name = 'รร.บ้านใหม่สันติ' OR s.name LIKE '%รร.บ้านใหม่สันติ%' OR s.code = 'SCH_026_รร.บ้านใหม่สันติ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -13441,6 +14085,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายหล้า'
   AND m.lastName = 'พรมใจ'
   AND (s.name = 'รร.บ้านใหม่สันติ' OR s.name LIKE '%รร.บ้านใหม่สันติ%' OR s.code = 'SCH_026_รร.บ้านใหม่สันติ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -13462,6 +14107,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางเงิน'
   AND m.lastName = 'พรใจ'
   AND (s.name = 'รร.บ้านใหม่สันติ' OR s.name LIKE '%รร.บ้านใหม่สันติ%' OR s.code = 'SCH_026_รร.บ้านใหม่สันติ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -13483,6 +14129,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายศุภโชค'
   AND m.lastName = 'ปิยะสันติ์'
   AND (s.name = 'โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศึกษาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศ%' OR s.code = 'SCH_027_บ้านห้วยไร่สามัคคี_ก')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -13504,6 +14151,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวณัฐรดี'
   AND m.lastName = 'สิทธิกัน'
   AND (s.name = 'โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศึกษาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศ%' OR s.code = 'SCH_027_บ้านห้วยไร่สามัคคี_ก')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -13525,6 +14173,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางขวัญจิตร'
   AND m.lastName = 'จันทิพย์'
   AND (s.name = 'โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศึกษาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศ%' OR s.code = 'SCH_027_บ้านห้วยไร่สามัคคี_ก')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -13546,6 +14195,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางทศพร'
   AND m.lastName = 'สมยง'
   AND (s.name = 'โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศึกษาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศ%' OR s.code = 'SCH_027_บ้านห้วยไร่สามัคคี_ก')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -13567,6 +14217,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายพนม'
   AND m.lastName = 'สมยง'
   AND (s.name = 'โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศึกษาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศ%' OR s.code = 'SCH_027_บ้านห้วยไร่สามัคคี_ก')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -13588,6 +14239,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาววิลาวัลย์'
   AND m.lastName = 'อุ่นนันกาศ'
   AND (s.name = 'โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศึกษาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศ%' OR s.code = 'SCH_027_บ้านห้วยไร่สามัคคี_ก')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -13609,6 +14261,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายชาญชัย'
   AND m.lastName = 'ก้อใจ'
   AND (s.name = 'โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศึกษาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศ%' OR s.code = 'SCH_027_บ้านห้วยไร่สามัคคี_ก')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -13630,6 +14283,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางรุ่งทิวา'
   AND m.lastName = 'จันทาพูน'
   AND (s.name = 'โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศึกษาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศ%' OR s.code = 'SCH_027_บ้านห้วยไร่สามัคคี_ก')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -13651,6 +14305,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางจันจิรา'
   AND m.lastName = 'ชัยภูวนารถ'
   AND (s.name = 'โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศึกษาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศ%' OR s.code = 'SCH_027_บ้านห้วยไร่สามัคคี_ก')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -13672,6 +14327,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวธมลวรรณ'
   AND m.lastName = 'มากปรางค์'
   AND (s.name = 'โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศึกษาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศ%' OR s.code = 'SCH_027_บ้านห้วยไร่สามัคคี_ก')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -13693,6 +14349,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายวัชรินทร์'
   AND m.lastName = 'ฤทธิรักษ์'
   AND (s.name = 'โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศึกษาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศ%' OR s.code = 'SCH_027_บ้านห้วยไร่สามัคคี_ก')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -13714,6 +14371,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายอนุศักดิ์'
   AND m.lastName = 'ฮงประยูร'
   AND (s.name = 'โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศึกษาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศ%' OR s.code = 'SCH_027_บ้านห้วยไร่สามัคคี_ก')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -13735,6 +14393,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวณัฐชยา'
   AND m.lastName = 'ปันก่อ'
   AND (s.name = 'โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศึกษาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศ%' OR s.code = 'SCH_027_บ้านห้วยไร่สามัคคี_ก')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -13756,6 +14415,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวภิญประภา'
   AND m.lastName = 'ใจทน'
   AND (s.name = 'โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศึกษาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศ%' OR s.code = 'SCH_027_บ้านห้วยไร่สามัคคี_ก')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -13777,6 +14437,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวเสาวลักษณ์'
   AND m.lastName = 'นาใจ'
   AND (s.name = 'โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศึกษาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศ%' OR s.code = 'SCH_027_บ้านห้วยไร่สามัคคี_ก')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -13798,6 +14459,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายมนตรี'
   AND m.lastName = 'คำเงิน'
   AND (s.name = 'โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศึกษาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศ%' OR s.code = 'SCH_027_บ้านห้วยไร่สามัคคี_ก')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -13819,6 +14481,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายภาณุพงศ์'
   AND m.lastName = 'เปาวัลย์'
   AND (s.name = 'โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศึกษาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศ%' OR s.code = 'SCH_027_บ้านห้วยไร่สามัคคี_ก')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -13840,6 +14503,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายมงคล'
   AND m.lastName = 'ดิลกอุดมฤกษ์'
   AND (s.name = 'โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศึกษาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศ%' OR s.code = 'SCH_027_บ้านห้วยไร่สามัคคี_ก')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -13861,6 +14525,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวกัลยารัตน์'
   AND m.lastName = 'อนุรุส'
   AND (s.name = 'โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศึกษาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศ%' OR s.code = 'SCH_027_บ้านห้วยไร่สามัคคี_ก')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -13882,6 +14547,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวกมลวรรณ'
   AND m.lastName = 'สุวรรณมงคล'
   AND (s.name = 'โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศึกษาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศ%' OR s.code = 'SCH_027_บ้านห้วยไร่สามัคคี_ก')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -13903,6 +14569,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวปวีณา'
   AND m.lastName = 'คำฟู'
   AND (s.name = 'โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศึกษาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศ%' OR s.code = 'SCH_027_บ้านห้วยไร่สามัคคี_ก')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -13924,6 +14591,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวนงลักษณ์'
   AND m.lastName = 'บุญระชัยสวรรค์'
   AND (s.name = 'โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศึกษาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศ%' OR s.code = 'SCH_027_บ้านห้วยไร่สามัคคี_ก')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -13945,6 +14613,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวกิตติลักษณ์'
   AND m.lastName = 'วงษาหาร'
   AND (s.name = 'โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศึกษาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศ%' OR s.code = 'SCH_027_บ้านห้วยไร่สามัคคี_ก')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -13966,6 +14635,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายเกรียงไกร'
   AND m.lastName = 'ไชยวงค์'
   AND (s.name = 'โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศึกษาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศ%' OR s.code = 'SCH_027_บ้านห้วยไร่สามัคคี_ก')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -13987,6 +14657,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวกนกวรรณ'
   AND m.lastName = 'จันทร์เนตร'
   AND (s.name = 'โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศึกษาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศ%' OR s.code = 'SCH_027_บ้านห้วยไร่สามัคคี_ก')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -14008,6 +14679,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายพริษศ์'
   AND m.lastName = 'ไพรี'
   AND (s.name = 'โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศึกษาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศ%' OR s.code = 'SCH_027_บ้านห้วยไร่สามัคคี_ก')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -14029,6 +14701,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวจิรัญญา'
   AND m.lastName = 'ร่องตอง'
   AND (s.name = 'โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศึกษาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศ%' OR s.code = 'SCH_027_บ้านห้วยไร่สามัคคี_ก')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -14050,6 +14723,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวปียาภรณ์'
   AND m.lastName = 'กิ่งแก้ว'
   AND (s.name = 'โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศึกษาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศ%' OR s.code = 'SCH_027_บ้านห้วยไร่สามัคคี_ก')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -14071,6 +14745,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางลัดดาวัลย์'
   AND m.lastName = 'ไสยวรรณ์'
   AND (s.name = 'โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศึกษาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศ%' OR s.code = 'SCH_027_บ้านห้วยไร่สามัคคี_ก')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -14092,6 +14767,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายอานนท์'
   AND m.lastName = 'ทะนุตัน'
   AND (s.name = 'โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศึกษาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศ%' OR s.code = 'SCH_027_บ้านห้วยไร่สามัคคี_ก')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -14113,6 +14789,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวมณีวรรณ'
   AND m.lastName = 'ชมภูสมษา'
   AND (s.name = 'โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศึกษาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศ%' OR s.code = 'SCH_027_บ้านห้วยไร่สามัคคี_ก')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -14134,6 +14811,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายนัฝทาลี'
   AND m.lastName = 'กิตติคุณรุ่งเรือง'
   AND (s.name = 'โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศึกษาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศ%' OR s.code = 'SCH_027_บ้านห้วยไร่สามัคคี_ก')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -14155,6 +14833,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวจันจิรา'
   AND m.lastName = 'พิมดี'
   AND (s.name = 'โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศึกษาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศ%' OR s.code = 'SCH_027_บ้านห้วยไร่สามัคคี_ก')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -14176,6 +14855,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวศิริพร'
   AND m.lastName = 'ดวงดี'
   AND (s.name = 'โรงเรียนตำรวจตระเวนชายแดนศรีสมวงศ์ กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนตำรวจตระเวนชายแดนศรีสมวงศ์ กลุ่มเครือข่ายพ%' OR s.code = 'SCH_028_ตำรวจตระเวนชายแดนศรี')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -14197,6 +14877,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายไพรัช'
   AND m.lastName = 'สุขเกษม'
   AND (s.name = 'โรงเรียนตำรวจตระเวนชายแดนศรีสมวงศ์ กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนตำรวจตระเวนชายแดนศรีสมวงศ์ กลุ่มเครือข่ายพ%' OR s.code = 'SCH_028_ตำรวจตระเวนชายแดนศรี')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -14218,6 +14899,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวอารียา'
   AND m.lastName = 'วงค์วุฒิ'
   AND (s.name = 'โรงเรียนตำรวจตระเวนชายแดนศรีสมวงศ์ กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนตำรวจตระเวนชายแดนศรีสมวงศ์ กลุ่มเครือข่ายพ%' OR s.code = 'SCH_028_ตำรวจตระเวนชายแดนศรี')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -14239,6 +14921,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวจารุวรรณ'
   AND m.lastName = 'จันวัน'
   AND (s.name = 'โรงเรียนตำรวจตระเวนชายแดนศรีสมวงศ์ กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนตำรวจตระเวนชายแดนศรีสมวงศ์ กลุ่มเครือข่ายพ%' OR s.code = 'SCH_028_ตำรวจตระเวนชายแดนศรี')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -14260,6 +14943,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวสาริกา'
   AND m.lastName = 'มาลา'
   AND (s.name = 'โรงเรียนตำรวจตระเวนชายแดนศรีสมวงศ์ กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนตำรวจตระเวนชายแดนศรีสมวงศ์ กลุ่มเครือข่ายพ%' OR s.code = 'SCH_028_ตำรวจตระเวนชายแดนศรี')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -14281,6 +14965,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวปานทิพย์'
   AND m.lastName = 'จินะโกษฐ์'
   AND (s.name = 'โรงเรียนตำรวจตระเวนชายแดนศรีสมวงศ์ กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนตำรวจตระเวนชายแดนศรีสมวงศ์ กลุ่มเครือข่ายพ%' OR s.code = 'SCH_028_ตำรวจตระเวนชายแดนศรี')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -14302,6 +14987,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวทิพย์อัปสร'
   AND m.lastName = 'ลาวิชัย'
   AND (s.name = 'โรงเรียนตำรวจตระเวนชายแดนศรีสมวงศ์ กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนตำรวจตระเวนชายแดนศรีสมวงศ์ กลุ่มเครือข่ายพ%' OR s.code = 'SCH_028_ตำรวจตระเวนชายแดนศรี')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -14323,6 +15009,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายไกรสร'
   AND m.lastName = 'หลีทำ'
   AND (s.name = 'โรงเรียนตำรวจตระเวนชายแดนศรีสมวงศ์ กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนตำรวจตระเวนชายแดนศรีสมวงศ์ กลุ่มเครือข่ายพ%' OR s.code = 'SCH_028_ตำรวจตระเวนชายแดนศรี')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -14344,6 +15031,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวสุมาลัย'
   AND m.lastName = 'อามอ'
   AND (s.name = 'โรงเรียนตำรวจตระเวนชายแดนศรีสมวงศ์ กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนตำรวจตระเวนชายแดนศรีสมวงศ์ กลุ่มเครือข่ายพ%' OR s.code = 'SCH_028_ตำรวจตระเวนชายแดนศรี')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -14365,6 +15053,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวจิรัชญา'
   AND m.lastName = 'ผาลา'
   AND (s.name = 'โรงเรียนบ้านป่าซางนาเงิน กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านป่าซางนาเงิน กลุ่มเครือข่ายพัฒนาการศึก%' OR s.code = 'SCH_029_บ้านป่าซางนาเงิน_กลุ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -14386,6 +15075,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวจารุวรรณ'
   AND m.lastName = 'สิงห์เชื้อ'
   AND (s.name = 'โรงเรียนบ้านป่าซางนาเงิน กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านป่าซางนาเงิน กลุ่มเครือข่ายพัฒนาการศึก%' OR s.code = 'SCH_029_บ้านป่าซางนาเงิน_กลุ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -14407,6 +15097,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางธนิดา'
   AND m.lastName = 'แก้วคำฟู'
   AND (s.name = 'โรงเรียนบ้านป่าซางนาเงิน กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านป่าซางนาเงิน กลุ่มเครือข่ายพัฒนาการศึก%' OR s.code = 'SCH_029_บ้านป่าซางนาเงิน_กลุ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -14428,6 +15119,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายนควัฒน์'
   AND m.lastName = 'กุณะด้วง'
   AND (s.name = 'โรงเรียนบ้านป่าซางนาเงิน กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านป่าซางนาเงิน กลุ่มเครือข่ายพัฒนาการศึก%' OR s.code = 'SCH_029_บ้านป่าซางนาเงิน_กลุ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -14449,6 +15141,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวธิษตยา'
   AND m.lastName = 'ภิระบัน'
   AND (s.name = 'โรงเรียนบ้านป่าซางนาเงิน กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านป่าซางนาเงิน กลุ่มเครือข่ายพัฒนาการศึก%' OR s.code = 'SCH_029_บ้านป่าซางนาเงิน_กลุ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -14470,6 +15163,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวธิดาวรรณ'
   AND m.lastName = 'ทองใบ'
   AND (s.name = 'โรงเรียนบ้านป่าซางนาเงิน กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านป่าซางนาเงิน กลุ่มเครือข่ายพัฒนาการศึก%' OR s.code = 'SCH_029_บ้านป่าซางนาเงิน_กลุ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -14491,6 +15185,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวณัฐชยา'
   AND m.lastName = 'สุริยะ'
   AND (s.name = 'โรงเรียนบ้านป่าซางนาเงิน กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านป่าซางนาเงิน กลุ่มเครือข่ายพัฒนาการศึก%' OR s.code = 'SCH_029_บ้านป่าซางนาเงิน_กลุ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -14512,6 +15207,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวสกุลรัตน์'
   AND m.lastName = 'โมงยาม'
   AND (s.name = 'โรงเรียนบ้านป่าซางนาเงิน กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านป่าซางนาเงิน กลุ่มเครือข่ายพัฒนาการศึก%' OR s.code = 'SCH_029_บ้านป่าซางนาเงิน_กลุ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -14533,6 +15229,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวศิริพร'
   AND m.lastName = 'พะเงาะ'
   AND (s.name = 'โรงเรียนบ้านป่าซางนาเงิน กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านป่าซางนาเงิน กลุ่มเครือข่ายพัฒนาการศึก%' OR s.code = 'SCH_029_บ้านป่าซางนาเงิน_กลุ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -14554,6 +15251,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวนฤภร'
   AND m.lastName = 'ทามัน'
   AND (s.name = 'โรงเรียนบ้านป่าซางนาเงิน กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านป่าซางนาเงิน กลุ่มเครือข่ายพัฒนาการศึก%' OR s.code = 'SCH_029_บ้านป่าซางนาเงิน_กลุ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -14575,6 +15273,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายศิริมงคล'
   AND m.lastName = 'อูปคำ'
   AND (s.name = 'โรงเรียนบ้านป่าซางนาเงิน กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านป่าซางนาเงิน กลุ่มเครือข่ายพัฒนาการศึก%' OR s.code = 'SCH_029_บ้านป่าซางนาเงิน_กลุ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -14596,6 +15295,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวมุกดา'
   AND m.lastName = 'อศิกุล'
   AND (s.name = 'โรงเรียนบ้านป่าซางนาเงิน กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านป่าซางนาเงิน กลุ่มเครือข่ายพัฒนาการศึก%' OR s.code = 'SCH_029_บ้านป่าซางนาเงิน_กลุ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -14617,6 +15317,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวสรันดา'
   AND m.lastName = 'วงค์นาง'
   AND (s.name = 'โรงเรียนบ้านป่าซางนาเงิน กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านป่าซางนาเงิน กลุ่มเครือข่ายพัฒนาการศึก%' OR s.code = 'SCH_029_บ้านป่าซางนาเงิน_กลุ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -14638,6 +15339,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'ว่าที่ร้อยตรีหญิงอมรรัตน์'
   AND m.lastName = 'นันทิยา'
   AND (s.name = 'โรงเรียนบ้านป่าซางนาเงิน กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านป่าซางนาเงิน กลุ่มเครือข่ายพัฒนาการศึก%' OR s.code = 'SCH_029_บ้านป่าซางนาเงิน_กลุ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -14659,6 +15361,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวศุภนิช'
   AND m.lastName = 'มูลทาศรี'
   AND (s.name = 'โรงเรียนบ้านป่าซางนาเงิน กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านป่าซางนาเงิน กลุ่มเครือข่ายพัฒนาการศึก%' OR s.code = 'SCH_029_บ้านป่าซางนาเงิน_กลุ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -14680,6 +15383,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวประทุมพร'
   AND m.lastName = 'พรรณมณีพร'
   AND (s.name = 'โรงเรียนบ้านป่าซางนาเงิน กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านป่าซางนาเงิน กลุ่มเครือข่ายพัฒนาการศึก%' OR s.code = 'SCH_029_บ้านป่าซางนาเงิน_กลุ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -14701,6 +15405,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวนารี'
   AND m.lastName = 'ต้องสู้คีรี'
   AND (s.name = 'โรงเรียนบ้านป่าซางนาเงิน กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านป่าซางนาเงิน กลุ่มเครือข่ายพัฒนาการศึก%' OR s.code = 'SCH_029_บ้านป่าซางนาเงิน_กลุ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -14722,6 +15427,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวอัมพร'
   AND m.lastName = 'พร้อมชัยศรี'
   AND (s.name = 'โรงเรียนบ้านป่าซางนาเงิน กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านป่าซางนาเงิน กลุ่มเครือข่ายพัฒนาการศึก%' OR s.code = 'SCH_029_บ้านป่าซางนาเงิน_กลุ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -14743,6 +15449,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายนพฤทธิ์'
   AND m.lastName = 'มาเยอะ'
   AND (s.name = 'โรงเรียนบ้านป่าซางนาเงิน กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านป่าซางนาเงิน กลุ่มเครือข่ายพัฒนาการศึก%' OR s.code = 'SCH_029_บ้านป่าซางนาเงิน_กลุ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -14764,6 +15471,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายนิรุตต์'
   AND m.lastName = 'ชัยมณี'
   AND (s.name = 'โรงเรียนอนุบาลแม่ฟ้าหลวง กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนอนุบาลแม่ฟ้าหลวง กลุ่มเครือข่ายพัฒนาการศึก%' OR s.code = 'SCH_030_อนุบาลแม่ฟ้าหลวง_กลุ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -14785,6 +15493,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายสวาท'
   AND m.lastName = 'เย็นใจมา'
   AND (s.name = 'โรงเรียนอนุบาลแม่ฟ้าหลวง กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนอนุบาลแม่ฟ้าหลวง กลุ่มเครือข่ายพัฒนาการศึก%' OR s.code = 'SCH_030_อนุบาลแม่ฟ้าหลวง_กลุ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -14806,6 +15515,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางอัมพร'
   AND m.lastName = 'วสันต์'
   AND (s.name = 'โรงเรียนอนุบาลแม่ฟ้าหลวง กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนอนุบาลแม่ฟ้าหลวง กลุ่มเครือข่ายพัฒนาการศึก%' OR s.code = 'SCH_030_อนุบาลแม่ฟ้าหลวง_กลุ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -14827,6 +15537,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายสุทธิพันธ์'
   AND m.lastName = 'ดวงสุข'
   AND (s.name = 'โรงเรียนอนุบาลแม่ฟ้าหลวง กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนอนุบาลแม่ฟ้าหลวง กลุ่มเครือข่ายพัฒนาการศึก%' OR s.code = 'SCH_030_อนุบาลแม่ฟ้าหลวง_กลุ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -14848,6 +15559,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายวุฒิชัย'
   AND m.lastName = 'กันใจ'
   AND (s.name = 'โรงเรียนอนุบาลแม่ฟ้าหลวง กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนอนุบาลแม่ฟ้าหลวง กลุ่มเครือข่ายพัฒนาการศึก%' OR s.code = 'SCH_030_อนุบาลแม่ฟ้าหลวง_กลุ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -14869,6 +15581,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายธนกฤต'
   AND m.lastName = 'วิริยะจิตต์'
   AND (s.name = 'โรงเรียนอนุบาลแม่ฟ้าหลวง กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนอนุบาลแม่ฟ้าหลวง กลุ่มเครือข่ายพัฒนาการศึก%' OR s.code = 'SCH_030_อนุบาลแม่ฟ้าหลวง_กลุ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -14890,6 +15603,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวสุชาวดี'
   AND m.lastName = 'จิตต์ใจ'
   AND (s.name = 'โรงเรียนอนุบาลแม่ฟ้าหลวง กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนอนุบาลแม่ฟ้าหลวง กลุ่มเครือข่ายพัฒนาการศึก%' OR s.code = 'SCH_030_อนุบาลแม่ฟ้าหลวง_กลุ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -14911,6 +15625,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวอรสา'
   AND m.lastName = 'ทะลิ'
   AND (s.name = 'โรงเรียนอนุบาลแม่ฟ้าหลวง กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนอนุบาลแม่ฟ้าหลวง กลุ่มเครือข่ายพัฒนาการศึก%' OR s.code = 'SCH_030_อนุบาลแม่ฟ้าหลวง_กลุ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -14932,6 +15647,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายคณาวุฒิ'
   AND m.lastName = 'มูลทาศรี'
   AND (s.name = 'โรงเรียนอนุบาลแม่ฟ้าหลวง กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนอนุบาลแม่ฟ้าหลวง กลุ่มเครือข่ายพัฒนาการศึก%' OR s.code = 'SCH_030_อนุบาลแม่ฟ้าหลวง_กลุ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -14953,6 +15669,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวสิริรัตน์'
   AND m.lastName = 'สุนสะดี'
   AND (s.name = 'โรงเรียนอนุบาลแม่ฟ้าหลวง กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนอนุบาลแม่ฟ้าหลวง กลุ่มเครือข่ายพัฒนาการศึก%' OR s.code = 'SCH_030_อนุบาลแม่ฟ้าหลวง_กลุ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -14974,6 +15691,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวอำพร'
   AND m.lastName = 'อรหันต์'
   AND (s.name = 'โรงเรียนอนุบาลแม่ฟ้าหลวง กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนอนุบาลแม่ฟ้าหลวง กลุ่มเครือข่ายพัฒนาการศึก%' OR s.code = 'SCH_030_อนุบาลแม่ฟ้าหลวง_กลุ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -14995,6 +15713,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางกัญชริภา'
   AND m.lastName = 'ทะจันทร์'
   AND (s.name = 'โรงเรียนอนุบาลแม่ฟ้าหลวง กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนอนุบาลแม่ฟ้าหลวง กลุ่มเครือข่ายพัฒนาการศึก%' OR s.code = 'SCH_030_อนุบาลแม่ฟ้าหลวง_กลุ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -15016,6 +15735,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายนวมินตร์'
   AND m.lastName = 'ตาใจ'
   AND (s.name = 'โรงเรียนอนุบาลแม่ฟ้าหลวง กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนอนุบาลแม่ฟ้าหลวง กลุ่มเครือข่ายพัฒนาการศึก%' OR s.code = 'SCH_030_อนุบาลแม่ฟ้าหลวง_กลุ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -15037,6 +15757,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายชินกร'
   AND m.lastName = 'จองหนุ่ม'
   AND (s.name = 'โรงเรียนอนุบาลแม่ฟ้าหลวง กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนอนุบาลแม่ฟ้าหลวง กลุ่มเครือข่ายพัฒนาการศึก%' OR s.code = 'SCH_030_อนุบาลแม่ฟ้าหลวง_กลุ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -15058,6 +15779,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวมีนาร์'
   AND m.lastName = 'อารีย์'
   AND (s.name = 'โรงเรียนอนุบาลแม่ฟ้าหลวง กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนอนุบาลแม่ฟ้าหลวง กลุ่มเครือข่ายพัฒนาการศึก%' OR s.code = 'SCH_030_อนุบาลแม่ฟ้าหลวง_กลุ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -15079,6 +15801,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายเอกพงษ์'
   AND m.lastName = 'กาแก้ว'
   AND (s.name = 'โรงเรียนอนุบาลแม่ฟ้าหลวง กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนอนุบาลแม่ฟ้าหลวง กลุ่มเครือข่ายพัฒนาการศึก%' OR s.code = 'SCH_030_อนุบาลแม่ฟ้าหลวง_กลุ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -15100,6 +15823,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางกุลธิดา'
   AND m.lastName = 'อดิลักษณ์ศิริ'
   AND (s.name = 'โรงเรียนบ้านขาแหย่งพัฒนา กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านขาแหย่งพัฒนา กลุ่มเครือข่ายพัฒนาการศึก%' OR s.code = 'SCH_031_บ้านขาแหย่งพัฒนา_กลุ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -15121,6 +15845,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางภาระวี'
   AND m.lastName = 'อินนวล'
   AND (s.name = 'โรงเรียนบ้านขาแหย่งพัฒนา กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านขาแหย่งพัฒนา กลุ่มเครือข่ายพัฒนาการศึก%' OR s.code = 'SCH_031_บ้านขาแหย่งพัฒนา_กลุ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -15142,6 +15867,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวทัศนีย์'
   AND m.lastName = 'โสภณอำนวยกิจ'
   AND (s.name = 'โรงเรียนบ้านขาแหย่งพัฒนา กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านขาแหย่งพัฒนา กลุ่มเครือข่ายพัฒนาการศึก%' OR s.code = 'SCH_031_บ้านขาแหย่งพัฒนา_กลุ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -15163,6 +15889,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาววราภรณ์'
   AND m.lastName = 'ไชยานันตา'
   AND (s.name = 'โรงเรียนบ้านขาแหย่งพัฒนา กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านขาแหย่งพัฒนา กลุ่มเครือข่ายพัฒนาการศึก%' OR s.code = 'SCH_031_บ้านขาแหย่งพัฒนา_กลุ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -15184,6 +15911,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวกัญญารัตน์'
   AND m.lastName = 'ตาโม่ง'
   AND (s.name = 'โรงเรียนบ้านขาแหย่งพัฒนา กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านขาแหย่งพัฒนา กลุ่มเครือข่ายพัฒนาการศึก%' OR s.code = 'SCH_031_บ้านขาแหย่งพัฒนา_กลุ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -15205,6 +15933,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวกานติมา'
   AND m.lastName = 'เกตสระไชย'
   AND (s.name = 'โรงเรียนบ้านขาแหย่งพัฒนา กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านขาแหย่งพัฒนา กลุ่มเครือข่ายพัฒนาการศึก%' OR s.code = 'SCH_031_บ้านขาแหย่งพัฒนา_กลุ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -15226,6 +15955,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวศศิกานต์'
   AND m.lastName = 'ดาชิต'
   AND (s.name = 'โรงเรียนบ้านขาแหย่งพัฒนา กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านขาแหย่งพัฒนา กลุ่มเครือข่ายพัฒนาการศึก%' OR s.code = 'SCH_031_บ้านขาแหย่งพัฒนา_กลุ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -15247,6 +15977,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวสุชาดา'
   AND m.lastName = 'เครือคำวัง'
   AND (s.name = 'โรงเรียนบ้านขาแหย่งพัฒนา กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านขาแหย่งพัฒนา กลุ่มเครือข่ายพัฒนาการศึก%' OR s.code = 'SCH_031_บ้านขาแหย่งพัฒนา_กลุ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -15268,6 +15999,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวพัชรา'
   AND m.lastName = 'บุญสุวรรณ์'
   AND (s.name = 'โรงเรียนบ้านขาแหย่งพัฒนา กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านขาแหย่งพัฒนา กลุ่มเครือข่ายพัฒนาการศึก%' OR s.code = 'SCH_031_บ้านขาแหย่งพัฒนา_กลุ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -15289,6 +16021,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวนิภาวรรณ'
   AND m.lastName = 'การเจริญ'
   AND (s.name = 'โรงเรียนบ้านขาแหย่งพัฒนา กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านขาแหย่งพัฒนา กลุ่มเครือข่ายพัฒนาการศึก%' OR s.code = 'SCH_031_บ้านขาแหย่งพัฒนา_กลุ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -15310,6 +16043,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวฐิตาภรณ์'
   AND m.lastName = 'โยงยศ'
   AND (s.name = 'โรงเรียนบ้านขาแหย่งพัฒนา กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านขาแหย่งพัฒนา กลุ่มเครือข่ายพัฒนาการศึก%' OR s.code = 'SCH_031_บ้านขาแหย่งพัฒนา_กลุ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -15331,6 +16065,7 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นางสาวพิมพ์จันทร์'
   AND m.lastName = 'ทานศิลา'
   AND (s.name = 'โรงเรียนบ้านขาแหย่งพัฒนา กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านขาแหย่งพัฒนา กลุ่มเครือข่ายพัฒนาการศึก%' OR s.code = 'SCH_031_บ้านขาแหย่งพัฒนา_กลุ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;
 
@@ -15352,5 +16087,6 @@ INNER JOIN `School` s ON m.schoolId = s.id
 WHERE m.firstName = 'นายประทวน'
   AND m.lastName = 'ขัดบุญเรือง'
   AND (s.name = 'โรงเรียนบ้านขาแหย่งพัฒนา กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านขาแหย่งพัฒนา กลุ่มเครือข่ายพัฒนาการศึก%' OR s.code = 'SCH_031_บ้านขาแหย่งพัฒนา_กลุ')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (SELECT 1 FROM `AssociationMember` am WHERE am.memberId = m.id)
 LIMIT 1;

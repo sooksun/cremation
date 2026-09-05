@@ -1,3 +1,8 @@
+-- หมายเหตุ (แก้ภายหลัง): migration นำเข้าข้อมูลชุดนี้ต้องมี MemberType อยู่ก่อน ซึ่งมาจาก
+-- `prisma db seed` ที่รันหลัง `migrate deploy` ในขั้นตอน deploy จริง เดิมจึงล้มด้วย error 1048
+-- ทุกครั้งที่ติดตั้งจากฐานข้อมูลเปล่า เพิ่มเงื่อนไข EXISTS เพื่อให้ข้ามไปเงียบ ๆ แทนที่จะพัง
+-- (ฐานข้อมูลที่นำเข้าข้อมูลชุดนี้ไปแล้วไม่ได้รับผลกระทบ เพราะถูกบันทึกว่า applied ไปแล้ว)
+
 -- Migration: Seed Member จาก doc/member_data.xlsx
 -- สร้างโดย excel-to-migration.ts | รวมข้อมูลทุก sheet
 -- จำนวน: 731 รายการ
@@ -19,6 +24,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_001_ชุมชนศึกษา_บ้านแม่สะ' OR s.name = 'โรงเรียนชุมชนศึกษา (บ้านแม่สะแลป) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนชุมชนศึกษา (บ้านแม่สะแลป) กลุ่มเครือข่ายพั%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางกรองแก้ว' AND m.lastName = 'พรมรักษ์'
@@ -40,6 +46,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_001_ชุมชนศึกษา_บ้านแม่สะ' OR s.name = 'โรงเรียนชุมชนศึกษา (บ้านแม่สะแลป) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนชุมชนศึกษา (บ้านแม่สะแลป) กลุ่มเครือข่ายพั%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวพัชรี' AND m.lastName = 'สิงห์ฉลาด'
@@ -61,6 +68,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_001_ชุมชนศึกษา_บ้านแม่สะ' OR s.name = 'โรงเรียนชุมชนศึกษา (บ้านแม่สะแลป) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนชุมชนศึกษา (บ้านแม่สะแลป) กลุ่มเครือข่ายพั%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาววนิดา' AND m.lastName = 'อยู่อินทร์'
@@ -82,6 +90,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_001_ชุมชนศึกษา_บ้านแม่สะ' OR s.name = 'โรงเรียนชุมชนศึกษา (บ้านแม่สะแลป) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนชุมชนศึกษา (บ้านแม่สะแลป) กลุ่มเครือข่ายพั%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายอนุรักษ์' AND m.lastName = 'ใจปัญธิ'
@@ -103,6 +112,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_001_ชุมชนศึกษา_บ้านแม่สะ' OR s.name = 'โรงเรียนชุมชนศึกษา (บ้านแม่สะแลป) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนชุมชนศึกษา (บ้านแม่สะแลป) กลุ่มเครือข่ายพั%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวภัณฑิรา' AND m.lastName = 'หวายคำ'
@@ -124,6 +134,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_001_ชุมชนศึกษา_บ้านแม่สะ' OR s.name = 'โรงเรียนชุมชนศึกษา (บ้านแม่สะแลป) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนชุมชนศึกษา (บ้านแม่สะแลป) กลุ่มเครือข่ายพั%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายสมทรัพย์' AND m.lastName = 'รัตตพิทักษ์'
@@ -145,6 +156,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_001_ชุมชนศึกษา_บ้านแม่สะ' OR s.name = 'โรงเรียนชุมชนศึกษา (บ้านแม่สะแลป) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนชุมชนศึกษา (บ้านแม่สะแลป) กลุ่มเครือข่ายพั%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวอรอนงค์' AND m.lastName = 'บุตรแสน'
@@ -166,6 +178,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_001_ชุมชนศึกษา_บ้านแม่สะ' OR s.name = 'โรงเรียนชุมชนศึกษา (บ้านแม่สะแลป) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนชุมชนศึกษา (บ้านแม่สะแลป) กลุ่มเครือข่ายพั%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายพิชญ์ยุทธ์' AND m.lastName = 'นาวา'
@@ -187,6 +200,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_001_ชุมชนศึกษา_บ้านแม่สะ' OR s.name = 'โรงเรียนชุมชนศึกษา (บ้านแม่สะแลป) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนชุมชนศึกษา (บ้านแม่สะแลป) กลุ่มเครือข่ายพั%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวจิราวรรณ' AND m.lastName = 'อภิรมย์ฤทัย'
@@ -208,6 +222,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_001_ชุมชนศึกษา_บ้านแม่สะ' OR s.name = 'โรงเรียนชุมชนศึกษา (บ้านแม่สะแลป) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนชุมชนศึกษา (บ้านแม่สะแลป) กลุ่มเครือข่ายพั%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวนุชนาถ' AND m.lastName = 'ศรีบัวบาน'
@@ -229,6 +244,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_001_ชุมชนศึกษา_บ้านแม่สะ' OR s.name = 'โรงเรียนชุมชนศึกษา (บ้านแม่สะแลป) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนชุมชนศึกษา (บ้านแม่สะแลป) กลุ่มเครือข่ายพั%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายกันต์ณภัทร' AND m.lastName = 'สิริโชติชัยกุล'
@@ -250,6 +266,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_001_ชุมชนศึกษา_บ้านแม่สะ' OR s.name = 'โรงเรียนชุมชนศึกษา (บ้านแม่สะแลป) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนชุมชนศึกษา (บ้านแม่สะแลป) กลุ่มเครือข่ายพั%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายภาณุพงศ์' AND m.lastName = 'นภัสกรชัย'
@@ -271,6 +288,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_001_ชุมชนศึกษา_บ้านแม่สะ' OR s.name = 'โรงเรียนชุมชนศึกษา (บ้านแม่สะแลป) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนชุมชนศึกษา (บ้านแม่สะแลป) กลุ่มเครือข่ายพั%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวอัญชลี' AND m.lastName = 'โปทา'
@@ -292,6 +310,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_001_ชุมชนศึกษา_บ้านแม่สะ' OR s.name = 'โรงเรียนชุมชนศึกษา (บ้านแม่สะแลป) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนชุมชนศึกษา (บ้านแม่สะแลป) กลุ่มเครือข่ายพั%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวอรจิรา' AND m.lastName = 'สมบูรณ์'
@@ -313,6 +332,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_001_ชุมชนศึกษา_บ้านแม่สะ' OR s.name = 'โรงเรียนชุมชนศึกษา (บ้านแม่สะแลป) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนชุมชนศึกษา (บ้านแม่สะแลป) กลุ่มเครือข่ายพั%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวภารุจีร์' AND m.lastName = 'แซ่ลี'
@@ -334,6 +354,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_002_.ตชด.เจ้าพ่อหลวงอุปถ' OR s.name = 'โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอนุสรณ์ 4) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายกิตติกร' AND m.lastName = 'ต๊ะคำ'
@@ -355,6 +376,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_002_.ตชด.เจ้าพ่อหลวงอุปถ' OR s.name = 'โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอนุสรณ์ 4) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายไกรวิชญ์' AND m.lastName = 'วงค์สุรินทร์'
@@ -376,6 +398,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_002_.ตชด.เจ้าพ่อหลวงอุปถ' OR s.name = 'โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอนุสรณ์ 4) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางพูลศิริ' AND m.lastName = 'เมธีรัตนกูล'
@@ -397,6 +420,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_002_.ตชด.เจ้าพ่อหลวงอุปถ' OR s.name = 'โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอนุสรณ์ 4) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายพิพัฒน์' AND m.lastName = 'เมธีรัตนกูล'
@@ -418,6 +442,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_002_.ตชด.เจ้าพ่อหลวงอุปถ' OR s.name = 'โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอนุสรณ์ 4) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายสุรชัย' AND m.lastName = 'คำมงคล'
@@ -439,6 +464,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_002_.ตชด.เจ้าพ่อหลวงอุปถ' OR s.name = 'โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอนุสรณ์ 4) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวนิภาพร' AND m.lastName = 'ทองขันนาค'
@@ -460,6 +486,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_002_.ตชด.เจ้าพ่อหลวงอุปถ' OR s.name = 'โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอนุสรณ์ 4) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวพิมพ์ใจ' AND m.lastName = 'นารีรักษ์'
@@ -481,6 +508,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_002_.ตชด.เจ้าพ่อหลวงอุปถ' OR s.name = 'โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอนุสรณ์ 4) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาววัชรีพร' AND m.lastName = 'ก้อนคำ'
@@ -502,6 +530,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_002_.ตชด.เจ้าพ่อหลวงอุปถ' OR s.name = 'โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอนุสรณ์ 4) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวปฐมาภรณ์' AND m.lastName = 'เคร่งครัด'
@@ -523,6 +552,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_002_.ตชด.เจ้าพ่อหลวงอุปถ' OR s.name = 'โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอนุสรณ์ 4) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวนิชาภัทร' AND m.lastName = 'สว่างถาวรกุล'
@@ -544,6 +574,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_002_.ตชด.เจ้าพ่อหลวงอุปถ' OR s.name = 'โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอนุสรณ์ 4) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวดวงพร' AND m.lastName = 'สมเมือง'
@@ -565,6 +596,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_002_.ตชด.เจ้าพ่อหลวงอุปถ' OR s.name = 'โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอนุสรณ์ 4) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวชญาน์ทิพย์' AND m.lastName = 'กาสม'
@@ -586,6 +618,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_002_.ตชด.เจ้าพ่อหลวงอุปถ' OR s.name = 'โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอนุสรณ์ 4) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวอัมพิกา' AND m.lastName = 'สมศักดิ์'
@@ -607,6 +640,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_002_.ตชด.เจ้าพ่อหลวงอุปถ' OR s.name = 'โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอนุสรณ์ 4) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายณรงค์ฤทธิ์' AND m.lastName = 'ชัยประดล'
@@ -628,6 +662,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_002_.ตชด.เจ้าพ่อหลวงอุปถ' OR s.name = 'โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอนุสรณ์ 4) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายรัฐพงศ์' AND m.lastName = 'สมทิพย์'
@@ -649,6 +684,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_002_.ตชด.เจ้าพ่อหลวงอุปถ' OR s.name = 'โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอนุสรณ์ 4) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายอิทธิพัทธ์' AND m.lastName = 'นัยติ๊บ'
@@ -670,6 +706,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_002_.ตชด.เจ้าพ่อหลวงอุปถ' OR s.name = 'โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอนุสรณ์ 4) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายชานนท์' AND m.lastName = 'วงศ์นันทเจริญ'
@@ -691,6 +728,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_002_.ตชด.เจ้าพ่อหลวงอุปถ' OR s.name = 'โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอนุสรณ์ 4) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวทองประกาย' AND m.lastName = 'ก้างออนตา'
@@ -712,6 +750,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_002_.ตชด.เจ้าพ่อหลวงอุปถ' OR s.name = 'โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอนุสรณ์ 4) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวพรรณนิกา' AND m.lastName = 'เขื่อนเชียงสา'
@@ -733,6 +772,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_002_.ตชด.เจ้าพ่อหลวงอุปถ' OR s.name = 'โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอนุสรณ์ 4) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวธีร์จุฑา' AND m.lastName = 'แจ้งสว่าง'
@@ -754,6 +794,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_002_.ตชด.เจ้าพ่อหลวงอุปถ' OR s.name = 'โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอนุสรณ์ 4) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวเพชรา' AND m.lastName = 'คชเพชร'
@@ -775,6 +816,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_002_.ตชด.เจ้าพ่อหลวงอุปถ' OR s.name = 'โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอนุสรณ์ 4) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวกัญจนพร' AND m.lastName = 'มาเยอะ'
@@ -796,6 +838,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_002_.ตชด.เจ้าพ่อหลวงอุปถ' OR s.name = 'โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอนุสรณ์ 4) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวเมขลา' AND m.lastName = 'เยอะหนื่อ'
@@ -817,6 +860,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_002_.ตชด.เจ้าพ่อหลวงอุปถ' OR s.name = 'โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอนุสรณ์ 4) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวพัทธ์ธีรา' AND m.lastName = 'กิจตาวงค์'
@@ -838,6 +882,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_002_.ตชด.เจ้าพ่อหลวงอุปถ' OR s.name = 'โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอนุสรณ์ 4) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวศิริลักษณ์' AND m.lastName = 'งามหมู่'
@@ -859,6 +904,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_002_.ตชด.เจ้าพ่อหลวงอุปถ' OR s.name = 'โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอนุสรณ์ 4) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายณัฐวุฒิ' AND m.lastName = 'เป็กยันเมือง'
@@ -880,6 +926,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_002_.ตชด.เจ้าพ่อหลวงอุปถ' OR s.name = 'โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอนุสรณ์ 4) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวมยุรฉัตร' AND m.lastName = 'ปรารมณ์'
@@ -901,6 +948,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_002_.ตชด.เจ้าพ่อหลวงอุปถ' OR s.name = 'โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอนุสรณ์ 4) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน.ตชด.เจ้าพ่อหลวงอุปถัมภ์ 3 (ช่างกลปทุมวันอ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายศรายุทธ' AND m.lastName = 'บุญคำ'
@@ -922,6 +970,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_003_บ้านผาเดื่อ_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านผาเดื่อ กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านผาเดื่อ กลุ่มเครือข่ายพัฒนาการศึกษาแม่%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายสมจิตร' AND m.lastName = 'คําปา'
@@ -943,6 +992,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_003_บ้านผาเดื่อ_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านผาเดื่อ กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านผาเดื่อ กลุ่มเครือข่ายพัฒนาการศึกษาแม่%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวเมธิญา' AND m.lastName = 'ยะขาว'
@@ -964,6 +1014,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_003_บ้านผาเดื่อ_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านผาเดื่อ กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านผาเดื่อ กลุ่มเครือข่ายพัฒนาการศึกษาแม่%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายคนองเมฆ' AND m.lastName = 'ใจสุข'
@@ -985,6 +1036,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_003_บ้านผาเดื่อ_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านผาเดื่อ กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านผาเดื่อ กลุ่มเครือข่ายพัฒนาการศึกษาแม่%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายทรงกรด' AND m.lastName = 'ทายะนา'
@@ -1006,6 +1058,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_003_บ้านผาเดื่อ_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านผาเดื่อ กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านผาเดื่อ กลุ่มเครือข่ายพัฒนาการศึกษาแม่%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวณฐมน' AND m.lastName = 'จิตรประสาร'
@@ -1027,6 +1080,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_003_บ้านผาเดื่อ_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านผาเดื่อ กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านผาเดื่อ กลุ่มเครือข่ายพัฒนาการศึกษาแม่%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายนภจร' AND m.lastName = 'โยธาภักดิ์'
@@ -1048,6 +1102,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_003_บ้านผาเดื่อ_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านผาเดื่อ กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านผาเดื่อ กลุ่มเครือข่ายพัฒนาการศึกษาแม่%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายธนาวุฒิ' AND m.lastName = 'ศรีบริบูรณ์'
@@ -1069,6 +1124,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_003_บ้านผาเดื่อ_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านผาเดื่อ กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านผาเดื่อ กลุ่มเครือข่ายพัฒนาการศึกษาแม่%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวนันทนา' AND m.lastName = 'เสรีสวัสดิ์ศรี'
@@ -1090,6 +1146,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_003_บ้านผาเดื่อ_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านผาเดื่อ กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านผาเดื่อ กลุ่มเครือข่ายพัฒนาการศึกษาแม่%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาววิมลสิริ' AND m.lastName = 'เคนทรภักดิ์'
@@ -1111,6 +1168,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_003_บ้านผาเดื่อ_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านผาเดื่อ กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านผาเดื่อ กลุ่มเครือข่ายพัฒนาการศึกษาแม่%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวศรสวรรค์' AND m.lastName = 'มาเยอ'
@@ -1132,6 +1190,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_003_บ้านผาเดื่อ_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านผาเดื่อ กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านผาเดื่อ กลุ่มเครือข่ายพัฒนาการศึกษาแม่%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายฤทธี' AND m.lastName = 'วังเอี่ยม'
@@ -1153,6 +1212,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_004__ตชด.บ้านนาโต่_วปอ.3' OR s.name = 'โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวกมลลักษณ์' AND m.lastName = 'จันทร์หลวง'
@@ -1174,6 +1234,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_004__ตชด.บ้านนาโต่_วปอ.3' OR s.name = 'โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายสมชาย' AND m.lastName = 'วจนะพระคุณไพศาล'
@@ -1195,6 +1256,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_004__ตชด.บ้านนาโต่_วปอ.3' OR s.name = 'โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวกาญจนาพร' AND m.lastName = 'วงค์ชัย'
@@ -1216,6 +1278,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_004__ตชด.บ้านนาโต่_วปอ.3' OR s.name = 'โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายลิลิณชยา' AND m.lastName = 'พราหมณ์แก้ว'
@@ -1237,6 +1300,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_004__ตชด.บ้านนาโต่_วปอ.3' OR s.name = 'โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายวงศกร' AND m.lastName = 'หลวงสา'
@@ -1258,6 +1322,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_004__ตชด.บ้านนาโต่_วปอ.3' OR s.name = 'โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายศุภณัฐ' AND m.lastName = 'เม่นแย้ม'
@@ -1279,6 +1344,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_004__ตชด.บ้านนาโต่_วปอ.3' OR s.name = 'โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายสิงหา' AND m.lastName = 'ภูธิเบศน์'
@@ -1300,6 +1366,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_004__ตชด.บ้านนาโต่_วปอ.3' OR s.name = 'โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวเจนจิรา' AND m.lastName = 'สีสะอาด'
@@ -1321,6 +1388,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_004__ตชด.บ้านนาโต่_วปอ.3' OR s.name = 'โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายธีร์' AND m.lastName = 'โพธิ์เกตุ'
@@ -1342,6 +1410,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_004__ตชด.บ้านนาโต่_วปอ.3' OR s.name = 'โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายพิชญพันธ์' AND m.lastName = 'จันทรา'
@@ -1363,6 +1432,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_004__ตชด.บ้านนาโต่_วปอ.3' OR s.name = 'โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวอัชชนา' AND m.lastName = 'ศรีแก้ว'
@@ -1384,6 +1454,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_004__ตชด.บ้านนาโต่_วปอ.3' OR s.name = 'โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายกันต์พล' AND m.lastName = 'เชื้อเมืองพาน'
@@ -1405,6 +1476,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_004__ตชด.บ้านนาโต่_วปอ.3' OR s.name = 'โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวสุธาสินี' AND m.lastName = 'คำเผ่า'
@@ -1426,6 +1498,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_004__ตชด.บ้านนาโต่_วปอ.3' OR s.name = 'โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวณัฐชา' AND m.lastName = 'วงค์แสง'
@@ -1447,6 +1520,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_004__ตชด.บ้านนาโต่_วปอ.3' OR s.name = 'โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวลักขนา' AND m.lastName = 'แซ่เติ๋น'
@@ -1468,6 +1542,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_004__ตชด.บ้านนาโต่_วปอ.3' OR s.name = 'โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายอนุภัทร' AND m.lastName = 'แซ่ฟุ้ง'
@@ -1489,6 +1564,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_004__ตชด.บ้านนาโต่_วปอ.3' OR s.name = 'โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวพนิดา' AND m.lastName = 'ขจรเจริญเดช'
@@ -1510,6 +1586,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_004__ตชด.บ้านนาโต่_วปอ.3' OR s.name = 'โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวพิมพร' AND m.lastName = 'พัฒนพงษ์ธรรม'
@@ -1531,6 +1608,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_004__ตชด.บ้านนาโต่_วปอ.3' OR s.name = 'โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวนภัสสร' AND m.lastName = 'เมอโปดู่'
@@ -1552,6 +1630,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_004__ตชด.บ้านนาโต่_วปอ.3' OR s.name = 'โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางชมกนก' AND m.lastName = 'รัตนจำรูญสกุล'
@@ -1573,6 +1652,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_004__ตชด.บ้านนาโต่_วปอ.3' OR s.name = 'โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวจิตรา' AND m.lastName = 'ปาสาบุตร'
@@ -1594,6 +1674,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_004__ตชด.บ้านนาโต่_วปอ.3' OR s.name = 'โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายพงศกร' AND m.lastName = 'ใจโปธา(น้าสาม)'
@@ -1615,6 +1696,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_004__ตชด.บ้านนาโต่_วปอ.3' OR s.name = 'โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียน ตชด.บ้านนาโต่ (วปอ.344อุปถ์) กลุ่มเครือข่%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวบัวฟอง' AND m.lastName = 'ไทยใหญ่'
@@ -1636,6 +1718,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_005_บ้านห้วยหก_กลุ่มเครื' OR s.name = 'โรงเรียนบ้านห้วยหก กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยหก กลุ่มเครือข่ายพัฒนาการศึกษาแม่ส%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายณัฐพล' AND m.lastName = 'ศรีวิชัย'
@@ -1657,6 +1740,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_005_บ้านห้วยหก_กลุ่มเครื' OR s.name = 'โรงเรียนบ้านห้วยหก กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยหก กลุ่มเครือข่ายพัฒนาการศึกษาแม่ส%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวเกศริน' AND m.lastName = 'ธิยศ'
@@ -1678,6 +1762,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_005_บ้านห้วยหก_กลุ่มเครื' OR s.name = 'โรงเรียนบ้านห้วยหก กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยหก กลุ่มเครือข่ายพัฒนาการศึกษาแม่ส%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายวรายุทธ' AND m.lastName = 'ไชยช่อฟ้า'
@@ -1699,6 +1784,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_005_บ้านห้วยหก_กลุ่มเครื' OR s.name = 'โรงเรียนบ้านห้วยหก กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยหก กลุ่มเครือข่ายพัฒนาการศึกษาแม่ส%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวสรัลชนา' AND m.lastName = 'นันตา'
@@ -1720,6 +1806,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_005_บ้านห้วยหก_กลุ่มเครื' OR s.name = 'โรงเรียนบ้านห้วยหก กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยหก กลุ่มเครือข่ายพัฒนาการศึกษาแม่ส%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวพรธิตา' AND m.lastName = 'สีใจมา'
@@ -1741,6 +1828,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_005_บ้านห้วยหก_กลุ่มเครื' OR s.name = 'โรงเรียนบ้านห้วยหก กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยหก กลุ่มเครือข่ายพัฒนาการศึกษาแม่ส%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวนฤมล' AND m.lastName = 'อภิวงษา'
@@ -1762,6 +1850,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_005_บ้านห้วยหก_กลุ่มเครื' OR s.name = 'โรงเรียนบ้านห้วยหก กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยหก กลุ่มเครือข่ายพัฒนาการศึกษาแม่ส%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวธัญญารักษ์' AND m.lastName = 'ไชยวงค์คำ'
@@ -1783,6 +1872,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_005_บ้านห้วยหก_กลุ่มเครื' OR s.name = 'โรงเรียนบ้านห้วยหก กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยหก กลุ่มเครือข่ายพัฒนาการศึกษาแม่ส%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวสุชาดา' AND m.lastName = 'ก้อนทองไทย'
@@ -1804,6 +1894,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_005_บ้านห้วยหก_กลุ่มเครื' OR s.name = 'โรงเรียนบ้านห้วยหก กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยหก กลุ่มเครือข่ายพัฒนาการศึกษาแม่ส%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายสมพร' AND m.lastName = 'ประเสริฐไทย'
@@ -1825,6 +1916,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_005_บ้านห้วยหก_กลุ่มเครื' OR s.name = 'โรงเรียนบ้านห้วยหก กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยหก กลุ่มเครือข่ายพัฒนาการศึกษาแม่ส%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวณัณภัส' AND m.lastName = 'กันแก้ว'
@@ -1846,6 +1938,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_006_บ้านห้วยหยวกป่าโซ_กล' OR s.name = 'โรงเรียนบ้านห้วยหยวกป่าโซ กลุ่มเครือข่ายแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยหยวกป่าโซ กลุ่มเครือข่ายแม่สลองกาข%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวธัญนันท์' AND m.lastName = 'สุขเกษม'
@@ -1867,6 +1960,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_006_บ้านห้วยหยวกป่าโซ_กล' OR s.name = 'โรงเรียนบ้านห้วยหยวกป่าโซ กลุ่มเครือข่ายแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยหยวกป่าโซ กลุ่มเครือข่ายแม่สลองกาข%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาววรัญญา' AND m.lastName = 'จันทร์พรมมา'
@@ -1888,6 +1982,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_006_บ้านห้วยหยวกป่าโซ_กล' OR s.name = 'โรงเรียนบ้านห้วยหยวกป่าโซ กลุ่มเครือข่ายแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยหยวกป่าโซ กลุ่มเครือข่ายแม่สลองกาข%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวนภาพร' AND m.lastName = 'ปินทรายมูล'
@@ -1909,6 +2004,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_006_บ้านห้วยหยวกป่าโซ_กล' OR s.name = 'โรงเรียนบ้านห้วยหยวกป่าโซ กลุ่มเครือข่ายแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยหยวกป่าโซ กลุ่มเครือข่ายแม่สลองกาข%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวจันทนี' AND m.lastName = 'คำดี'
@@ -1930,6 +2026,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_006_บ้านห้วยหยวกป่าโซ_กล' OR s.name = 'โรงเรียนบ้านห้วยหยวกป่าโซ กลุ่มเครือข่ายแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยหยวกป่าโซ กลุ่มเครือข่ายแม่สลองกาข%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวภณิดา' AND m.lastName = 'วังแก้ว'
@@ -1951,6 +2048,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_006_บ้านห้วยหยวกป่าโซ_กล' OR s.name = 'โรงเรียนบ้านห้วยหยวกป่าโซ กลุ่มเครือข่ายแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยหยวกป่าโซ กลุ่มเครือข่ายแม่สลองกาข%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายนนท์' AND m.lastName = 'ศรีวิชัย'
@@ -1972,6 +2070,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_006_บ้านห้วยหยวกป่าโซ_กล' OR s.name = 'โรงเรียนบ้านห้วยหยวกป่าโซ กลุ่มเครือข่ายแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยหยวกป่าโซ กลุ่มเครือข่ายแม่สลองกาข%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางชวัลลักษณ์' AND m.lastName = 'อินเรือง'
@@ -1993,6 +2092,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_006_บ้านห้วยหยวกป่าโซ_กล' OR s.name = 'โรงเรียนบ้านห้วยหยวกป่าโซ กลุ่มเครือข่ายแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยหยวกป่าโซ กลุ่มเครือข่ายแม่สลองกาข%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวสุชาดา' AND m.lastName = 'ยานะ'
@@ -2014,6 +2114,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_006_บ้านห้วยหยวกป่าโซ_กล' OR s.name = 'โรงเรียนบ้านห้วยหยวกป่าโซ กลุ่มเครือข่ายแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยหยวกป่าโซ กลุ่มเครือข่ายแม่สลองกาข%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวนริศรา' AND m.lastName = 'วงค์สุรินทร์'
@@ -2035,6 +2136,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_006_บ้านห้วยหยวกป่าโซ_กล' OR s.name = 'โรงเรียนบ้านห้วยหยวกป่าโซ กลุ่มเครือข่ายแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยหยวกป่าโซ กลุ่มเครือข่ายแม่สลองกาข%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายสุรพันธ์' AND m.lastName = 'วัฒนปัญญานนท์'
@@ -2056,6 +2158,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_006_บ้านห้วยหยวกป่าโซ_กล' OR s.name = 'โรงเรียนบ้านห้วยหยวกป่าโซ กลุ่มเครือข่ายแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยหยวกป่าโซ กลุ่มเครือข่ายแม่สลองกาข%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายสุรชาติ' AND m.lastName = 'อาหยิ'
@@ -2077,6 +2180,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_007_ดอยแสนใจ_ตชด.อนุสรณ์' OR s.name = 'โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายภานุวัฒน์' AND m.lastName = 'นะที'
@@ -2098,6 +2202,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_007_ดอยแสนใจ_ตชด.อนุสรณ์' OR s.name = 'โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'จ.ส.อ.นัทธพงศ์' AND m.lastName = 'คําแผ่นชัย'
@@ -2119,6 +2224,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_007_ดอยแสนใจ_ตชด.อนุสรณ์' OR s.name = 'โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายวีระศักดิ์' AND m.lastName = 'อุดทา'
@@ -2140,6 +2246,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_007_ดอยแสนใจ_ตชด.อนุสรณ์' OR s.name = 'โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นาวสาวมานิดา' AND m.lastName = 'เสาวรส'
@@ -2161,6 +2268,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_007_ดอยแสนใจ_ตชด.อนุสรณ์' OR s.name = 'โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายฤทธิชัย' AND m.lastName = 'ใหญ่พงค์'
@@ -2182,6 +2290,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_007_ดอยแสนใจ_ตชด.อนุสรณ์' OR s.name = 'โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายอัครา' AND m.lastName = 'ปินตารักษ์'
@@ -2203,6 +2312,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_007_ดอยแสนใจ_ตชด.อนุสรณ์' OR s.name = 'โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวยุพาพร' AND m.lastName = 'ถมหนวด'
@@ -2224,6 +2334,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_007_ดอยแสนใจ_ตชด.อนุสรณ์' OR s.name = 'โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายพิรุฬห์วัฒน์' AND m.lastName = 'วัดคํา'
@@ -2245,6 +2356,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_007_ดอยแสนใจ_ตชด.อนุสรณ์' OR s.name = 'โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวแสงเทียน' AND m.lastName = 'คําน้อย'
@@ -2266,6 +2378,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_007_ดอยแสนใจ_ตชด.อนุสรณ์' OR s.name = 'โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาววารี' AND m.lastName = 'ศรีวรนันท์'
@@ -2287,6 +2400,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_007_ดอยแสนใจ_ตชด.อนุสรณ์' OR s.name = 'โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายไกรสร' AND m.lastName = 'แซ่ฟุ้ง'
@@ -2308,6 +2422,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_007_ดอยแสนใจ_ตชด.อนุสรณ์' OR s.name = 'โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางพัชรินทร์' AND m.lastName = 'คีรีแสนใจ'
@@ -2329,6 +2444,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_007_ดอยแสนใจ_ตชด.อนุสรณ์' OR s.name = 'โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวปวีณา' AND m.lastName = 'จํามิ่ง'
@@ -2350,6 +2466,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_007_ดอยแสนใจ_ตชด.อนุสรณ์' OR s.name = 'โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายจิรภัทร' AND m.lastName = 'ตันมา'
@@ -2371,6 +2488,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_007_ดอยแสนใจ_ตชด.อนุสรณ์' OR s.name = 'โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวเกวลี' AND m.lastName = 'พินิจ'
@@ -2392,6 +2510,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_007_ดอยแสนใจ_ตชด.อนุสรณ์' OR s.name = 'โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวปณิตา' AND m.lastName = 'แสนปัญญา'
@@ -2413,6 +2532,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_007_ดอยแสนใจ_ตชด.อนุสรณ์' OR s.name = 'โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาววราพร' AND m.lastName = 'ก๋าแปง'
@@ -2434,6 +2554,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_007_ดอยแสนใจ_ตชด.อนุสรณ์' OR s.name = 'โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวสุนิสา' AND m.lastName = 'สุกุล'
@@ -2455,6 +2576,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_007_ดอยแสนใจ_ตชด.อนุสรณ์' OR s.name = 'โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวจิราพร' AND m.lastName = 'ปัญญาฟู'
@@ -2476,6 +2598,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_007_ดอยแสนใจ_ตชด.อนุสรณ์' OR s.name = 'โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาณัฐกาญ' AND m.lastName = 'จันทะวงค์'
@@ -2497,6 +2620,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_007_ดอยแสนใจ_ตชด.อนุสรณ์' OR s.name = 'โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวอัมรา' AND m.lastName = 'นันท์โภคินวงษ์'
@@ -2518,6 +2642,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_007_ดอยแสนใจ_ตชด.อนุสรณ์' OR s.name = 'โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวอารีรัตน์' AND m.lastName = 'มณีจันทร์สุข'
@@ -2539,6 +2664,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_007_ดอยแสนใจ_ตชด.อนุสรณ์' OR s.name = 'โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายวรเชษฐ' AND m.lastName = 'ทิพย์ดวง'
@@ -2560,6 +2686,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_007_ดอยแสนใจ_ตชด.อนุสรณ์' OR s.name = 'โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวมลธิรา' AND m.lastName = 'ใจปิง'
@@ -2581,6 +2708,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_007_ดอยแสนใจ_ตชด.อนุสรณ์' OR s.name = 'โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาววิไลรัตน์' AND m.lastName = 'มาเยอะ'
@@ -2602,6 +2730,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_007_ดอยแสนใจ_ตชด.อนุสรณ์' OR s.name = 'โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางภัทรวดี' AND m.lastName = 'ชํานาญยา'
@@ -2623,6 +2752,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_007_ดอยแสนใจ_ตชด.อนุสรณ์' OR s.name = 'โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนดอยแสนใจ (ตชด.อนุสรณ์) กลุ่มเครือข่ายพัฒนา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวเอณิกา' AND m.lastName = 'วงค์เมืองแล'
@@ -2644,6 +2774,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_008_บ้านมนตรีวิทยา_กลุ่ม' OR s.name = 'โรงเรียนบ้านมนตรีวิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านมนตรีวิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายธีรพล' AND m.lastName = 'ทาใหม่'
@@ -2665,6 +2796,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_008_บ้านมนตรีวิทยา_กลุ่ม' OR s.name = 'โรงเรียนบ้านมนตรีวิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านมนตรีวิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางรัตนา' AND m.lastName = 'วะไลใจ'
@@ -2686,6 +2818,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_008_บ้านมนตรีวิทยา_กลุ่ม' OR s.name = 'โรงเรียนบ้านมนตรีวิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านมนตรีวิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวบานเย็น' AND m.lastName = 'ศรีคำ'
@@ -2707,6 +2840,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_008_บ้านมนตรีวิทยา_กลุ่ม' OR s.name = 'โรงเรียนบ้านมนตรีวิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านมนตรีวิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวณปภัช' AND m.lastName = 'ทองหลอม'
@@ -2728,6 +2862,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_008_บ้านมนตรีวิทยา_กลุ่ม' OR s.name = 'โรงเรียนบ้านมนตรีวิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านมนตรีวิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายฤทธินนท์' AND m.lastName = 'จันดีวันนา'
@@ -2749,6 +2884,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_008_บ้านมนตรีวิทยา_กลุ่ม' OR s.name = 'โรงเรียนบ้านมนตรีวิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านมนตรีวิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายธนาธิป' AND m.lastName = 'อุทธิยา'
@@ -2770,6 +2906,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_008_บ้านมนตรีวิทยา_กลุ่ม' OR s.name = 'โรงเรียนบ้านมนตรีวิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านมนตรีวิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายคมภูศิษฐ์' AND m.lastName = 'นัฐธนากาญจน์'
@@ -2791,6 +2928,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_008_บ้านมนตรีวิทยา_กลุ่ม' OR s.name = 'โรงเรียนบ้านมนตรีวิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านมนตรีวิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวธัญสีนี' AND m.lastName = 'ชูเพชรสมบูรณ์'
@@ -2812,6 +2950,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_008_บ้านมนตรีวิทยา_กลุ่ม' OR s.name = 'โรงเรียนบ้านมนตรีวิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านมนตรีวิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวภัทราพร' AND m.lastName = 'โนจิตร'
@@ -2833,6 +2972,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_008_บ้านมนตรีวิทยา_กลุ่ม' OR s.name = 'โรงเรียนบ้านมนตรีวิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านมนตรีวิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวกานต์ชนิต' AND m.lastName = 'แสงแก้ว'
@@ -2854,6 +2994,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_008_บ้านมนตรีวิทยา_กลุ่ม' OR s.name = 'โรงเรียนบ้านมนตรีวิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านมนตรีวิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวฐิตาพร' AND m.lastName = 'ชูทอง'
@@ -2875,6 +3016,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_008_บ้านมนตรีวิทยา_กลุ่ม' OR s.name = 'โรงเรียนบ้านมนตรีวิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านมนตรีวิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางกรพันธุ์' AND m.lastName = 'จินะเทศ'
@@ -2896,6 +3038,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_008_บ้านมนตรีวิทยา_กลุ่ม' OR s.name = 'โรงเรียนบ้านมนตรีวิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านมนตรีวิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายยุทธติกาล' AND m.lastName = 'มหายศกุล'
@@ -2917,6 +3060,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_008_บ้านมนตรีวิทยา_กลุ่ม' OR s.name = 'โรงเรียนบ้านมนตรีวิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านมนตรีวิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวอภิสรา' AND m.lastName = 'อนันต์พระคุณ'
@@ -2938,6 +3082,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_008_บ้านมนตรีวิทยา_กลุ่ม' OR s.name = 'โรงเรียนบ้านมนตรีวิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านมนตรีวิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายอริญชย์' AND m.lastName = 'วะรีวะราช'
@@ -2959,6 +3104,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_008_บ้านมนตรีวิทยา_กลุ่ม' OR s.name = 'โรงเรียนบ้านมนตรีวิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านมนตรีวิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายธนฤทธิ์' AND m.lastName = 'ชัยวรรณ์'
@@ -2980,6 +3126,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_008_บ้านมนตรีวิทยา_กลุ่ม' OR s.name = 'โรงเรียนบ้านมนตรีวิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านมนตรีวิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายบุญคง' AND m.lastName = 'คืนมาเมือง'
@@ -3001,6 +3148,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค' OR s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายวันชัย' AND m.lastName = 'ชื่นตา'
@@ -3022,6 +3170,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค' OR s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายปิยวัฒน์' AND m.lastName = 'ก๋าใจคำ'
@@ -3043,6 +3192,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค' OR s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายพิชัย' AND m.lastName = 'ก่ำแก้ว'
@@ -3064,6 +3214,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค' OR s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายสงคราม' AND m.lastName = 'กิตติกาจ'
@@ -3085,6 +3236,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค' OR s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายประเชิญ' AND m.lastName = 'ต๊ะวิชัย'
@@ -3106,6 +3258,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค' OR s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายพิทยุตม์' AND m.lastName = 'จุมปา'
@@ -3127,6 +3280,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค' OR s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายพิเชษฐ์' AND m.lastName = 'แสนสุข'
@@ -3148,6 +3302,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค' OR s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายทัศนัย' AND m.lastName = 'ใจกาวิน'
@@ -3169,6 +3324,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค' OR s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายมาโนช' AND m.lastName = 'สุวรรณ'
@@ -3190,6 +3346,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค' OR s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวดวงพิกุล' AND m.lastName = 'ชัยวร'
@@ -3211,6 +3368,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค' OR s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางณัชชา' AND m.lastName = 'ภูมิเรศสุนทร'
@@ -3232,6 +3390,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค' OR s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางรสรินทร์' AND m.lastName = 'กิตติกาจ'
@@ -3253,6 +3412,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค' OR s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางกนกพร' AND m.lastName = 'อานุ'
@@ -3274,6 +3434,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค' OR s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวนิตยา' AND m.lastName = 'สักแสน'
@@ -3295,6 +3456,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค' OR s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวปัทมาภรณ์' AND m.lastName = 'ถิ่นการ์'
@@ -3316,6 +3478,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค' OR s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวชยาภรณ์' AND m.lastName = 'แซ่เฮ่อ'
@@ -3337,6 +3500,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค' OR s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวรุ่งทิวา' AND m.lastName = 'ยวงอินแปลง'
@@ -3358,6 +3522,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค' OR s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวกนกอร' AND m.lastName = 'จิตอ่อนน้อม'
@@ -3379,6 +3544,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค' OR s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวเปรมยุดา' AND m.lastName = 'รากะรินทร์'
@@ -3400,6 +3566,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค' OR s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวกนกพร' AND m.lastName = 'ทิศเชย'
@@ -3421,6 +3588,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค' OR s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายกฤษขจร' AND m.lastName = 'ฟ้าเลิศ'
@@ -3442,6 +3610,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค' OR s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายภากร' AND m.lastName = 'บัวทิม'
@@ -3463,6 +3632,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค' OR s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาววันพร' AND m.lastName = 'เขื่อนคำ'
@@ -3484,6 +3654,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค' OR s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวอาภัสรา' AND m.lastName = 'วังทิพย์'
@@ -3505,6 +3676,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค' OR s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวพิมพ์พร' AND m.lastName = 'ผัดขัน'
@@ -3526,6 +3698,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค' OR s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวกนกพิชญ์' AND m.lastName = 'กาญจนวาส'
@@ -3547,6 +3720,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค' OR s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวชวัลรัตน์' AND m.lastName = 'สุริยะ'
@@ -3568,6 +3742,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค' OR s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวนิตฐินันท์' AND m.lastName = 'สนธิคุณ'
@@ -3589,6 +3764,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค' OR s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวภาณุมาศ' AND m.lastName = 'พลวิทย์'
@@ -3610,6 +3786,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค' OR s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายธนากร' AND m.lastName = 'ทองเงา'
@@ -3631,6 +3808,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค' OR s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายพิสิทธิ์' AND m.lastName = 'โกเสนตอ'
@@ -3652,6 +3830,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค' OR s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายธวัชชัย' AND m.lastName = 'จันติ๊บ'
@@ -3673,6 +3852,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค' OR s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวพิมวิไล' AND m.lastName = 'ตาบุญใจ'
@@ -3694,6 +3874,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค' OR s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวสุทธิดา' AND m.lastName = 'มุงเมือง'
@@ -3715,6 +3896,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค' OR s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายนัทธวุฒิ' AND m.lastName = 'โสรินทร์'
@@ -3736,6 +3918,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค' OR s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายเอกรินทร์' AND m.lastName = 'อิ่นคำ'
@@ -3757,6 +3940,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค' OR s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายศุภกฤต' AND m.lastName = 'ฝั้นใจ'
@@ -3778,6 +3962,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค' OR s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวภาสินี' AND m.lastName = 'ทองรอบพิทักษ์'
@@ -3799,6 +3984,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค' OR s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายสิงหา' AND m.lastName = 'สุวรรณโค'
@@ -3820,6 +4006,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค' OR s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายวิกาวี' AND m.lastName = 'ชัยอารีย์'
@@ -3841,6 +4028,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค' OR s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายณัฐวุฒิ' AND m.lastName = 'แดงปัดแหว๋ว'
@@ -3862,6 +4050,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค' OR s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาววรัญญา' AND m.lastName = 'ทับทิมหิน'
@@ -3883,6 +4072,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค' OR s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวพิชามญชุ์' AND m.lastName = 'สายเพียร'
@@ -3904,6 +4094,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค' OR s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายเสกสรรค์' AND m.lastName = 'จันแปงเงิน'
@@ -3925,6 +4116,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค' OR s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวพิทยา' AND m.lastName = 'พรรดา'
@@ -3946,6 +4138,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค' OR s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายพิเชฐ' AND m.lastName = 'พินิจ'
@@ -3967,6 +4160,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค' OR s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาววริชญา' AND m.lastName = 'ชาวน่าน'
@@ -3988,6 +4182,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค' OR s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายชยากร' AND m.lastName = 'อุ่นธง'
@@ -4009,6 +4204,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค' OR s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวศุภกานต์' AND m.lastName = 'ไชยโย'
@@ -4030,6 +4226,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค' OR s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายญาณัคร์พนิต' AND m.lastName = 'คำผง'
@@ -4051,6 +4248,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค' OR s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวพัณณกร' AND m.lastName = 'วังแจ่ม'
@@ -4072,6 +4270,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค' OR s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายสมพร' AND m.lastName = 'แสนก่อ'
@@ -4093,6 +4292,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค' OR s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายสายไทย' AND m.lastName = 'สีอมย'
@@ -4114,6 +4314,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค' OR s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวนิตยา' AND m.lastName = 'หน่อวัน'
@@ -4135,6 +4336,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค' OR s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายศักดา' AND m.lastName = 'ธนพชรรัชต์'
@@ -4156,6 +4358,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค' OR s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายภีรดาดลย์' AND m.lastName = 'ไชยพูน'
@@ -4177,6 +4380,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค' OR s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'น.ส.ประไพ' AND m.lastName = 'เชอมือ'
@@ -4198,6 +4402,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_009_บ้านห้วยผึ้ง_กลุ่มเค' OR s.name = 'โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนบ้านห้วยผึ้ง กลุ่มเครือข่ายพัฒนาการศึกษาแม%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายนามติ๊บ' AND m.lastName = 'ธรรมใส'
@@ -4219,6 +4424,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_010_รัฐราษฎร์วิทยา_กลุ่ม' OR s.name = 'โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวมัญชุสา' AND m.lastName = 'เพ็ชรชนะ'
@@ -4240,6 +4446,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_010_รัฐราษฎร์วิทยา_กลุ่ม' OR s.name = 'โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาววรรณภัทร' AND m.lastName = 'วรวัฒน์รัชกุล'
@@ -4261,6 +4468,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_010_รัฐราษฎร์วิทยา_กลุ่ม' OR s.name = 'โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายรุ่งโรจน์' AND m.lastName = 'ร้องสาคร'
@@ -4282,6 +4490,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_010_รัฐราษฎร์วิทยา_กลุ่ม' OR s.name = 'โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายสมเกียรติ' AND m.lastName = 'กิติคำ'
@@ -4303,6 +4512,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_010_รัฐราษฎร์วิทยา_กลุ่ม' OR s.name = 'โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาววิรัญชนา' AND m.lastName = 'พระคุณวรกาญจน์'
@@ -4324,6 +4534,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_010_รัฐราษฎร์วิทยา_กลุ่ม' OR s.name = 'โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวอมรรัตน์' AND m.lastName = 'ปนคำปิน'
@@ -4345,6 +4556,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_010_รัฐราษฎร์วิทยา_กลุ่ม' OR s.name = 'โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายธนาวุธ' AND m.lastName = 'นามวงค์'
@@ -4366,6 +4578,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_010_รัฐราษฎร์วิทยา_กลุ่ม' OR s.name = 'โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายไกรระวี' AND m.lastName = 'จันต๊ะคาด'
@@ -4387,6 +4600,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_010_รัฐราษฎร์วิทยา_กลุ่ม' OR s.name = 'โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวธณัชชา' AND m.lastName = 'ใจอารีย์'
@@ -4408,6 +4622,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_010_รัฐราษฎร์วิทยา_กลุ่ม' OR s.name = 'โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาววรัชยาสิริ' AND m.lastName = 'บัวผัด'
@@ -4429,6 +4644,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_010_รัฐราษฎร์วิทยา_กลุ่ม' OR s.name = 'โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวสิรินันท์' AND m.lastName = 'แก้วยองผาง'
@@ -4450,6 +4666,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_010_รัฐราษฎร์วิทยา_กลุ่ม' OR s.name = 'โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวจริยา' AND m.lastName = 'เอกจันทร์'
@@ -4471,6 +4688,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_010_รัฐราษฎร์วิทยา_กลุ่ม' OR s.name = 'โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวฐิติรัตน์' AND m.lastName = 'ใจอ้าย'
@@ -4492,6 +4710,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_010_รัฐราษฎร์วิทยา_กลุ่ม' OR s.name = 'โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายสุวิจักขณ์' AND m.lastName = 'บุญวงศ์'
@@ -4513,6 +4732,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_010_รัฐราษฎร์วิทยา_กลุ่ม' OR s.name = 'โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายภานุพงศ์' AND m.lastName = 'แจขจัด'
@@ -4534,6 +4754,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_010_รัฐราษฎร์วิทยา_กลุ่ม' OR s.name = 'โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางอักษรา' AND m.lastName = 'ตาลำ'
@@ -4555,6 +4776,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_010_รัฐราษฎร์วิทยา_กลุ่ม' OR s.name = 'โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวธัญญารัตน์' AND m.lastName = 'ยาวิละ'
@@ -4576,6 +4798,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_010_รัฐราษฎร์วิทยา_กลุ่ม' OR s.name = 'โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายนิธิศ' AND m.lastName = 'จะตุแสน'
@@ -4597,6 +4820,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_010_รัฐราษฎร์วิทยา_กลุ่ม' OR s.name = 'โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวปัทมา' AND m.lastName = 'สุวรรณ์'
@@ -4618,6 +4842,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_010_รัฐราษฎร์วิทยา_กลุ่ม' OR s.name = 'โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวการต์พิชชา' AND m.lastName = 'ขันโท'
@@ -4639,6 +4864,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_010_รัฐราษฎร์วิทยา_กลุ่ม' OR s.name = 'โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวนิรมล' AND m.lastName = 'ศรีทอง'
@@ -4660,6 +4886,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_010_รัฐราษฎร์วิทยา_กลุ่ม' OR s.name = 'โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวนภัสสร' AND m.lastName = 'อรุณฟอง'
@@ -4681,6 +4908,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_010_รัฐราษฎร์วิทยา_กลุ่ม' OR s.name = 'โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวเจนจิรา' AND m.lastName = 'จันทาพูน'
@@ -4702,6 +4930,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_010_รัฐราษฎร์วิทยา_กลุ่ม' OR s.name = 'โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวทิพวรรณ์' AND m.lastName = 'จันทร์เพ็ญ'
@@ -4723,6 +4952,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_010_รัฐราษฎร์วิทยา_กลุ่ม' OR s.name = 'โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวเมธยา' AND m.lastName = 'ทะคำ'
@@ -4744,6 +4974,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_010_รัฐราษฎร์วิทยา_กลุ่ม' OR s.name = 'โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษาแม่สลองกาขาว' OR s.name LIKE '%โรงเรียนรัฐราษฎร์วิทยา กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวพิยดา' AND m.lastName = 'ไชยลังกา'
@@ -4765,6 +4996,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค' OR s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวศศิกานต์' AND m.lastName = 'เตจ๊ะวันดี'
@@ -4786,6 +5018,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค' OR s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายเสน่ห์' AND m.lastName = 'สุธรรม'
@@ -4807,6 +5040,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค' OR s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวจิราภรณ์' AND m.lastName = 'มงคลดี'
@@ -4828,6 +5062,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค' OR s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายสุรศักดิ์' AND m.lastName = 'นารี'
@@ -4849,6 +5084,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค' OR s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวปทมา' AND m.lastName = 'ชัยโรจน์วงศ์'
@@ -4870,6 +5106,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค' OR s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวนฤมล' AND m.lastName = 'โนฤทธิ'
@@ -4891,6 +5128,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค' OR s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวสิริรัตน์' AND m.lastName = 'พันธ์วิไล'
@@ -4912,6 +5150,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค' OR s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาววดี' AND m.lastName = 'ดีปัญญา'
@@ -4933,6 +5172,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค' OR s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวสุจิตรา' AND m.lastName = 'กว้าง'
@@ -4954,6 +5194,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค' OR s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวอัญชลี' AND m.lastName = 'สุธีราช'
@@ -4975,6 +5216,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค' OR s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายอภิรักษ์' AND m.lastName = 'สุวรรณ'
@@ -4996,6 +5238,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค' OR s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายพิทักษ์' AND m.lastName = 'วงศ์บุญมา'
@@ -5017,6 +5260,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค' OR s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวณัฏฐินดา' AND m.lastName = 'สีปโภคา'
@@ -5038,6 +5282,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค' OR s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวกรกฏ' AND m.lastName = 'อินทร์การทุม'
@@ -5059,6 +5304,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค' OR s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายปรีชา' AND m.lastName = 'เชยบุญเรือง'
@@ -5080,6 +5326,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค' OR s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวพัชรา' AND m.lastName = 'ทะยืน'
@@ -5101,6 +5348,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค' OR s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายชัชชุพงศ์' AND m.lastName = 'กรรณิกา'
@@ -5122,6 +5370,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค' OR s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวกรกนก' AND m.lastName = 'สัญเพ็ชร'
@@ -5143,6 +5392,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค' OR s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวรุ่งนภา' AND m.lastName = 'รินแก้ว'
@@ -5164,6 +5414,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค' OR s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาววรรณพร' AND m.lastName = 'รักห้วม'
@@ -5185,6 +5436,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค' OR s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาววาสินี' AND m.lastName = 'สุวรรณกาน'
@@ -5206,6 +5458,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค' OR s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวชมนุษย์' AND m.lastName = 'สวัสดิ์กิจ'
@@ -5227,6 +5480,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค' OR s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวอภิญญา' AND m.lastName = 'เกิดสกล'
@@ -5248,6 +5502,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค' OR s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายสมเกตุ' AND m.lastName = 'แสงจันทร์'
@@ -5269,6 +5524,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค' OR s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวไอรดา' AND m.lastName = 'ศรีสวัสดิ์'
@@ -5290,6 +5546,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค' OR s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวภัทรศิริ' AND m.lastName = 'หอมดี'
@@ -5311,6 +5568,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค' OR s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาววิญญา' AND m.lastName = 'อินต๊ะ'
@@ -5332,6 +5590,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค' OR s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายศราวุธ' AND m.lastName = 'ยิ้มงาม'
@@ -5353,6 +5612,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค' OR s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายเกริกพล' AND m.lastName = 'ชัตตะ'
@@ -5374,6 +5634,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค' OR s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายสรชัย' AND m.lastName = 'แซ่ห้าง'
@@ -5395,6 +5656,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค' OR s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวณัสสร' AND m.lastName = 'แซ่ย่าง'
@@ -5416,6 +5678,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค' OR s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวนิกาพร' AND m.lastName = 'มีชัย'
@@ -5437,6 +5700,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค' OR s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวกรกัญญา' AND m.lastName = 'ชมภูเกตุ'
@@ -5458,6 +5722,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค' OR s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวปริชาติ' AND m.lastName = 'งานดี'
@@ -5479,6 +5744,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค' OR s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายทศพล' AND m.lastName = 'สุคำ'
@@ -5500,6 +5766,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค' OR s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวมาลินี' AND m.lastName = 'รักษ์อินทร์'
@@ -5521,6 +5788,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค' OR s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวมณีรัตน์' AND m.lastName = 'สมฤทธิ์'
@@ -5542,6 +5810,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค' OR s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวภัทรา' AND m.lastName = 'ใจผ่อง'
@@ -5563,6 +5832,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค' OR s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวอรุณนาท' AND m.lastName = 'ตั้งศิริ'
@@ -5584,6 +5854,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค' OR s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายวชิรชัย' AND m.lastName = 'มีบุญ'
@@ -5605,6 +5876,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค' OR s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวพิมพ์รัตน์' AND m.lastName = 'เชื้อเมืองพาน'
@@ -5626,6 +5898,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค' OR s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายพรรษา' AND m.lastName = 'ทำโมนะ'
@@ -5647,6 +5920,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค' OR s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวโชตินภา' AND m.lastName = 'สมองฟ้าไกร'
@@ -5668,6 +5942,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_011_สามัคคีพัฒนา_กลุ่มเค' OR s.name = 'โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนสามัคคีพัฒนา   กลุ่มเครือข่ายพัฒนาการศึกษา%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายจิราวุฒิ' AND m.lastName = 'แก้วสี'
@@ -5689,6 +5964,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_012_บ้านแม่หม้อ_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายพิชชากร' AND m.lastName = 'อานุ'
@@ -5710,6 +5986,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_012_บ้านแม่หม้อ_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางกฤษกร' AND m.lastName = 'เรืองวิทยนันท์'
@@ -5731,6 +6008,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_012_บ้านแม่หม้อ_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาววรรนิสา' AND m.lastName = 'กุญชร'
@@ -5752,6 +6030,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_012_บ้านแม่หม้อ_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวณัฐิภา' AND m.lastName = 'ปัญญาแก้ว'
@@ -5773,6 +6052,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_012_บ้านแม่หม้อ_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวภัควลัญจน์' AND m.lastName = 'จันทร์ไชยวงศ์'
@@ -5794,6 +6074,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_012_บ้านแม่หม้อ_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวขวัญมนัส' AND m.lastName = 'ทำทาน'
@@ -5815,6 +6096,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_012_บ้านแม่หม้อ_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายสุธินันท์' AND m.lastName = 'คำแสน'
@@ -5836,6 +6118,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_012_บ้านแม่หม้อ_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางประภัสวรรณ' AND m.lastName = 'เชื้อเมืองพาน'
@@ -5857,6 +6140,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_012_บ้านแม่หม้อ_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายเดชณรงค์' AND m.lastName = 'คบลา'
@@ -5878,6 +6162,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_012_บ้านแม่หม้อ_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวอชิรญา' AND m.lastName = 'ช่างเขียน'
@@ -5899,6 +6184,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_012_บ้านแม่หม้อ_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางธารทิพย์' AND m.lastName = 'นรรัตน์'
@@ -5920,6 +6206,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_012_บ้านแม่หม้อ_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวณัฐณิชา' AND m.lastName = 'แสงนิล'
@@ -5941,6 +6228,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_012_บ้านแม่หม้อ_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวปรารถนา' AND m.lastName = 'สร้างโศรก'
@@ -5962,6 +6250,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_012_บ้านแม่หม้อ_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายสุทิน' AND m.lastName = 'เขื่อนคำแสน'
@@ -5983,6 +6272,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_012_บ้านแม่หม้อ_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายยศพล' AND m.lastName = 'ศรีอัญชลีกร'
@@ -6004,6 +6294,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_012_บ้านแม่หม้อ_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาววิเศษลักษณ์' AND m.lastName = 'วงศ์เป็ง'
@@ -6025,6 +6316,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_012_บ้านแม่หม้อ_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวเจษสุภาภรณ์' AND m.lastName = 'คำปวน'
@@ -6046,6 +6338,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_012_บ้านแม่หม้อ_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายภูริทัต' AND m.lastName = 'อินทรประเสริฐ'
@@ -6067,6 +6360,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_012_บ้านแม่หม้อ_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวสุภนุช' AND m.lastName = 'จิตสวา'
@@ -6088,6 +6382,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_012_บ้านแม่หม้อ_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายอะแล' AND m.lastName = 'มาเยอะ'
@@ -6109,6 +6404,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_012_บ้านแม่หม้อ_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวหมี่ตุ' AND m.lastName = 'แซ่จ๋าว'
@@ -6130,6 +6426,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_012_บ้านแม่หม้อ_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางวิรศรา' AND m.lastName = 'แซ่ฮ่อ'
@@ -6151,6 +6448,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_012_บ้านแม่หม้อ_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านแม่หม้อ   กลุ่มเครือข่ายพัฒนาการศึกษาเ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวหมี่โผ่' AND m.lastName = 'แซ่จ๋าว'
@@ -6172,6 +6470,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_013_บ้านผาจี_กลุ่มเครือข' OR s.name = 'โรงเรียนบ้านผาจี กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านผาจี กลุ่มเครือข่ายเทอดไทย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายชำนาญ' AND m.lastName = 'บอแฉ่'
@@ -6193,6 +6492,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_013_บ้านผาจี_กลุ่มเครือข' OR s.name = 'โรงเรียนบ้านผาจี กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านผาจี กลุ่มเครือข่ายเทอดไทย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวชามรี' AND m.lastName = 'ระวังทรัพย์'
@@ -6214,6 +6514,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_013_บ้านผาจี_กลุ่มเครือข' OR s.name = 'โรงเรียนบ้านผาจี กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านผาจี กลุ่มเครือข่ายเทอดไทย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวสุพรรณษา' AND m.lastName = 'คอง'
@@ -6235,6 +6536,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_013_บ้านผาจี_กลุ่มเครือข' OR s.name = 'โรงเรียนบ้านผาจี กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านผาจี กลุ่มเครือข่ายเทอดไทย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายกฤษฎาภูมิ' AND m.lastName = 'ไชยภูมิ'
@@ -6256,6 +6558,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_013_บ้านผาจี_กลุ่มเครือข' OR s.name = 'โรงเรียนบ้านผาจี กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านผาจี กลุ่มเครือข่ายเทอดไทย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวปิ่นทิพย์' AND m.lastName = 'ผาสุวรรณ'
@@ -6277,6 +6580,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_013_บ้านผาจี_กลุ่มเครือข' OR s.name = 'โรงเรียนบ้านผาจี กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านผาจี กลุ่มเครือข่ายเทอดไทย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวชญานี' AND m.lastName = 'โพธิ์'
@@ -6298,6 +6602,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_013_บ้านผาจี_กลุ่มเครือข' OR s.name = 'โรงเรียนบ้านผาจี กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านผาจี กลุ่มเครือข่ายเทอดไทย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวเบญจวรรณ' AND m.lastName = 'เตปินใจ'
@@ -6319,6 +6624,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_013_บ้านผาจี_กลุ่มเครือข' OR s.name = 'โรงเรียนบ้านผาจี กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านผาจี กลุ่มเครือข่ายเทอดไทย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวธัญญพัทธ์' AND m.lastName = 'ธนกฤษไพศย์'
@@ -6340,6 +6646,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_013_บ้านผาจี_กลุ่มเครือข' OR s.name = 'โรงเรียนบ้านผาจี กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านผาจี กลุ่มเครือข่ายเทอดไทย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวตุ๊ดนันท์' AND m.lastName = 'ชาวเหนือ'
@@ -6361,6 +6668,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_013_บ้านผาจี_กลุ่มเครือข' OR s.name = 'โรงเรียนบ้านผาจี กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านผาจี กลุ่มเครือข่ายเทอดไทย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางวิชญาดา' AND m.lastName = 'จันลา'
@@ -6382,6 +6690,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_014_บ้านปางมะหัน_กลุ่มเค' OR s.name = 'โรงเรียนบ้านปางมะหัน กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านปางมะหัน กลุ่มเครือข่ายเทอดไทย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายดนัยวัฒน์' AND m.lastName = 'มณี'
@@ -6403,6 +6712,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_014_บ้านปางมะหัน_กลุ่มเค' OR s.name = 'โรงเรียนบ้านปางมะหัน กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านปางมะหัน กลุ่มเครือข่ายเทอดไทย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายภูมินทร์' AND m.lastName = 'แสงสร้อย'
@@ -6424,6 +6734,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_014_บ้านปางมะหัน_กลุ่มเค' OR s.name = 'โรงเรียนบ้านปางมะหัน กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านปางมะหัน กลุ่มเครือข่ายเทอดไทย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายสหัสวรรษ' AND m.lastName = 'ศักภิวัล'
@@ -6445,6 +6756,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_014_บ้านปางมะหัน_กลุ่มเค' OR s.name = 'โรงเรียนบ้านปางมะหัน กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านปางมะหัน กลุ่มเครือข่ายเทอดไทย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวสุดา' AND m.lastName = 'พรมตา'
@@ -6466,6 +6778,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_014_บ้านปางมะหัน_กลุ่มเค' OR s.name = 'โรงเรียนบ้านปางมะหัน กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านปางมะหัน กลุ่มเครือข่ายเทอดไทย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายยุทธพงษ์' AND m.lastName = 'สุยะ'
@@ -6487,6 +6800,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_014_บ้านปางมะหัน_กลุ่มเค' OR s.name = 'โรงเรียนบ้านปางมะหัน กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านปางมะหัน กลุ่มเครือข่ายเทอดไทย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายภัทรพล' AND m.lastName = 'ศรีผาย'
@@ -6508,6 +6822,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_014_บ้านปางมะหัน_กลุ่มเค' OR s.name = 'โรงเรียนบ้านปางมะหัน กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านปางมะหัน กลุ่มเครือข่ายเทอดไทย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวภัณฑิรา' AND m.lastName = 'ยอดคีรี'
@@ -6529,6 +6844,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_014_บ้านปางมะหัน_กลุ่มเค' OR s.name = 'โรงเรียนบ้านปางมะหัน กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านปางมะหัน กลุ่มเครือข่ายเทอดไทย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวชลธิชา' AND m.lastName = 'เขื่อนปัญญา'
@@ -6550,6 +6866,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_014_บ้านปางมะหัน_กลุ่มเค' OR s.name = 'โรงเรียนบ้านปางมะหัน กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านปางมะหัน กลุ่มเครือข่ายเทอดไทย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวรมณีย์' AND m.lastName = 'หล้าธิ'
@@ -6571,6 +6888,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_014_บ้านปางมะหัน_กลุ่มเค' OR s.name = 'โรงเรียนบ้านปางมะหัน กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านปางมะหัน กลุ่มเครือข่ายเทอดไทย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวไหนจ้อย' AND m.lastName = 'แซ่ลี'
@@ -6592,6 +6910,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_014_บ้านปางมะหัน_กลุ่มเค' OR s.name = 'โรงเรียนบ้านปางมะหัน กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านปางมะหัน กลุ่มเครือข่ายเทอดไทย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายชยาวุธ' AND m.lastName = 'ปิติว่าเจริญ'
@@ -6613,6 +6932,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_015_ตํารวจตระเวนชายแดนบํ' OR s.name = 'โรงเรียนตํารวจตระเวนชายแดนบํารุงที่  87 กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนตํารวจตระเวนชายแดนบํารุงที่  87 กลุ่มเครือ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'วาที่รอยเอกบรรจงฤทธิ์' AND m.lastName = 'สุทธสม'
@@ -6634,6 +6954,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_015_ตํารวจตระเวนชายแดนบํ' OR s.name = 'โรงเรียนตํารวจตระเวนชายแดนบํารุงที่  87 กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนตํารวจตระเวนชายแดนบํารุงที่  87 กลุ่มเครือ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายสุทิวัส' AND m.lastName = 'ตติยะตนตระกูล'
@@ -6655,6 +6976,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_015_ตํารวจตระเวนชายแดนบํ' OR s.name = 'โรงเรียนตํารวจตระเวนชายแดนบํารุงที่  87 กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนตํารวจตระเวนชายแดนบํารุงที่  87 กลุ่มเครือ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวกานทชญา' AND m.lastName = 'พรมเสน'
@@ -6676,6 +6998,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_015_ตํารวจตระเวนชายแดนบํ' OR s.name = 'โรงเรียนตํารวจตระเวนชายแดนบํารุงที่  87 กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนตํารวจตระเวนชายแดนบํารุงที่  87 กลุ่มเครือ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายชัยกาญจน' AND m.lastName = 'นวลกําแหง'
@@ -6697,6 +7020,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_015_ตํารวจตระเวนชายแดนบํ' OR s.name = 'โรงเรียนตํารวจตระเวนชายแดนบํารุงที่  87 กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนตํารวจตระเวนชายแดนบํารุงที่  87 กลุ่มเครือ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวธาดารัตน' AND m.lastName = 'อุดมปละ'
@@ -6718,6 +7042,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_015_ตํารวจตระเวนชายแดนบํ' OR s.name = 'โรงเรียนตํารวจตระเวนชายแดนบํารุงที่  87 กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนตํารวจตระเวนชายแดนบํารุงที่  87 กลุ่มเครือ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวกังสดาล' AND m.lastName = 'ใจกลา'
@@ -6739,6 +7064,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_015_ตํารวจตระเวนชายแดนบํ' OR s.name = 'โรงเรียนตํารวจตระเวนชายแดนบํารุงที่  87 กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนตํารวจตระเวนชายแดนบํารุงที่  87 กลุ่มเครือ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวเกศินี' AND m.lastName = 'วิชัยเนตร'
@@ -6760,6 +7086,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_015_ตํารวจตระเวนชายแดนบํ' OR s.name = 'โรงเรียนตํารวจตระเวนชายแดนบํารุงที่  87 กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนตํารวจตระเวนชายแดนบํารุงที่  87 กลุ่มเครือ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวจารุวรรณ' AND m.lastName = 'คําเหล็ก'
@@ -6781,6 +7108,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_015_ตํารวจตระเวนชายแดนบํ' OR s.name = 'โรงเรียนตํารวจตระเวนชายแดนบํารุงที่  87 กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนตํารวจตระเวนชายแดนบํารุงที่  87 กลุ่มเครือ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายกิตติภพ' AND m.lastName = 'แซตัง'
@@ -6802,6 +7130,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_015_ตํารวจตระเวนชายแดนบํ' OR s.name = 'โรงเรียนตํารวจตระเวนชายแดนบํารุงที่  87 กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนตํารวจตระเวนชายแดนบํารุงที่  87 กลุ่มเครือ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายวรเชษฐ' AND m.lastName = 'แววสี'
@@ -6823,6 +7152,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_015_ตํารวจตระเวนชายแดนบํ' OR s.name = 'โรงเรียนตํารวจตระเวนชายแดนบํารุงที่  87 กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนตํารวจตระเวนชายแดนบํารุงที่  87 กลุ่มเครือ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวศันสนา' AND m.lastName = 'ปวกหลวง'
@@ -6844,6 +7174,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_015_ตํารวจตระเวนชายแดนบํ' OR s.name = 'โรงเรียนตํารวจตระเวนชายแดนบํารุงที่  87 กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนตํารวจตระเวนชายแดนบํารุงที่  87 กลุ่มเครือ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวปยะนุช' AND m.lastName = 'สุนาโท'
@@ -6865,6 +7196,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_015_ตํารวจตระเวนชายแดนบํ' OR s.name = 'โรงเรียนตํารวจตระเวนชายแดนบํารุงที่  87 กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนตํารวจตระเวนชายแดนบํารุงที่  87 กลุ่มเครือ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวรัชฎา' AND m.lastName = 'ตาฮง'
@@ -6886,6 +7218,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_015_ตํารวจตระเวนชายแดนบํ' OR s.name = 'โรงเรียนตํารวจตระเวนชายแดนบํารุงที่  87 กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนตํารวจตระเวนชายแดนบํารุงที่  87 กลุ่มเครือ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายสมศักดิ์' AND m.lastName = 'แซหมื่อ'
@@ -6907,6 +7240,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_015_ตํารวจตระเวนชายแดนบํ' OR s.name = 'โรงเรียนตํารวจตระเวนชายแดนบํารุงที่  87 กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนตํารวจตระเวนชายแดนบํารุงที่  87 กลุ่มเครือ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายธนาพล' AND m.lastName = 'มาเยอะ'
@@ -6928,6 +7262,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_016_บ้านห้วยอื้น_กลุ่มเค' OR s.name = 'โรงเรียนบ้านห้วยอื้น กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านห้วยอื้น กลุ่มเครือข่ายเทอดไทย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวสุดารัตน์' AND m.lastName = 'ปัญญาศิริวงศ์'
@@ -6949,6 +7284,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_016_บ้านห้วยอื้น_กลุ่มเค' OR s.name = 'โรงเรียนบ้านห้วยอื้น กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านห้วยอื้น กลุ่มเครือข่ายเทอดไทย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางจีราพร' AND m.lastName = 'อินทะนิล'
@@ -6970,6 +7306,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_016_บ้านห้วยอื้น_กลุ่มเค' OR s.name = 'โรงเรียนบ้านห้วยอื้น กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านห้วยอื้น กลุ่มเครือข่ายเทอดไทย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายพงศ์พันธ์' AND m.lastName = 'โพธิ์'
@@ -6991,6 +7328,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_016_บ้านห้วยอื้น_กลุ่มเค' OR s.name = 'โรงเรียนบ้านห้วยอื้น กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านห้วยอื้น กลุ่มเครือข่ายเทอดไทย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายเนตรศักดิ์' AND m.lastName = 'เชียงเครือ'
@@ -7012,6 +7350,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_016_บ้านห้วยอื้น_กลุ่มเค' OR s.name = 'โรงเรียนบ้านห้วยอื้น กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านห้วยอื้น กลุ่มเครือข่ายเทอดไทย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวจินดารัตน์' AND m.lastName = 'บุปผฤกษ์'
@@ -7033,6 +7372,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_016_บ้านห้วยอื้น_กลุ่มเค' OR s.name = 'โรงเรียนบ้านห้วยอื้น กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านห้วยอื้น กลุ่มเครือข่ายเทอดไทย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวกาญจนา' AND m.lastName = 'บุตรี'
@@ -7054,6 +7394,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_016_บ้านห้วยอื้น_กลุ่มเค' OR s.name = 'โรงเรียนบ้านห้วยอื้น กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านห้วยอื้น กลุ่มเครือข่ายเทอดไทย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวชมพร' AND m.lastName = 'ติตนากาศ'
@@ -7075,6 +7416,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_016_บ้านห้วยอื้น_กลุ่มเค' OR s.name = 'โรงเรียนบ้านห้วยอื้น กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านห้วยอื้น กลุ่มเครือข่ายเทอดไทย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาววิภาภัค' AND m.lastName = 'กันตะยา'
@@ -7096,6 +7438,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_016_บ้านห้วยอื้น_กลุ่มเค' OR s.name = 'โรงเรียนบ้านห้วยอื้น กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านห้วยอื้น กลุ่มเครือข่ายเทอดไทย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวเขมิกา' AND m.lastName = 'เตมูลละ'
@@ -7117,6 +7460,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_016_บ้านห้วยอื้น_กลุ่มเค' OR s.name = 'โรงเรียนบ้านห้วยอื้น กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านห้วยอื้น กลุ่มเครือข่ายเทอดไทย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวสิเรชา' AND m.lastName = 'รุ่งกานภาค'
@@ -7138,6 +7482,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_016_บ้านห้วยอื้น_กลุ่มเค' OR s.name = 'โรงเรียนบ้านห้วยอื้น กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านห้วยอื้น กลุ่มเครือข่ายเทอดไทย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายคณภัณฑ์' AND m.lastName = 'หมั่นสมบัติ'
@@ -7159,6 +7504,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_016_บ้านห้วยอื้น_กลุ่มเค' OR s.name = 'โรงเรียนบ้านห้วยอื้น กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านห้วยอื้น กลุ่มเครือข่ายเทอดไทย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวธัญชนรี' AND m.lastName = 'แก้วนภรสิการ'
@@ -7180,6 +7526,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_016_บ้านห้วยอื้น_กลุ่มเค' OR s.name = 'โรงเรียนบ้านห้วยอื้น กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านห้วยอื้น กลุ่มเครือข่ายเทอดไทย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวปรียลักษณ์' AND m.lastName = 'โภคาร'
@@ -7201,6 +7548,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_016_บ้านห้วยอื้น_กลุ่มเค' OR s.name = 'โรงเรียนบ้านห้วยอื้น กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านห้วยอื้น กลุ่มเครือข่ายเทอดไทย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวชนากานต์' AND m.lastName = 'อภิสริประภา'
@@ -7222,6 +7570,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_016_บ้านห้วยอื้น_กลุ่มเค' OR s.name = 'โรงเรียนบ้านห้วยอื้น กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านห้วยอื้น กลุ่มเครือข่ายเทอดไทย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวรัตตกาล' AND m.lastName = 'ยาธรงษ์'
@@ -7243,6 +7592,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_016_บ้านห้วยอื้น_กลุ่มเค' OR s.name = 'โรงเรียนบ้านห้วยอื้น กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านห้วยอื้น กลุ่มเครือข่ายเทอดไทย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายมล' AND m.lastName = 'คำจันทร์'
@@ -7264,6 +7614,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_017_พญาไพรไตรมิตร_กลุ่มเ' OR s.name = 'โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายบัญญัติ' AND m.lastName = 'ยานะ'
@@ -7285,6 +7636,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_017_พญาไพรไตรมิตร_กลุ่มเ' OR s.name = 'โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายวุฒิชัย' AND m.lastName = 'กันสุธรรม'
@@ -7306,6 +7658,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_017_พญาไพรไตรมิตร_กลุ่มเ' OR s.name = 'โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวธนารัตน์' AND m.lastName = 'ลือชัย'
@@ -7327,6 +7680,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_017_พญาไพรไตรมิตร_กลุ่มเ' OR s.name = 'โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวพิมบุญ' AND m.lastName = 'แสนมงคล'
@@ -7348,6 +7702,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_017_พญาไพรไตรมิตร_กลุ่มเ' OR s.name = 'โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวกัลยรัตน์' AND m.lastName = 'ชัยธรรม'
@@ -7369,6 +7724,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_017_พญาไพรไตรมิตร_กลุ่มเ' OR s.name = 'โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวชญานี' AND m.lastName = 'คันทะเนตร'
@@ -7390,6 +7746,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_017_พญาไพรไตรมิตร_กลุ่มเ' OR s.name = 'โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'ว่าที่' AND m.lastName = 'ร.ต.ภูวดล กุญชร'
@@ -7411,6 +7768,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_017_พญาไพรไตรมิตร_กลุ่มเ' OR s.name = 'โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวอัญชลี' AND m.lastName = 'หาทองคำ'
@@ -7432,6 +7790,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_017_พญาไพรไตรมิตร_กลุ่มเ' OR s.name = 'โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวปฐมาวดี' AND m.lastName = 'แมตสอง'
@@ -7453,6 +7812,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_017_พญาไพรไตรมิตร_กลุ่มเ' OR s.name = 'โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายคชศักดิ์' AND m.lastName = 'ต่างเพ็ชร'
@@ -7474,6 +7834,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_017_พญาไพรไตรมิตร_กลุ่มเ' OR s.name = 'โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายณัฐภูมิ' AND m.lastName = 'มาแว่น'
@@ -7495,6 +7856,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_017_พญาไพรไตรมิตร_กลุ่มเ' OR s.name = 'โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวปรีณาภา' AND m.lastName = 'คำภิละ'
@@ -7516,6 +7878,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_017_พญาไพรไตรมิตร_กลุ่มเ' OR s.name = 'โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวสุชานันท์' AND m.lastName = 'ภักดีบุรี'
@@ -7537,6 +7900,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_017_พญาไพรไตรมิตร_กลุ่มเ' OR s.name = 'โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวยุพิน' AND m.lastName = 'คำแก้ว'
@@ -7558,6 +7922,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_017_พญาไพรไตรมิตร_กลุ่มเ' OR s.name = 'โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายธีรทัช' AND m.lastName = 'บุญทา'
@@ -7579,6 +7944,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_017_พญาไพรไตรมิตร_กลุ่มเ' OR s.name = 'โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวอริศรา' AND m.lastName = 'พิธีเรือง'
@@ -7600,6 +7966,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_017_พญาไพรไตรมิตร_กลุ่มเ' OR s.name = 'โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวสุพัตรา' AND m.lastName = 'คำสุ'
@@ -7621,6 +7988,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_017_พญาไพรไตรมิตร_กลุ่มเ' OR s.name = 'โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาววิลาวรรณ' AND m.lastName = 'อินตา'
@@ -7642,6 +8010,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_017_พญาไพรไตรมิตร_กลุ่มเ' OR s.name = 'โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายอนุชิต' AND m.lastName = 'แข็งแรง'
@@ -7663,6 +8032,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_017_พญาไพรไตรมิตร_กลุ่มเ' OR s.name = 'โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวฐิตาภรณ์' AND m.lastName = 'สายอิ่นแก้ว'
@@ -7684,6 +8054,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_017_พญาไพรไตรมิตร_กลุ่มเ' OR s.name = 'โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายกรกฎ' AND m.lastName = 'โรจนนิจ'
@@ -7705,6 +8076,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_017_พญาไพรไตรมิตร_กลุ่มเ' OR s.name = 'โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวศิรินกรณ์' AND m.lastName = 'สุยะ'
@@ -7726,6 +8098,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_017_พญาไพรไตรมิตร_กลุ่มเ' OR s.name = 'โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวสุจินดา' AND m.lastName = 'ใจกล้า'
@@ -7747,6 +8120,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_017_พญาไพรไตรมิตร_กลุ่มเ' OR s.name = 'โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายพุฒิชัย' AND m.lastName = 'ไฝเครือ'
@@ -7768,6 +8142,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_017_พญาไพรไตรมิตร_กลุ่มเ' OR s.name = 'โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายภาณุพงค์' AND m.lastName = 'ยาจันทร์'
@@ -7789,6 +8164,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_017_พญาไพรไตรมิตร_กลุ่มเ' OR s.name = 'โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายฉัตรดนัย' AND m.lastName = 'ใยญาติ'
@@ -7810,6 +8186,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_017_พญาไพรไตรมิตร_กลุ่มเ' OR s.name = 'โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายเลอพงษ์' AND m.lastName = 'ปัญญาดี'
@@ -7831,6 +8208,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_017_พญาไพรไตรมิตร_กลุ่มเ' OR s.name = 'โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวจารุวรรณ' AND m.lastName = 'กันทะ'
@@ -7852,6 +8230,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_017_พญาไพรไตรมิตร_กลุ่มเ' OR s.name = 'โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย' OR s.name LIKE '%โรงเรียนพญาไพรไตรมิตร กลุ่มเครือข่ายเทอดไทย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายจายแสง' AND m.lastName = 'มอญคำ'
@@ -7873,6 +8252,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายเกรียงศักดิ์' AND m.lastName = 'ฝึกฝน'
@@ -7894,6 +8274,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสุรีย์พร' AND m.lastName = 'แข็งขันธ์'
@@ -7915,6 +8296,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางนวนันท์' AND m.lastName = 'สิทธิวงศ์'
@@ -7936,6 +8318,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวพิมพ์พิกา' AND m.lastName = 'จันทร์เทพ'
@@ -7957,6 +8340,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวน้ำเพชร' AND m.lastName = 'ชัยชมภู'
@@ -7978,6 +8362,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวพัชรา' AND m.lastName = 'สินธรมงคล'
@@ -7999,6 +8384,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'ว่าที่ร้อยตรีโสธร' AND m.lastName = 'ศรีอาวุธ'
@@ -8020,6 +8406,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางศรีจันทร์' AND m.lastName = 'กันทะนะ'
@@ -8041,6 +8428,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวอัญชลี' AND m.lastName = 'เมฆวิบูลย์'
@@ -8062,6 +8450,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวฟ้าใส' AND m.lastName = 'วิสารกาญจน'
@@ -8083,6 +8472,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายพีรกร' AND m.lastName = 'สมคำ'
@@ -8104,6 +8494,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางธรรยธรฐ์' AND m.lastName = 'ดวงสนิท'
@@ -8125,6 +8516,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวฉัตรนิฏฐา' AND m.lastName = 'สุนันตา'
@@ -8146,6 +8538,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'ว่าที่ร้อยตรีอนุรักษ์' AND m.lastName = 'มั่นอ่วม'
@@ -8167,6 +8560,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวศิริพร' AND m.lastName = 'เยอะหนื่อ'
@@ -8188,6 +8582,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายทนงศักดิ์' AND m.lastName = 'หวานหอม'
@@ -8209,6 +8604,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวนิลรัตน์' AND m.lastName = 'ไชยรังสฤษดิ์'
@@ -8230,6 +8626,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายไพชยนต์' AND m.lastName = 'สิทธิยศ'
@@ -8251,6 +8648,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวศรัญญา' AND m.lastName = 'เชื้อเมืองพาน'
@@ -8272,6 +8670,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายพิรเศรษฐ์' AND m.lastName = 'จินะ'
@@ -8293,6 +8692,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายธนทรัพย์' AND m.lastName = 'รัตนไภ'
@@ -8314,6 +8714,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายศักดา' AND m.lastName = 'วันเพ็ญ'
@@ -8335,6 +8736,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวภาสินี' AND m.lastName = 'ธิศรี'
@@ -8356,6 +8758,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาววรัชญ์ขวัญ' AND m.lastName = 'ปัญวิยะ'
@@ -8377,6 +8780,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวปวริศา' AND m.lastName = 'สุระจิตต์'
@@ -8398,6 +8802,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางรตีกานต์' AND m.lastName = 'เดินแปง'
@@ -8419,6 +8824,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาววารุณี' AND m.lastName = 'หลวงไชย'
@@ -8440,6 +8846,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวนพเก้า' AND m.lastName = 'นิพัฒน์ศิริผล'
@@ -8461,6 +8868,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวปุญญิสา' AND m.lastName = 'ปงลังกา'
@@ -8482,6 +8890,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวหนึ่งฤทัย' AND m.lastName = 'สุทธสม'
@@ -8503,6 +8912,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายคามิน' AND m.lastName = 'คีรีอยู่ลือ'
@@ -8524,6 +8934,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายชัญญานุช' AND m.lastName = 'โพธิ์เงิน'
@@ -8545,6 +8956,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวรัชนี' AND m.lastName = 'สุทธิประภา'
@@ -8566,6 +8978,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายเชนร์' AND m.lastName = 'อุดอ้าย'
@@ -8587,6 +9000,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายศิวกร' AND m.lastName = 'มูลละ'
@@ -8608,6 +9022,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวชนันท์ธิดา' AND m.lastName = 'สิริวสุพงศ์'
@@ -8629,6 +9044,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวเนตรนภัทร' AND m.lastName = 'แก้วแดง'
@@ -8650,6 +9066,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายภูบดินทร์' AND m.lastName = 'อินรส'
@@ -8671,6 +9088,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวกัญญารัตน์' AND m.lastName = 'ยะกับ'
@@ -8692,6 +9110,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวกัญญารัตน์' AND m.lastName = 'วงศ์หลวง'
@@ -8713,6 +9132,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายจิรายุทธ' AND m.lastName = 'ศรีคำเทียม'
@@ -8734,6 +9154,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวรุ้งทราย' AND m.lastName = 'ลูนปัน'
@@ -8755,6 +9176,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวกัญจนพร' AND m.lastName = 'อภัยกาวี'
@@ -8776,6 +9198,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวพิมพ์พิจิตร' AND m.lastName = 'ศรีสงค์ใจ'
@@ -8797,6 +9220,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวรติมา' AND m.lastName = 'ภาวงศ์'
@@ -8818,6 +9242,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายศุภกฤต' AND m.lastName = 'อภิไชย'
@@ -8839,6 +9264,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวรุ่งทิวา' AND m.lastName = 'กาศมณี'
@@ -8860,6 +9286,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวศิรินันท์' AND m.lastName = 'อรัญวาส'
@@ -8881,6 +9308,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวชลิดา' AND m.lastName = 'ปินคำ'
@@ -8902,6 +9330,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวพุทธกาล' AND m.lastName = 'บัณฑิตเทอดสกุล'
@@ -8923,6 +9352,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายยชญ์วิวรรธน์' AND m.lastName = 'ชมภูชนะภัย'
@@ -8944,6 +9374,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายณัฐวัฒน์' AND m.lastName = 'ภูริธิติมา'
@@ -8965,6 +9396,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายณัฐพล' AND m.lastName = 'วัฒนาชัยมงคล'
@@ -8986,6 +9418,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายสัภยา' AND m.lastName = 'ตาลำ'
@@ -9007,6 +9440,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวศรัณย์ธร' AND m.lastName = 'สังข์เมือง'
@@ -9028,6 +9462,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวจิราพร' AND m.lastName = 'ระคาไพ'
@@ -9049,6 +9484,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวกฤษณา' AND m.lastName = 'ธรรมศร'
@@ -9070,6 +9506,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวรัญชิดา' AND m.lastName = 'พรมมินทร์'
@@ -9091,6 +9528,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาววาริกา' AND m.lastName = 'แดนช่างคำ'
@@ -9112,6 +9550,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวจุฑามาศ' AND m.lastName = 'ไชยพูน'
@@ -9133,6 +9572,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวยลลดา' AND m.lastName = 'สารบัว'
@@ -9154,6 +9594,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวรัฐพร' AND m.lastName = 'หมั่นแสวง'
@@ -9175,6 +9616,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวศุภลักษณ์' AND m.lastName = 'โพธิ์ทองพร'
@@ -9196,6 +9638,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวณัฐธิชา' AND m.lastName = 'ศรีเพชร'
@@ -9217,6 +9660,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวนภัสสร' AND m.lastName = 'คำลือ'
@@ -9238,6 +9682,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวชลลดา' AND m.lastName = 'แข่งขัน'
@@ -9259,6 +9704,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวจันทิมา' AND m.lastName = 'รอบรู้'
@@ -9280,6 +9726,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายธัชกร' AND m.lastName = 'ปัญญาอินทร์'
@@ -9301,6 +9748,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวสกาวเดือน' AND m.lastName = 'งามพิง'
@@ -9322,6 +9770,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวเสาวนีย์' AND m.lastName = 'นามอ้าย'
@@ -9343,6 +9792,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวสุพัตรา' AND m.lastName = 'ฉางข้าวไชย'
@@ -9364,6 +9814,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวหนึ่งฤทัย' AND m.lastName = 'พนาแสนใจ'
@@ -9385,6 +9836,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาววราพร' AND m.lastName = 'สุยะ'
@@ -9406,6 +9858,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายจักรพงษ์' AND m.lastName = 'ติ๊บเหล็ก'
@@ -9427,6 +9880,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายรัฐพล' AND m.lastName = 'คำพงษ์'
@@ -9448,6 +9902,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวจุฑานาถ' AND m.lastName = 'ทองล้วน'
@@ -9469,6 +9924,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวณิชกานต์' AND m.lastName = 'ดีคำ'
@@ -9490,6 +9946,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายเอกรัตน์' AND m.lastName = 'อายุยืน'
@@ -9511,6 +9968,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาววรรณวิสา' AND m.lastName = 'กันทา'
@@ -9532,6 +9990,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายจักรรินทร์' AND m.lastName = 'โฆษิตมุธากร'
@@ -9553,6 +10012,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสางธัญธิญาพร' AND m.lastName = 'ก๋องแก้ว'
@@ -9574,6 +10034,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวสุชัญญา' AND m.lastName = 'ทาทอง'
@@ -9595,6 +10056,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายนัทธพงศ์' AND m.lastName = 'ยศวงศ์'
@@ -9616,6 +10078,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวประพิมพ์พร' AND m.lastName = 'แก้วมาเมือง'
@@ -9637,6 +10100,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวกนกวรรณ' AND m.lastName = 'ธีรโฆษิต'
@@ -9658,6 +10122,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายนิธิรัตน์' AND m.lastName = 'สุดสม'
@@ -9679,6 +10144,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวเสาวลักษณ์' AND m.lastName = 'บานเย็น'
@@ -9700,6 +10166,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวมาลิสา' AND m.lastName = 'คำเงิน'
@@ -9721,6 +10188,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายวิสาร' AND m.lastName = 'โลบันลือภพ'
@@ -9742,6 +10210,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวจารุวรรณ' AND m.lastName = 'แซ่ฟุ้ง'
@@ -9763,6 +10232,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวศศิธร' AND m.lastName = 'เชียวตา'
@@ -9784,6 +10254,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายศราวุฒิ' AND m.lastName = 'ฝั้นก๋า'
@@ -9805,6 +10276,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายจิรวัฒน์' AND m.lastName = 'วงศ์ประเสริฐ'
@@ -9826,6 +10298,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวมณีวรรณ' AND m.lastName = 'คันธวังอินทร์'
@@ -9847,6 +10320,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางกษมา' AND m.lastName = 'ทองสุวรรณ'
@@ -9868,6 +10342,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวศรีวรรณ' AND m.lastName = 'ปอแฉ่'
@@ -9889,6 +10364,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายยี่' AND m.lastName = 'คำอู๋'
@@ -9910,6 +10386,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_018_บ้านเทอดไทย_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านเทอดไทย  กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายแสง' AND m.lastName = 'บุญธีราโชติ'
@@ -9931,6 +10408,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_019_บ้านจะตี_กลุ่มเครือข' OR s.name = 'โรงเรียนบ้านจะตี  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านจะตี  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายชัชวาลย์' AND m.lastName = 'ใจอินทร์'
@@ -9952,6 +10430,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_019_บ้านจะตี_กลุ่มเครือข' OR s.name = 'โรงเรียนบ้านจะตี  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านจะตี  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายสุริยา' AND m.lastName = 'วงษ์ตา'
@@ -9973,6 +10452,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_019_บ้านจะตี_กลุ่มเครือข' OR s.name = 'โรงเรียนบ้านจะตี  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านจะตี  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวเบญจพร' AND m.lastName = 'พันธะเกษม'
@@ -9994,6 +10474,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_019_บ้านจะตี_กลุ่มเครือข' OR s.name = 'โรงเรียนบ้านจะตี  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านจะตี  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายกิตติพงษ์' AND m.lastName = 'ไชยลังการ'
@@ -10015,6 +10496,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_019_บ้านจะตี_กลุ่มเครือข' OR s.name = 'โรงเรียนบ้านจะตี  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านจะตี  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวอัจรียา' AND m.lastName = 'นนท์ศรี'
@@ -10036,6 +10518,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_019_บ้านจะตี_กลุ่มเครือข' OR s.name = 'โรงเรียนบ้านจะตี  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านจะตี  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวจุฑารัตน์' AND m.lastName = 'คันทะเสน'
@@ -10057,6 +10540,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_019_บ้านจะตี_กลุ่มเครือข' OR s.name = 'โรงเรียนบ้านจะตี  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านจะตี  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวเนตรนภา' AND m.lastName = 'เชื้อหมอ'
@@ -10078,6 +10562,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_019_บ้านจะตี_กลุ่มเครือข' OR s.name = 'โรงเรียนบ้านจะตี  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านจะตี  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวเมธาวี' AND m.lastName = 'ขัติพรหม'
@@ -10099,6 +10584,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_019_บ้านจะตี_กลุ่มเครือข' OR s.name = 'โรงเรียนบ้านจะตี  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านจะตี  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวธิติยา' AND m.lastName = 'ลก'
@@ -10120,6 +10606,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_019_บ้านจะตี_กลุ่มเครือข' OR s.name = 'โรงเรียนบ้านจะตี  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านจะตี  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวชินาทร' AND m.lastName = 'บัวแดง'
@@ -10141,6 +10628,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_019_บ้านจะตี_กลุ่มเครือข' OR s.name = 'โรงเรียนบ้านจะตี  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านจะตี  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายเนติพงศ์' AND m.lastName = 'เสาร์จันทร์'
@@ -10162,6 +10650,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_019_บ้านจะตี_กลุ่มเครือข' OR s.name = 'โรงเรียนบ้านจะตี  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านจะตี  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายอนุชิต' AND m.lastName = 'ตันวงค์ษา'
@@ -10183,6 +10672,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_019_บ้านจะตี_กลุ่มเครือข' OR s.name = 'โรงเรียนบ้านจะตี  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านจะตี  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาววรรณวลี' AND m.lastName = 'ดิถีเพ็ง'
@@ -10204,6 +10694,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_019_บ้านจะตี_กลุ่มเครือข' OR s.name = 'โรงเรียนบ้านจะตี  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านจะตี  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายชุติพนธ์' AND m.lastName = 'สมบูรณ์วงษ์'
@@ -10225,6 +10716,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_019_บ้านจะตี_กลุ่มเครือข' OR s.name = 'โรงเรียนบ้านจะตี  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านจะตี  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายภาณุพงศ์' AND m.lastName = 'กาสอน'
@@ -10246,6 +10738,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_019_บ้านจะตี_กลุ่มเครือข' OR s.name = 'โรงเรียนบ้านจะตี  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านจะตี  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวภัสปชธร' AND m.lastName = 'แสนเป็ง'
@@ -10267,6 +10760,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_019_บ้านจะตี_กลุ่มเครือข' OR s.name = 'โรงเรียนบ้านจะตี  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านจะตี  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวพัชรินธรณ์' AND m.lastName = 'รวมสุข'
@@ -10288,6 +10782,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_019_บ้านจะตี_กลุ่มเครือข' OR s.name = 'โรงเรียนบ้านจะตี  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านจะตี  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวเปมิกา' AND m.lastName = 'เมอแล'
@@ -10309,6 +10804,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_019_บ้านจะตี_กลุ่มเครือข' OR s.name = 'โรงเรียนบ้านจะตี  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านจะตี  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวอำพร' AND m.lastName = 'แลเชอะ'
@@ -10330,6 +10826,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_019_บ้านจะตี_กลุ่มเครือข' OR s.name = 'โรงเรียนบ้านจะตี  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านจะตี  กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายจะแฮ' AND m.lastName = 'มูยี'
@@ -10351,6 +10848,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_020_บ้านพญาไพร_กลุ่มเครื' OR s.name = 'โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายสุขสันต์' AND m.lastName = 'สอนนวล'
@@ -10372,6 +10870,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_020_บ้านพญาไพร_กลุ่มเครื' OR s.name = 'โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวปรียนันท์' AND m.lastName = 'ทิพากร'
@@ -10393,6 +10892,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_020_บ้านพญาไพร_กลุ่มเครื' OR s.name = 'โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายขวัญชัย' AND m.lastName = 'โกแสนตอ'
@@ -10414,6 +10914,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_020_บ้านพญาไพร_กลุ่มเครื' OR s.name = 'โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายชานนท์' AND m.lastName = 'จันต๊ะคาด'
@@ -10435,6 +10936,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_020_บ้านพญาไพร_กลุ่มเครื' OR s.name = 'โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางรพีพรรณ' AND m.lastName = 'มาลารัตน์'
@@ -10456,6 +10958,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_020_บ้านพญาไพร_กลุ่มเครื' OR s.name = 'โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวภัณฑิรา' AND m.lastName = 'เมืองปัญโญ'
@@ -10477,6 +10980,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_020_บ้านพญาไพร_กลุ่มเครื' OR s.name = 'โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายชาญณรงค์' AND m.lastName = 'โลดแจ้ง'
@@ -10498,6 +11002,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_020_บ้านพญาไพร_กลุ่มเครื' OR s.name = 'โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'ว่าที่' AND m.lastName = 'ร.ต.หญิงวิจิตรา เย็นจิตต์'
@@ -10519,6 +11024,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_020_บ้านพญาไพร_กลุ่มเครื' OR s.name = 'โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวมาลินี' AND m.lastName = 'ดอนมูล'
@@ -10540,6 +11046,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_020_บ้านพญาไพร_กลุ่มเครื' OR s.name = 'โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายสุรศักดิ์' AND m.lastName = 'เนตรทิพย์'
@@ -10561,6 +11068,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_020_บ้านพญาไพร_กลุ่มเครื' OR s.name = 'โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวศุภกานต์' AND m.lastName = 'ชื่นจิต'
@@ -10582,6 +11090,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_020_บ้านพญาไพร_กลุ่มเครื' OR s.name = 'โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวอรปรียา' AND m.lastName = 'กาแก้ว'
@@ -10603,6 +11112,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_020_บ้านพญาไพร_กลุ่มเครื' OR s.name = 'โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวนิลาวรรณ' AND m.lastName = 'สายพรหม'
@@ -10624,6 +11134,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_020_บ้านพญาไพร_กลุ่มเครื' OR s.name = 'โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายจารุกิตติ์' AND m.lastName = 'ยิ่งสมบูรณ์ชัย'
@@ -10645,6 +11156,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_020_บ้านพญาไพร_กลุ่มเครื' OR s.name = 'โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายเอกพงศ์' AND m.lastName = 'ใจต๊ะ'
@@ -10666,6 +11178,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_020_บ้านพญาไพร_กลุ่มเครื' OR s.name = 'โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายชัชพล' AND m.lastName = 'ลำดวน'
@@ -10687,6 +11200,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_020_บ้านพญาไพร_กลุ่มเครื' OR s.name = 'โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวกัญญาวีร์' AND m.lastName = 'เวียงมูล'
@@ -10708,6 +11222,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_020_บ้านพญาไพร_กลุ่มเครื' OR s.name = 'โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายปฏิภาณ' AND m.lastName = 'สมฟองทอง'
@@ -10729,6 +11244,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_020_บ้านพญาไพร_กลุ่มเครื' OR s.name = 'โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายณัฐพล' AND m.lastName = 'เหม็งทะเหล็ก'
@@ -10750,6 +11266,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_020_บ้านพญาไพร_กลุ่มเครื' OR s.name = 'โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวฐิตาภรณ์' AND m.lastName = 'สายอิ่นแก้ว'
@@ -10771,6 +11288,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_020_บ้านพญาไพร_กลุ่มเครื' OR s.name = 'โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายกรกฎ' AND m.lastName = 'โรจนนิจ'
@@ -10792,6 +11310,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_020_บ้านพญาไพร_กลุ่มเครื' OR s.name = 'โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวศิรินกรณ์' AND m.lastName = 'สุยะ'
@@ -10813,6 +11332,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_020_บ้านพญาไพร_กลุ่มเครื' OR s.name = 'โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวสุจินดา' AND m.lastName = 'ใจกล้า'
@@ -10834,6 +11354,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_020_บ้านพญาไพร_กลุ่มเครื' OR s.name = 'โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายพุฒิชัย' AND m.lastName = 'ไฝเครือ'
@@ -10855,6 +11376,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_020_บ้านพญาไพร_กลุ่มเครื' OR s.name = 'โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายภาณุพงค์' AND m.lastName = 'ยาจันทร์'
@@ -10876,6 +11398,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_020_บ้านพญาไพร_กลุ่มเครื' OR s.name = 'โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายฉัตรดนัย' AND m.lastName = 'ใยญาติ'
@@ -10897,6 +11420,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_020_บ้านพญาไพร_กลุ่มเครื' OR s.name = 'โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายเลอพงษ์' AND m.lastName = 'ปัญญาดี'
@@ -10918,6 +11442,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_020_บ้านพญาไพร_กลุ่มเครื' OR s.name = 'โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวจารุวรรณ' AND m.lastName = 'กันทะ'
@@ -10939,6 +11464,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_020_บ้านพญาไพร_กลุ่มเครื' OR s.name = 'โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเทอดไทย' OR s.name LIKE '%โรงเรียนบ้านพญาไพร   กลุ่มเครือข่ายพัฒนาการศึกษาเท%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายจายแสง' AND m.lastName = 'มอญคำ'
@@ -10960,6 +11486,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_021_บ้านกลาง_กลุ่มเครือข' OR s.name = 'โรงเรียนบ้านกลาง   กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านกลาง   กลุ่มเครือข่ายพัฒนาการศึกษาดอยแ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายบรรหาญ' AND m.lastName = '—'
@@ -10981,6 +11508,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_021_บ้านกลาง_กลุ่มเครือข' OR s.name = 'โรงเรียนบ้านกลาง   กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านกลาง   กลุ่มเครือข่ายพัฒนาการศึกษาดอยแ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวพิมพ์พิชมญชุ์' AND m.lastName = '—'
@@ -11002,6 +11530,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_021_บ้านกลาง_กลุ่มเครือข' OR s.name = 'โรงเรียนบ้านกลาง   กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านกลาง   กลุ่มเครือข่ายพัฒนาการศึกษาดอยแ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวอัญชลี' AND m.lastName = '—'
@@ -11023,6 +11552,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_021_บ้านกลาง_กลุ่มเครือข' OR s.name = 'โรงเรียนบ้านกลาง   กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านกลาง   กลุ่มเครือข่ายพัฒนาการศึกษาดอยแ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวชไมพร' AND m.lastName = '—'
@@ -11044,6 +11574,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_021_บ้านกลาง_กลุ่มเครือข' OR s.name = 'โรงเรียนบ้านกลาง   กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านกลาง   กลุ่มเครือข่ายพัฒนาการศึกษาดอยแ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวสุพิชชา' AND m.lastName = '—'
@@ -11065,6 +11596,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_021_บ้านกลาง_กลุ่มเครือข' OR s.name = 'โรงเรียนบ้านกลาง   กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านกลาง   กลุ่มเครือข่ายพัฒนาการศึกษาดอยแ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายสมรัตชัย' AND m.lastName = '—'
@@ -11086,6 +11618,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_021_บ้านกลาง_กลุ่มเครือข' OR s.name = 'โรงเรียนบ้านกลาง   กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านกลาง   กลุ่มเครือข่ายพัฒนาการศึกษาดอยแ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวจันทรา' AND m.lastName = '—'
@@ -11107,6 +11640,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_021_บ้านกลาง_กลุ่มเครือข' OR s.name = 'โรงเรียนบ้านกลาง   กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านกลาง   กลุ่มเครือข่ายพัฒนาการศึกษาดอยแ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวพรอภิมล' AND m.lastName = '—'
@@ -11128,6 +11662,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_021_บ้านกลาง_กลุ่มเครือข' OR s.name = 'โรงเรียนบ้านกลาง   กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านกลาง   กลุ่มเครือข่ายพัฒนาการศึกษาดอยแ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวสโรชา' AND m.lastName = '—'
@@ -11149,6 +11684,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_021_บ้านกลาง_กลุ่มเครือข' OR s.name = 'โรงเรียนบ้านกลาง   กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านกลาง   กลุ่มเครือข่ายพัฒนาการศึกษาดอยแ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวสุรีย์รัตน์' AND m.lastName = '—'
@@ -11170,6 +11706,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_021_บ้านกลาง_กลุ่มเครือข' OR s.name = 'โรงเรียนบ้านกลาง   กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านกลาง   กลุ่มเครือข่ายพัฒนาการศึกษาดอยแ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายจักรกฤษณ์' AND m.lastName = '—'
@@ -11191,6 +11728,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_021_บ้านกลาง_กลุ่มเครือข' OR s.name = 'โรงเรียนบ้านกลาง   กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านกลาง   กลุ่มเครือข่ายพัฒนาการศึกษาดอยแ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายวรรณ์ธนัย' AND m.lastName = '—'
@@ -11212,6 +11750,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_021_บ้านกลาง_กลุ่มเครือข' OR s.name = 'โรงเรียนบ้านกลาง   กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านกลาง   กลุ่มเครือข่ายพัฒนาการศึกษาดอยแ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวสิริยากร' AND m.lastName = '—'
@@ -11233,6 +11772,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_021_บ้านกลาง_กลุ่มเครือข' OR s.name = 'โรงเรียนบ้านกลาง   กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านกลาง   กลุ่มเครือข่ายพัฒนาการศึกษาดอยแ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวลัดดาวัลย์' AND m.lastName = '—'
@@ -11254,6 +11794,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_021_บ้านกลาง_กลุ่มเครือข' OR s.name = 'โรงเรียนบ้านกลาง   กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านกลาง   กลุ่มเครือข่ายพัฒนาการศึกษาดอยแ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายนิคม' AND m.lastName = '—'
@@ -11275,6 +11816,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_021_บ้านกลาง_กลุ่มเครือข' OR s.name = 'โรงเรียนบ้านกลาง   กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านกลาง   กลุ่มเครือข่ายพัฒนาการศึกษาดอยแ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวณัจฉรียา' AND m.lastName = '—'
@@ -11296,6 +11838,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_021_บ้านกลาง_กลุ่มเครือข' OR s.name = 'โรงเรียนบ้านกลาง   กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านกลาง   กลุ่มเครือข่ายพัฒนาการศึกษาดอยแ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายวีระพงษ์' AND m.lastName = '—'
@@ -11317,6 +11860,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_021_บ้านกลาง_กลุ่มเครือข' OR s.name = 'โรงเรียนบ้านกลาง   กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านกลาง   กลุ่มเครือข่ายพัฒนาการศึกษาดอยแ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายกิตติพงษ์' AND m.lastName = '—'
@@ -11338,6 +11882,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_021_บ้านกลาง_กลุ่มเครือข' OR s.name = 'โรงเรียนบ้านกลาง   กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านกลาง   กลุ่มเครือข่ายพัฒนาการศึกษาดอยแ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวชโลทร' AND m.lastName = '—'
@@ -11359,6 +11904,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_021_บ้านกลาง_กลุ่มเครือข' OR s.name = 'โรงเรียนบ้านกลาง   กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านกลาง   กลุ่มเครือข่ายพัฒนาการศึกษาดอยแ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางนายยาแบ' AND m.lastName = '—'
@@ -11380,6 +11926,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_022_บ้านพนาสวรรค์_กลุ่มเ' OR s.name = 'โรงเรียนบ้านพนาสวรรค์ กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านพนาสวรรค์ กลุ่มเครือข่ายพัฒนาการศึกษาด%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายสมคิด' AND m.lastName = 'อนุเคราะห์'
@@ -11401,6 +11948,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_022_บ้านพนาสวรรค์_กลุ่มเ' OR s.name = 'โรงเรียนบ้านพนาสวรรค์ กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านพนาสวรรค์ กลุ่มเครือข่ายพัฒนาการศึกษาด%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายศรายุทธ' AND m.lastName = 'อุ่นใจ'
@@ -11422,6 +11970,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_022_บ้านพนาสวรรค์_กลุ่มเ' OR s.name = 'โรงเรียนบ้านพนาสวรรค์ กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านพนาสวรรค์ กลุ่มเครือข่ายพัฒนาการศึกษาด%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายจิตอิสรภาพ' AND m.lastName = 'ใจอารีย์'
@@ -11443,6 +11992,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_022_บ้านพนาสวรรค์_กลุ่มเ' OR s.name = 'โรงเรียนบ้านพนาสวรรค์ กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านพนาสวรรค์ กลุ่มเครือข่ายพัฒนาการศึกษาด%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายชญตว์' AND m.lastName = 'ปานนับร้อย'
@@ -11464,6 +12014,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_022_บ้านพนาสวรรค์_กลุ่มเ' OR s.name = 'โรงเรียนบ้านพนาสวรรค์ กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านพนาสวรรค์ กลุ่มเครือข่ายพัฒนาการศึกษาด%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวเกศรา' AND m.lastName = 'อินตาพรม'
@@ -11485,6 +12036,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_022_บ้านพนาสวรรค์_กลุ่มเ' OR s.name = 'โรงเรียนบ้านพนาสวรรค์ กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านพนาสวรรค์ กลุ่มเครือข่ายพัฒนาการศึกษาด%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวมุกดา' AND m.lastName = 'วารีขจร'
@@ -11506,6 +12058,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_022_บ้านพนาสวรรค์_กลุ่มเ' OR s.name = 'โรงเรียนบ้านพนาสวรรค์ กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านพนาสวรรค์ กลุ่มเครือข่ายพัฒนาการศึกษาด%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาววิรรณ' AND m.lastName = 'อย่างวรโชติ'
@@ -11527,6 +12080,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_022_บ้านพนาสวรรค์_กลุ่มเ' OR s.name = 'โรงเรียนบ้านพนาสวรรค์ กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านพนาสวรรค์ กลุ่มเครือข่ายพัฒนาการศึกษาด%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวมาติกา' AND m.lastName = 'จิระณชานนท์'
@@ -11548,6 +12102,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_022_บ้านพนาสวรรค์_กลุ่มเ' OR s.name = 'โรงเรียนบ้านพนาสวรรค์ กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านพนาสวรรค์ กลุ่มเครือข่ายพัฒนาการศึกษาด%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวริศรา' AND m.lastName = 'กรสวรรค์'
@@ -11569,6 +12124,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_022_บ้านพนาสวรรค์_กลุ่มเ' OR s.name = 'โรงเรียนบ้านพนาสวรรค์ กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านพนาสวรรค์ กลุ่มเครือข่ายพัฒนาการศึกษาด%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวหมี่ซาง' AND m.lastName = 'มาเยอะ'
@@ -11590,6 +12146,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ' OR s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายศิวนาถ' AND m.lastName = 'ประสาวะถา'
@@ -11611,6 +12168,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ' OR s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายธนันชัย' AND m.lastName = 'พิพิธพงศ์สันต์'
@@ -11632,6 +12190,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ' OR s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวปภัสสร' AND m.lastName = 'จงตรอง'
@@ -11653,6 +12212,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ' OR s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวศิริลักษณ์' AND m.lastName = 'สุดแสวง'
@@ -11674,6 +12234,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ' OR s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวศันสนีย์' AND m.lastName = 'เทพคำ'
@@ -11695,6 +12256,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ' OR s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางพิชาภัส' AND m.lastName = 'วงค์จรณบูรณ์'
@@ -11716,6 +12278,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ' OR s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวสุธัมวดี' AND m.lastName = 'ใจยะ'
@@ -11737,6 +12300,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ' OR s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวกนกพร' AND m.lastName = 'ชุมภู'
@@ -11758,6 +12322,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ' OR s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'ว่าที่ร้อยตรีหญิงอชิรญาณ์' AND m.lastName = 'สีชา'
@@ -11779,6 +12344,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ' OR s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายนิวัฒ' AND m.lastName = 'บัวติ๊บ'
@@ -11800,6 +12366,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ' OR s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวกิ่งกาญจน์' AND m.lastName = 'สายสูงเนิน'
@@ -11821,6 +12388,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ' OR s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายเอกภพ' AND m.lastName = 'คำรส'
@@ -11842,6 +12410,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ' OR s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายศุภการ' AND m.lastName = 'แก้วรากมุข'
@@ -11863,6 +12432,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ' OR s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวณัฐวลัญช์' AND m.lastName = 'เรือนสอน'
@@ -11884,6 +12454,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ' OR s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวณัฏฐนันท์' AND m.lastName = 'บำเพ็ญกุล'
@@ -11905,6 +12476,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ' OR s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวนภาพร' AND m.lastName = 'สุขธงไชยกูล'
@@ -11926,6 +12498,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ' OR s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวปาริชาติ' AND m.lastName = 'เพ็ชรพลอย'
@@ -11947,6 +12520,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ' OR s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวชบาไพร' AND m.lastName = 'ปัญโญ'
@@ -11968,6 +12542,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ' OR s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวสุฎาพร' AND m.lastName = 'ธนสารพิพัฒน์คุณ'
@@ -11989,6 +12564,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ' OR s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวภิญญดา' AND m.lastName = 'ไชยวัง'
@@ -12010,6 +12586,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ' OR s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวชรินทร์รัตน์' AND m.lastName = 'บุญเลา'
@@ -12031,6 +12608,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ' OR s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายฌัชวิทย์' AND m.lastName = 'รัตนเดชา'
@@ -12052,6 +12630,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ' OR s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวเมธาพร' AND m.lastName = 'ญาวิระ'
@@ -12073,6 +12652,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ' OR s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายธนากร' AND m.lastName = 'แสนคำมา'
@@ -12094,6 +12674,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ' OR s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายทรงภพ' AND m.lastName = 'ขุนยวมอนุรักษ์'
@@ -12115,6 +12696,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ' OR s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวกันติยา' AND m.lastName = 'น่วมฟั่น'
@@ -12136,6 +12718,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ' OR s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวนันทวัน' AND m.lastName = 'จันทรังษี'
@@ -12157,6 +12740,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ' OR s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายพงษ์สิทธิ์' AND m.lastName = 'นันต๊ะภูมิ'
@@ -12178,6 +12762,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ' OR s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวจุฑาลักษณ์' AND m.lastName = 'ศักดิ์เรืองฤทธิ์'
@@ -12199,6 +12784,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ' OR s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวธัญญาลักษณ์' AND m.lastName = 'จินะเขียว'
@@ -12220,6 +12806,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ' OR s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวสุภาวรรณ' AND m.lastName = 'อ่อนนวล'
@@ -12241,6 +12828,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ' OR s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวเกศรินทร์' AND m.lastName = 'แสนคำหล่อ'
@@ -12262,6 +12850,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ' OR s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวธัญญา' AND m.lastName = 'แหวนเพชร'
@@ -12283,6 +12872,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ' OR s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวศิริลักษณ์' AND m.lastName = 'วงศ์ไชย'
@@ -12304,6 +12894,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ' OR s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวนวลจันทร์' AND m.lastName = 'ชัยชนะ'
@@ -12325,6 +12916,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ' OR s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'ว่าที่ร้อยตรีสุทธินันต์' AND m.lastName = 'สรรเสริญบุญ'
@@ -12346,6 +12938,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ' OR s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวสิริวิมล' AND m.lastName = 'ปิ่นญาติ'
@@ -12367,6 +12960,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ' OR s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวภูษณิศา' AND m.lastName = 'ยะโหนด'
@@ -12388,6 +12982,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ' OR s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวอิชยา' AND m.lastName = 'บุญอินเขียว'
@@ -12409,6 +13004,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ' OR s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวสุทามาศ' AND m.lastName = 'สุริยะวงศ์'
@@ -12430,6 +13026,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ' OR s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางชนันทภรณ์' AND m.lastName = 'รูปะวิเชตร์'
@@ -12451,6 +13048,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ' OR s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวสุกัญญา' AND m.lastName = 'แสงทอง'
@@ -12472,6 +13070,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ' OR s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายธีรวัฒน์' AND m.lastName = 'แสนคำ'
@@ -12493,6 +13092,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ' OR s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวสุภัสสร' AND m.lastName = 'ทิพย์อุบล'
@@ -12514,6 +13114,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ' OR s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวเกษร' AND m.lastName = 'พิพิธพงศ์สันต์'
@@ -12535,6 +13136,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ' OR s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวแดงน้อย' AND m.lastName = 'แซ่ย่าง'
@@ -12556,6 +13158,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ' OR s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวเซียวกวง' AND m.lastName = 'แซ่จาง'
@@ -12577,6 +13180,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ' OR s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางอาเซียว' AND m.lastName = 'มาเยอะ'
@@ -12598,6 +13202,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ' OR s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายหล่อปา' AND m.lastName = 'หวุ่ยเมียะ'
@@ -12619,6 +13224,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ' OR s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวกัญญา' AND m.lastName = 'ยาผ่า'
@@ -12640,6 +13246,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ' OR s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายหล่อโย' AND m.lastName = '—'
@@ -12661,6 +13268,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ' OR s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวหมี่ซอ' AND m.lastName = 'เชกอ'
@@ -12682,6 +13290,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ' OR s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายณัฐวุฒิ' AND m.lastName = 'ม่านอินทนิล'
@@ -12703,6 +13312,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ' OR s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวพรทิพย์' AND m.lastName = 'หวุ่ยยือกู่'
@@ -12724,6 +13334,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ' OR s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวจวงจันทร์' AND m.lastName = 'เชอมือ'
@@ -12745,6 +13356,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ' OR s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายมานะ' AND m.lastName = 'เรืองสา'
@@ -12766,6 +13378,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ' OR s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวหมี่จู' AND m.lastName = 'มาเยอะ'
@@ -12787,6 +13400,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_023_บ้านสันติคีรี_กลุ่มเ' OR s.name = 'โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านสันติคีรี กลุ่มเครือข่ายดอยแม่สลอง%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวฤดี' AND m.lastName = 'โสเช'
@@ -12808,6 +13422,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_024_ราษฎร์พัฒนา_กลุ่มเคร' OR s.name = 'โรงเรียนราษฎร์พัฒนา กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนราษฎร์พัฒนา กลุ่มเครือข่ายพัฒนาการศึกษาดอย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางบุญชนิต' AND m.lastName = 'ธรรมสาร'
@@ -12829,6 +13444,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_024_ราษฎร์พัฒนา_กลุ่มเคร' OR s.name = 'โรงเรียนราษฎร์พัฒนา กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนราษฎร์พัฒนา กลุ่มเครือข่ายพัฒนาการศึกษาดอย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวอังคณา' AND m.lastName = 'ยานะตระกูล'
@@ -12850,6 +13466,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_024_ราษฎร์พัฒนา_กลุ่มเคร' OR s.name = 'โรงเรียนราษฎร์พัฒนา กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนราษฎร์พัฒนา กลุ่มเครือข่ายพัฒนาการศึกษาดอย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวศิริพร' AND m.lastName = 'สวัสดิ์สุข'
@@ -12871,6 +13488,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_024_ราษฎร์พัฒนา_กลุ่มเคร' OR s.name = 'โรงเรียนราษฎร์พัฒนา กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนราษฎร์พัฒนา กลุ่มเครือข่ายพัฒนาการศึกษาดอย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวเวฬุวัน' AND m.lastName = 'ดีศรี'
@@ -12892,6 +13510,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_024_ราษฎร์พัฒนา_กลุ่มเคร' OR s.name = 'โรงเรียนราษฎร์พัฒนา กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนราษฎร์พัฒนา กลุ่มเครือข่ายพัฒนาการศึกษาดอย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวภัควลัญชน์' AND m.lastName = 'ผาบพิชวงศ์'
@@ -12913,6 +13532,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_024_ราษฎร์พัฒนา_กลุ่มเคร' OR s.name = 'โรงเรียนราษฎร์พัฒนา กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนราษฎร์พัฒนา กลุ่มเครือข่ายพัฒนาการศึกษาดอย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวรัตนวดี' AND m.lastName = 'ศรีมา'
@@ -12934,6 +13554,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_024_ราษฎร์พัฒนา_กลุ่มเคร' OR s.name = 'โรงเรียนราษฎร์พัฒนา กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนราษฎร์พัฒนา กลุ่มเครือข่ายพัฒนาการศึกษาดอย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายจิรภัทร' AND m.lastName = 'แสนศักดิ์หาญ'
@@ -12955,6 +13576,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_024_ราษฎร์พัฒนา_กลุ่มเคร' OR s.name = 'โรงเรียนราษฎร์พัฒนา กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนราษฎร์พัฒนา กลุ่มเครือข่ายพัฒนาการศึกษาดอย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวสุธารทิพย์' AND m.lastName = 'วุยแบ'
@@ -12976,6 +13598,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_024_ราษฎร์พัฒนา_กลุ่มเคร' OR s.name = 'โรงเรียนราษฎร์พัฒนา กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนราษฎร์พัฒนา กลุ่มเครือข่ายพัฒนาการศึกษาดอย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายชนนภูมิ' AND m.lastName = 'เดชเดิม'
@@ -12997,6 +13620,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_024_ราษฎร์พัฒนา_กลุ่มเคร' OR s.name = 'โรงเรียนราษฎร์พัฒนา กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนราษฎร์พัฒนา กลุ่มเครือข่ายพัฒนาการศึกษาดอย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายวรภัทร' AND m.lastName = 'จันทร์สิริทอง'
@@ -13018,6 +13642,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_025_บ้านแม่เต๋อ_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านแม่เต๋อ กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านแม่เต๋อ กลุ่มเครือข่ายพัฒนาการศึกษาดอย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายยุทธนา' AND m.lastName = 'กันทาเดช'
@@ -13039,6 +13664,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_025_บ้านแม่เต๋อ_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านแม่เต๋อ กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านแม่เต๋อ กลุ่มเครือข่ายพัฒนาการศึกษาดอย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายธีร์วรา' AND m.lastName = 'ใจเย็น'
@@ -13060,6 +13686,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_025_บ้านแม่เต๋อ_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านแม่เต๋อ กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านแม่เต๋อ กลุ่มเครือข่ายพัฒนาการศึกษาดอย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวสุวิมล' AND m.lastName = 'ศรีคำ'
@@ -13081,6 +13708,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_025_บ้านแม่เต๋อ_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านแม่เต๋อ กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านแม่เต๋อ กลุ่มเครือข่ายพัฒนาการศึกษาดอย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวอรอุมา' AND m.lastName = 'ไชยชิน'
@@ -13102,6 +13730,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_025_บ้านแม่เต๋อ_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านแม่เต๋อ กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านแม่เต๋อ กลุ่มเครือข่ายพัฒนาการศึกษาดอย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวอาคิรา' AND m.lastName = 'อุทธิยา'
@@ -13123,6 +13752,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_025_บ้านแม่เต๋อ_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านแม่เต๋อ กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านแม่เต๋อ กลุ่มเครือข่ายพัฒนาการศึกษาดอย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายอัฒชัย' AND m.lastName = 'ใจเผิน'
@@ -13144,6 +13774,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_025_บ้านแม่เต๋อ_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านแม่เต๋อ กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านแม่เต๋อ กลุ่มเครือข่ายพัฒนาการศึกษาดอย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวเก็จมณี' AND m.lastName = 'กวางกระโดด'
@@ -13165,6 +13796,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_025_บ้านแม่เต๋อ_กลุ่มเคร' OR s.name = 'โรงเรียนบ้านแม่เต๋อ กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง' OR s.name LIKE '%โรงเรียนบ้านแม่เต๋อ กลุ่มเครือข่ายพัฒนาการศึกษาดอย%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายสุรศักดิ์' AND m.lastName = 'กานิล'
@@ -13186,6 +13818,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_026_รร.บ้านใหม่สันติ' OR s.name = 'รร.บ้านใหม่สันติ' OR s.name LIKE '%รร.บ้านใหม่สันติ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'โรเรียนบ้านใหม่สันติ' AND m.lastName = 'กลุ่มเครือข่ายพัฒนาการศึกษาดอยแม่สลอง'
@@ -13207,6 +13840,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_026_รร.บ้านใหม่สันติ' OR s.name = 'รร.บ้านใหม่สันติ' OR s.name LIKE '%รร.บ้านใหม่สันติ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายเอกชัย' AND m.lastName = 'ใจอ้าย'
@@ -13228,6 +13862,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_026_รร.บ้านใหม่สันติ' OR s.name = 'รร.บ้านใหม่สันติ' OR s.name LIKE '%รร.บ้านใหม่สันติ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายเอกรัฐ' AND m.lastName = 'น้อยมา'
@@ -13249,6 +13884,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_026_รร.บ้านใหม่สันติ' OR s.name = 'รร.บ้านใหม่สันติ' OR s.name LIKE '%รร.บ้านใหม่สันติ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวกะรัต' AND m.lastName = 'รัตนจำเริญ'
@@ -13270,6 +13906,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_026_รร.บ้านใหม่สันติ' OR s.name = 'รร.บ้านใหม่สันติ' OR s.name LIKE '%รร.บ้านใหม่สันติ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวชนัญธิดา' AND m.lastName = 'นุธรรม'
@@ -13291,6 +13928,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_026_รร.บ้านใหม่สันติ' OR s.name = 'รร.บ้านใหม่สันติ' OR s.name LIKE '%รร.บ้านใหม่สันติ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายธนรัฐ' AND m.lastName = 'วรรณดี'
@@ -13312,6 +13950,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_026_รร.บ้านใหม่สันติ' OR s.name = 'รร.บ้านใหม่สันติ' OR s.name LIKE '%รร.บ้านใหม่สันติ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวปัฐภัธ' AND m.lastName = 'ญาณพันธ์'
@@ -13333,6 +13972,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_026_รร.บ้านใหม่สันติ' OR s.name = 'รร.บ้านใหม่สันติ' OR s.name LIKE '%รร.บ้านใหม่สันติ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวอริญช์ณิชา' AND m.lastName = 'เดชธนาอัครพงศ์'
@@ -13354,6 +13994,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_026_รร.บ้านใหม่สันติ' OR s.name = 'รร.บ้านใหม่สันติ' OR s.name LIKE '%รร.บ้านใหม่สันติ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาววรรณกานต์' AND m.lastName = 'กะโพ'
@@ -13375,6 +14016,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_026_รร.บ้านใหม่สันติ' OR s.name = 'รร.บ้านใหม่สันติ' OR s.name LIKE '%รร.บ้านใหม่สันติ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'ว่าที่ร้อยตรีเนติพงษ์' AND m.lastName = 'จักรดี'
@@ -13396,6 +14038,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_026_รร.บ้านใหม่สันติ' OR s.name = 'รร.บ้านใหม่สันติ' OR s.name LIKE '%รร.บ้านใหม่สันติ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายสมศักดิ์' AND m.lastName = 'อุดมประสิทธิ์'
@@ -13417,6 +14060,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_026_รร.บ้านใหม่สันติ' OR s.name = 'รร.บ้านใหม่สันติ' OR s.name LIKE '%รร.บ้านใหม่สันติ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวพิมพ์ภัช' AND m.lastName = 'แสงดาว'
@@ -13438,6 +14082,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_026_รร.บ้านใหม่สันติ' OR s.name = 'รร.บ้านใหม่สันติ' OR s.name LIKE '%รร.บ้านใหม่สันติ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายหล้า' AND m.lastName = 'พรมใจ'
@@ -13459,6 +14104,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_026_รร.บ้านใหม่สันติ' OR s.name = 'รร.บ้านใหม่สันติ' OR s.name LIKE '%รร.บ้านใหม่สันติ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางเงิน' AND m.lastName = 'พรใจ'
@@ -13480,6 +14126,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_027_บ้านห้วยไร่สามัคคี_ก' OR s.name = 'โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศึกษาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายศุภโชค' AND m.lastName = 'ปิยะสันติ์'
@@ -13501,6 +14148,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_027_บ้านห้วยไร่สามัคคี_ก' OR s.name = 'โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศึกษาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวณัฐรดี' AND m.lastName = 'สิทธิกัน'
@@ -13522,6 +14170,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_027_บ้านห้วยไร่สามัคคี_ก' OR s.name = 'โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศึกษาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางขวัญจิตร' AND m.lastName = 'จันทิพย์'
@@ -13543,6 +14192,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_027_บ้านห้วยไร่สามัคคี_ก' OR s.name = 'โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศึกษาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางทศพร' AND m.lastName = 'สมยง'
@@ -13564,6 +14214,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_027_บ้านห้วยไร่สามัคคี_ก' OR s.name = 'โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศึกษาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายพนม' AND m.lastName = 'สมยง'
@@ -13585,6 +14236,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_027_บ้านห้วยไร่สามัคคี_ก' OR s.name = 'โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศึกษาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาววิลาวัลย์' AND m.lastName = 'อุ่นนันกาศ'
@@ -13606,6 +14258,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_027_บ้านห้วยไร่สามัคคี_ก' OR s.name = 'โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศึกษาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายชาญชัย' AND m.lastName = 'ก้อใจ'
@@ -13627,6 +14280,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_027_บ้านห้วยไร่สามัคคี_ก' OR s.name = 'โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศึกษาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางรุ่งทิวา' AND m.lastName = 'จันทาพูน'
@@ -13648,6 +14302,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_027_บ้านห้วยไร่สามัคคี_ก' OR s.name = 'โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศึกษาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางจันจิรา' AND m.lastName = 'ชัยภูวนารถ'
@@ -13669,6 +14324,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_027_บ้านห้วยไร่สามัคคี_ก' OR s.name = 'โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศึกษาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวธมลวรรณ' AND m.lastName = 'มากปรางค์'
@@ -13690,6 +14346,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_027_บ้านห้วยไร่สามัคคี_ก' OR s.name = 'โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศึกษาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายวัชรินทร์' AND m.lastName = 'ฤทธิรักษ์'
@@ -13711,6 +14368,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_027_บ้านห้วยไร่สามัคคี_ก' OR s.name = 'โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศึกษาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายอนุศักดิ์' AND m.lastName = 'ฮงประยูร'
@@ -13732,6 +14390,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_027_บ้านห้วยไร่สามัคคี_ก' OR s.name = 'โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศึกษาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวณัฐชยา' AND m.lastName = 'ปันก่อ'
@@ -13753,6 +14412,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_027_บ้านห้วยไร่สามัคคี_ก' OR s.name = 'โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศึกษาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวภิญประภา' AND m.lastName = 'ใจทน'
@@ -13774,6 +14434,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_027_บ้านห้วยไร่สามัคคี_ก' OR s.name = 'โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศึกษาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวเสาวลักษณ์' AND m.lastName = 'นาใจ'
@@ -13795,6 +14456,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_027_บ้านห้วยไร่สามัคคี_ก' OR s.name = 'โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศึกษาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายมนตรี' AND m.lastName = 'คำเงิน'
@@ -13816,6 +14478,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_027_บ้านห้วยไร่สามัคคี_ก' OR s.name = 'โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศึกษาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายภาณุพงศ์' AND m.lastName = 'เปาวัลย์'
@@ -13837,6 +14500,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_027_บ้านห้วยไร่สามัคคี_ก' OR s.name = 'โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศึกษาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายมงคล' AND m.lastName = 'ดิลกอุดมฤกษ์'
@@ -13858,6 +14522,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_027_บ้านห้วยไร่สามัคคี_ก' OR s.name = 'โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศึกษาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวกัลยารัตน์' AND m.lastName = 'อนุรุส'
@@ -13879,6 +14544,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_027_บ้านห้วยไร่สามัคคี_ก' OR s.name = 'โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศึกษาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวกมลวรรณ' AND m.lastName = 'สุวรรณมงคล'
@@ -13900,6 +14566,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_027_บ้านห้วยไร่สามัคคี_ก' OR s.name = 'โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศึกษาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวปวีณา' AND m.lastName = 'คำฟู'
@@ -13921,6 +14588,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_027_บ้านห้วยไร่สามัคคี_ก' OR s.name = 'โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศึกษาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวนงลักษณ์' AND m.lastName = 'บุญระชัยสวรรค์'
@@ -13942,6 +14610,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_027_บ้านห้วยไร่สามัคคี_ก' OR s.name = 'โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศึกษาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวกิตติลักษณ์' AND m.lastName = 'วงษาหาร'
@@ -13963,6 +14632,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_027_บ้านห้วยไร่สามัคคี_ก' OR s.name = 'โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศึกษาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายเกรียงไกร' AND m.lastName = 'ไชยวงค์'
@@ -13984,6 +14654,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_027_บ้านห้วยไร่สามัคคี_ก' OR s.name = 'โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศึกษาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวกนกวรรณ' AND m.lastName = 'จันทร์เนตร'
@@ -14005,6 +14676,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_027_บ้านห้วยไร่สามัคคี_ก' OR s.name = 'โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศึกษาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายพริษศ์' AND m.lastName = 'ไพรี'
@@ -14026,6 +14698,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_027_บ้านห้วยไร่สามัคคี_ก' OR s.name = 'โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศึกษาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวจิรัญญา' AND m.lastName = 'ร่องตอง'
@@ -14047,6 +14720,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_027_บ้านห้วยไร่สามัคคี_ก' OR s.name = 'โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศึกษาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวปียาภรณ์' AND m.lastName = 'กิ่งแก้ว'
@@ -14068,6 +14742,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_027_บ้านห้วยไร่สามัคคี_ก' OR s.name = 'โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศึกษาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางลัดดาวัลย์' AND m.lastName = 'ไสยวรรณ์'
@@ -14089,6 +14764,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_027_บ้านห้วยไร่สามัคคี_ก' OR s.name = 'โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศึกษาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายอานนท์' AND m.lastName = 'ทะนุตัน'
@@ -14110,6 +14786,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_027_บ้านห้วยไร่สามัคคี_ก' OR s.name = 'โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศึกษาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวมณีวรรณ' AND m.lastName = 'ชมภูสมษา'
@@ -14131,6 +14808,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_027_บ้านห้วยไร่สามัคคี_ก' OR s.name = 'โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศึกษาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายนัฝทาลี' AND m.lastName = 'กิตติคุณรุ่งเรือง'
@@ -14152,6 +14830,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_027_บ้านห้วยไร่สามัคคี_ก' OR s.name = 'โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศึกษาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านห้วยไร่สามัคคี กลุ่มเครือข่ายพัฒนาการศ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวจันจิรา' AND m.lastName = 'พิมดี'
@@ -14173,6 +14852,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_028_ตำรวจตระเวนชายแดนศรี' OR s.name = 'โรงเรียนตำรวจตระเวนชายแดนศรีสมวงศ์ กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนตำรวจตระเวนชายแดนศรีสมวงศ์ กลุ่มเครือข่ายพ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวศิริพร' AND m.lastName = 'ดวงดี'
@@ -14194,6 +14874,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_028_ตำรวจตระเวนชายแดนศรี' OR s.name = 'โรงเรียนตำรวจตระเวนชายแดนศรีสมวงศ์ กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนตำรวจตระเวนชายแดนศรีสมวงศ์ กลุ่มเครือข่ายพ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายไพรัช' AND m.lastName = 'สุขเกษม'
@@ -14215,6 +14896,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_028_ตำรวจตระเวนชายแดนศรี' OR s.name = 'โรงเรียนตำรวจตระเวนชายแดนศรีสมวงศ์ กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนตำรวจตระเวนชายแดนศรีสมวงศ์ กลุ่มเครือข่ายพ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวอารียา' AND m.lastName = 'วงค์วุฒิ'
@@ -14236,6 +14918,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_028_ตำรวจตระเวนชายแดนศรี' OR s.name = 'โรงเรียนตำรวจตระเวนชายแดนศรีสมวงศ์ กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนตำรวจตระเวนชายแดนศรีสมวงศ์ กลุ่มเครือข่ายพ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวจารุวรรณ' AND m.lastName = 'จันวัน'
@@ -14257,6 +14940,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_028_ตำรวจตระเวนชายแดนศรี' OR s.name = 'โรงเรียนตำรวจตระเวนชายแดนศรีสมวงศ์ กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนตำรวจตระเวนชายแดนศรีสมวงศ์ กลุ่มเครือข่ายพ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวสาริกา' AND m.lastName = 'มาลา'
@@ -14278,6 +14962,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_028_ตำรวจตระเวนชายแดนศรี' OR s.name = 'โรงเรียนตำรวจตระเวนชายแดนศรีสมวงศ์ กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนตำรวจตระเวนชายแดนศรีสมวงศ์ กลุ่มเครือข่ายพ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวปานทิพย์' AND m.lastName = 'จินะโกษฐ์'
@@ -14299,6 +14984,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_028_ตำรวจตระเวนชายแดนศรี' OR s.name = 'โรงเรียนตำรวจตระเวนชายแดนศรีสมวงศ์ กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนตำรวจตระเวนชายแดนศรีสมวงศ์ กลุ่มเครือข่ายพ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวทิพย์อัปสร' AND m.lastName = 'ลาวิชัย'
@@ -14320,6 +15006,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_028_ตำรวจตระเวนชายแดนศรี' OR s.name = 'โรงเรียนตำรวจตระเวนชายแดนศรีสมวงศ์ กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนตำรวจตระเวนชายแดนศรีสมวงศ์ กลุ่มเครือข่ายพ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายไกรสร' AND m.lastName = 'หลีทำ'
@@ -14341,6 +15028,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_028_ตำรวจตระเวนชายแดนศรี' OR s.name = 'โรงเรียนตำรวจตระเวนชายแดนศรีสมวงศ์ กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนตำรวจตระเวนชายแดนศรีสมวงศ์ กลุ่มเครือข่ายพ%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวสุมาลัย' AND m.lastName = 'อามอ'
@@ -14362,6 +15050,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_029_บ้านป่าซางนาเงิน_กลุ' OR s.name = 'โรงเรียนบ้านป่าซางนาเงิน กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านป่าซางนาเงิน กลุ่มเครือข่ายพัฒนาการศึก%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวจิรัชญา' AND m.lastName = 'ผาลา'
@@ -14383,6 +15072,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_029_บ้านป่าซางนาเงิน_กลุ' OR s.name = 'โรงเรียนบ้านป่าซางนาเงิน กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านป่าซางนาเงิน กลุ่มเครือข่ายพัฒนาการศึก%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวจารุวรรณ' AND m.lastName = 'สิงห์เชื้อ'
@@ -14404,6 +15094,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_029_บ้านป่าซางนาเงิน_กลุ' OR s.name = 'โรงเรียนบ้านป่าซางนาเงิน กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านป่าซางนาเงิน กลุ่มเครือข่ายพัฒนาการศึก%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางธนิดา' AND m.lastName = 'แก้วคำฟู'
@@ -14425,6 +15116,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_029_บ้านป่าซางนาเงิน_กลุ' OR s.name = 'โรงเรียนบ้านป่าซางนาเงิน กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านป่าซางนาเงิน กลุ่มเครือข่ายพัฒนาการศึก%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายนควัฒน์' AND m.lastName = 'กุณะด้วง'
@@ -14446,6 +15138,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_029_บ้านป่าซางนาเงิน_กลุ' OR s.name = 'โรงเรียนบ้านป่าซางนาเงิน กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านป่าซางนาเงิน กลุ่มเครือข่ายพัฒนาการศึก%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวธิษตยา' AND m.lastName = 'ภิระบัน'
@@ -14467,6 +15160,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_029_บ้านป่าซางนาเงิน_กลุ' OR s.name = 'โรงเรียนบ้านป่าซางนาเงิน กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านป่าซางนาเงิน กลุ่มเครือข่ายพัฒนาการศึก%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวธิดาวรรณ' AND m.lastName = 'ทองใบ'
@@ -14488,6 +15182,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_029_บ้านป่าซางนาเงิน_กลุ' OR s.name = 'โรงเรียนบ้านป่าซางนาเงิน กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านป่าซางนาเงิน กลุ่มเครือข่ายพัฒนาการศึก%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวณัฐชยา' AND m.lastName = 'สุริยะ'
@@ -14509,6 +15204,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_029_บ้านป่าซางนาเงิน_กลุ' OR s.name = 'โรงเรียนบ้านป่าซางนาเงิน กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านป่าซางนาเงิน กลุ่มเครือข่ายพัฒนาการศึก%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวสกุลรัตน์' AND m.lastName = 'โมงยาม'
@@ -14530,6 +15226,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_029_บ้านป่าซางนาเงิน_กลุ' OR s.name = 'โรงเรียนบ้านป่าซางนาเงิน กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านป่าซางนาเงิน กลุ่มเครือข่ายพัฒนาการศึก%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวศิริพร' AND m.lastName = 'พะเงาะ'
@@ -14551,6 +15248,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_029_บ้านป่าซางนาเงิน_กลุ' OR s.name = 'โรงเรียนบ้านป่าซางนาเงิน กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านป่าซางนาเงิน กลุ่มเครือข่ายพัฒนาการศึก%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวนฤภร' AND m.lastName = 'ทามัน'
@@ -14572,6 +15270,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_029_บ้านป่าซางนาเงิน_กลุ' OR s.name = 'โรงเรียนบ้านป่าซางนาเงิน กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านป่าซางนาเงิน กลุ่มเครือข่ายพัฒนาการศึก%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายศิริมงคล' AND m.lastName = 'อูปคำ'
@@ -14593,6 +15292,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_029_บ้านป่าซางนาเงิน_กลุ' OR s.name = 'โรงเรียนบ้านป่าซางนาเงิน กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านป่าซางนาเงิน กลุ่มเครือข่ายพัฒนาการศึก%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวมุกดา' AND m.lastName = 'อศิกุล'
@@ -14614,6 +15314,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_029_บ้านป่าซางนาเงิน_กลุ' OR s.name = 'โรงเรียนบ้านป่าซางนาเงิน กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านป่าซางนาเงิน กลุ่มเครือข่ายพัฒนาการศึก%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวสรันดา' AND m.lastName = 'วงค์นาง'
@@ -14635,6 +15336,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_029_บ้านป่าซางนาเงิน_กลุ' OR s.name = 'โรงเรียนบ้านป่าซางนาเงิน กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านป่าซางนาเงิน กลุ่มเครือข่ายพัฒนาการศึก%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'ว่าที่ร้อยตรีหญิงอมรรัตน์' AND m.lastName = 'นันทิยา'
@@ -14656,6 +15358,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_029_บ้านป่าซางนาเงิน_กลุ' OR s.name = 'โรงเรียนบ้านป่าซางนาเงิน กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านป่าซางนาเงิน กลุ่มเครือข่ายพัฒนาการศึก%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวศุภนิช' AND m.lastName = 'มูลทาศรี'
@@ -14677,6 +15380,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_029_บ้านป่าซางนาเงิน_กลุ' OR s.name = 'โรงเรียนบ้านป่าซางนาเงิน กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านป่าซางนาเงิน กลุ่มเครือข่ายพัฒนาการศึก%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวประทุมพร' AND m.lastName = 'พรรณมณีพร'
@@ -14698,6 +15402,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_029_บ้านป่าซางนาเงิน_กลุ' OR s.name = 'โรงเรียนบ้านป่าซางนาเงิน กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านป่าซางนาเงิน กลุ่มเครือข่ายพัฒนาการศึก%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวนารี' AND m.lastName = 'ต้องสู้คีรี'
@@ -14719,6 +15424,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_029_บ้านป่าซางนาเงิน_กลุ' OR s.name = 'โรงเรียนบ้านป่าซางนาเงิน กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านป่าซางนาเงิน กลุ่มเครือข่ายพัฒนาการศึก%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวอัมพร' AND m.lastName = 'พร้อมชัยศรี'
@@ -14740,6 +15446,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_029_บ้านป่าซางนาเงิน_กลุ' OR s.name = 'โรงเรียนบ้านป่าซางนาเงิน กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านป่าซางนาเงิน กลุ่มเครือข่ายพัฒนาการศึก%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายนพฤทธิ์' AND m.lastName = 'มาเยอะ'
@@ -14761,6 +15468,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_030_อนุบาลแม่ฟ้าหลวง_กลุ' OR s.name = 'โรงเรียนอนุบาลแม่ฟ้าหลวง กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนอนุบาลแม่ฟ้าหลวง กลุ่มเครือข่ายพัฒนาการศึก%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายนิรุตต์' AND m.lastName = 'ชัยมณี'
@@ -14782,6 +15490,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_030_อนุบาลแม่ฟ้าหลวง_กลุ' OR s.name = 'โรงเรียนอนุบาลแม่ฟ้าหลวง กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนอนุบาลแม่ฟ้าหลวง กลุ่มเครือข่ายพัฒนาการศึก%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายสวาท' AND m.lastName = 'เย็นใจมา'
@@ -14803,6 +15512,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_030_อนุบาลแม่ฟ้าหลวง_กลุ' OR s.name = 'โรงเรียนอนุบาลแม่ฟ้าหลวง กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนอนุบาลแม่ฟ้าหลวง กลุ่มเครือข่ายพัฒนาการศึก%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางอัมพร' AND m.lastName = 'วสันต์'
@@ -14824,6 +15534,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_030_อนุบาลแม่ฟ้าหลวง_กลุ' OR s.name = 'โรงเรียนอนุบาลแม่ฟ้าหลวง กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนอนุบาลแม่ฟ้าหลวง กลุ่มเครือข่ายพัฒนาการศึก%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายสุทธิพันธ์' AND m.lastName = 'ดวงสุข'
@@ -14845,6 +15556,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_030_อนุบาลแม่ฟ้าหลวง_กลุ' OR s.name = 'โรงเรียนอนุบาลแม่ฟ้าหลวง กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนอนุบาลแม่ฟ้าหลวง กลุ่มเครือข่ายพัฒนาการศึก%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายวุฒิชัย' AND m.lastName = 'กันใจ'
@@ -14866,6 +15578,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_030_อนุบาลแม่ฟ้าหลวง_กลุ' OR s.name = 'โรงเรียนอนุบาลแม่ฟ้าหลวง กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนอนุบาลแม่ฟ้าหลวง กลุ่มเครือข่ายพัฒนาการศึก%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายธนกฤต' AND m.lastName = 'วิริยะจิตต์'
@@ -14887,6 +15600,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_030_อนุบาลแม่ฟ้าหลวง_กลุ' OR s.name = 'โรงเรียนอนุบาลแม่ฟ้าหลวง กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนอนุบาลแม่ฟ้าหลวง กลุ่มเครือข่ายพัฒนาการศึก%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวสุชาวดี' AND m.lastName = 'จิตต์ใจ'
@@ -14908,6 +15622,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_030_อนุบาลแม่ฟ้าหลวง_กลุ' OR s.name = 'โรงเรียนอนุบาลแม่ฟ้าหลวง กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนอนุบาลแม่ฟ้าหลวง กลุ่มเครือข่ายพัฒนาการศึก%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวอรสา' AND m.lastName = 'ทะลิ'
@@ -14929,6 +15644,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_030_อนุบาลแม่ฟ้าหลวง_กลุ' OR s.name = 'โรงเรียนอนุบาลแม่ฟ้าหลวง กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนอนุบาลแม่ฟ้าหลวง กลุ่มเครือข่ายพัฒนาการศึก%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายคณาวุฒิ' AND m.lastName = 'มูลทาศรี'
@@ -14950,6 +15666,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_030_อนุบาลแม่ฟ้าหลวง_กลุ' OR s.name = 'โรงเรียนอนุบาลแม่ฟ้าหลวง กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนอนุบาลแม่ฟ้าหลวง กลุ่มเครือข่ายพัฒนาการศึก%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวสิริรัตน์' AND m.lastName = 'สุนสะดี'
@@ -14971,6 +15688,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_030_อนุบาลแม่ฟ้าหลวง_กลุ' OR s.name = 'โรงเรียนอนุบาลแม่ฟ้าหลวง กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนอนุบาลแม่ฟ้าหลวง กลุ่มเครือข่ายพัฒนาการศึก%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวอำพร' AND m.lastName = 'อรหันต์'
@@ -14992,6 +15710,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_030_อนุบาลแม่ฟ้าหลวง_กลุ' OR s.name = 'โรงเรียนอนุบาลแม่ฟ้าหลวง กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนอนุบาลแม่ฟ้าหลวง กลุ่มเครือข่ายพัฒนาการศึก%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางกัญชริภา' AND m.lastName = 'ทะจันทร์'
@@ -15013,6 +15732,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_030_อนุบาลแม่ฟ้าหลวง_กลุ' OR s.name = 'โรงเรียนอนุบาลแม่ฟ้าหลวง กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนอนุบาลแม่ฟ้าหลวง กลุ่มเครือข่ายพัฒนาการศึก%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายนวมินตร์' AND m.lastName = 'ตาใจ'
@@ -15034,6 +15754,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_030_อนุบาลแม่ฟ้าหลวง_กลุ' OR s.name = 'โรงเรียนอนุบาลแม่ฟ้าหลวง กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนอนุบาลแม่ฟ้าหลวง กลุ่มเครือข่ายพัฒนาการศึก%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายชินกร' AND m.lastName = 'จองหนุ่ม'
@@ -15055,6 +15776,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_030_อนุบาลแม่ฟ้าหลวง_กลุ' OR s.name = 'โรงเรียนอนุบาลแม่ฟ้าหลวง กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนอนุบาลแม่ฟ้าหลวง กลุ่มเครือข่ายพัฒนาการศึก%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวมีนาร์' AND m.lastName = 'อารีย์'
@@ -15076,6 +15798,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_030_อนุบาลแม่ฟ้าหลวง_กลุ' OR s.name = 'โรงเรียนอนุบาลแม่ฟ้าหลวง กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนอนุบาลแม่ฟ้าหลวง กลุ่มเครือข่ายพัฒนาการศึก%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายเอกพงษ์' AND m.lastName = 'กาแก้ว'
@@ -15097,6 +15820,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_031_บ้านขาแหย่งพัฒนา_กลุ' OR s.name = 'โรงเรียนบ้านขาแหย่งพัฒนา กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านขาแหย่งพัฒนา กลุ่มเครือข่ายพัฒนาการศึก%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางกุลธิดา' AND m.lastName = 'อดิลักษณ์ศิริ'
@@ -15118,6 +15842,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_031_บ้านขาแหย่งพัฒนา_กลุ' OR s.name = 'โรงเรียนบ้านขาแหย่งพัฒนา กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านขาแหย่งพัฒนา กลุ่มเครือข่ายพัฒนาการศึก%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางภาระวี' AND m.lastName = 'อินนวล'
@@ -15139,6 +15864,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_031_บ้านขาแหย่งพัฒนา_กลุ' OR s.name = 'โรงเรียนบ้านขาแหย่งพัฒนา กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านขาแหย่งพัฒนา กลุ่มเครือข่ายพัฒนาการศึก%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวทัศนีย์' AND m.lastName = 'โสภณอำนวยกิจ'
@@ -15160,6 +15886,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_031_บ้านขาแหย่งพัฒนา_กลุ' OR s.name = 'โรงเรียนบ้านขาแหย่งพัฒนา กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านขาแหย่งพัฒนา กลุ่มเครือข่ายพัฒนาการศึก%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาววราภรณ์' AND m.lastName = 'ไชยานันตา'
@@ -15181,6 +15908,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_031_บ้านขาแหย่งพัฒนา_กลุ' OR s.name = 'โรงเรียนบ้านขาแหย่งพัฒนา กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านขาแหย่งพัฒนา กลุ่มเครือข่ายพัฒนาการศึก%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวกัญญารัตน์' AND m.lastName = 'ตาโม่ง'
@@ -15202,6 +15930,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_031_บ้านขาแหย่งพัฒนา_กลุ' OR s.name = 'โรงเรียนบ้านขาแหย่งพัฒนา กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านขาแหย่งพัฒนา กลุ่มเครือข่ายพัฒนาการศึก%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวกานติมา' AND m.lastName = 'เกตสระไชย'
@@ -15223,6 +15952,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_031_บ้านขาแหย่งพัฒนา_กลุ' OR s.name = 'โรงเรียนบ้านขาแหย่งพัฒนา กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านขาแหย่งพัฒนา กลุ่มเครือข่ายพัฒนาการศึก%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวศศิกานต์' AND m.lastName = 'ดาชิต'
@@ -15244,6 +15974,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_031_บ้านขาแหย่งพัฒนา_กลุ' OR s.name = 'โรงเรียนบ้านขาแหย่งพัฒนา กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านขาแหย่งพัฒนา กลุ่มเครือข่ายพัฒนาการศึก%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวสุชาดา' AND m.lastName = 'เครือคำวัง'
@@ -15265,6 +15996,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_031_บ้านขาแหย่งพัฒนา_กลุ' OR s.name = 'โรงเรียนบ้านขาแหย่งพัฒนา กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านขาแหย่งพัฒนา กลุ่มเครือข่ายพัฒนาการศึก%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวพัชรา' AND m.lastName = 'บุญสุวรรณ์'
@@ -15286,6 +16018,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_031_บ้านขาแหย่งพัฒนา_กลุ' OR s.name = 'โรงเรียนบ้านขาแหย่งพัฒนา กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านขาแหย่งพัฒนา กลุ่มเครือข่ายพัฒนาการศึก%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวนิภาวรรณ' AND m.lastName = 'การเจริญ'
@@ -15307,6 +16040,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_031_บ้านขาแหย่งพัฒนา_กลุ' OR s.name = 'โรงเรียนบ้านขาแหย่งพัฒนา กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านขาแหย่งพัฒนา กลุ่มเครือข่ายพัฒนาการศึก%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวฐิตาภรณ์' AND m.lastName = 'โยงยศ'
@@ -15328,6 +16062,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_031_บ้านขาแหย่งพัฒนา_กลุ' OR s.name = 'โรงเรียนบ้านขาแหย่งพัฒนา กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านขาแหย่งพัฒนา กลุ่มเครือข่ายพัฒนาการศึก%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นางสาวพิมพ์จันทร์' AND m.lastName = 'ทานศิลา'
@@ -15349,6 +16084,7 @@ SELECT
   '2026-02-17 03:39:09'
 FROM `School` s
 WHERE (s.code = 'SCH_031_บ้านขาแหย่งพัฒนา_กลุ' OR s.name = 'โรงเรียนบ้านขาแหย่งพัฒนา กลุ่มเครือข่ายพัฒนาการศึกษาพื้นที่โครงการพัฒนาดอยตุง' OR s.name LIKE '%โรงเรียนบ้านขาแหย่งพัฒนา กลุ่มเครือข่ายพัฒนาการศึก%')
+  AND EXISTS (SELECT 1 FROM `MemberType`)
   AND NOT EXISTS (
     SELECT 1 FROM `Member` m 
     WHERE m.schoolId = s.id AND m.firstName = 'นายประทวน' AND m.lastName = 'ขัดบุญเรือง'

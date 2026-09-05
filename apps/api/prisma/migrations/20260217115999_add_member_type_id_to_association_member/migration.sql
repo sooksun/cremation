@@ -1,8 +1,14 @@
 -- Add memberTypeId to AssociationMember if missing (fix for DB created without this column)
 -- รองรับกรณีตารางถูกสร้างจาก schema เก่าหรือ db push ที่ไม่มี memberTypeId
 
--- MySQL 8.0.12+ only; ถ้าใช้เวอร์ชันเก่ากว่า ให้รันเฉพาะ 3 บรรทัดด้านล่างด้วยตนเอง
-ALTER TABLE `AssociationMember` ADD COLUMN `memberTypeId` VARCHAR(191) NULL;
+-- ฐานข้อมูลที่สร้างใหม่จะมี memberTypeId มาตั้งแต่ migration สร้างตารางแล้ว
+-- จึงต้องเช็คก่อนเพิ่ม ไม่งั้น migrate deploy บน DB เปล่าล้มด้วย error 1060 (duplicate column)
+SET @col := (SELECT COUNT(*) FROM information_schema.COLUMNS
+  WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'AssociationMember' AND COLUMN_NAME = 'memberTypeId');
+SET @sql := IF(@col = 0,
+  'ALTER TABLE `AssociationMember` ADD COLUMN `memberTypeId` VARCHAR(191) NULL',
+  'SELECT 1');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
 UPDATE `AssociationMember` am
 SET am.`memberTypeId` = (SELECT m.`memberTypeId` FROM `Member` m WHERE m.id = am.`memberId` LIMIT 1)
