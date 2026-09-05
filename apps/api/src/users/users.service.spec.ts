@@ -15,7 +15,10 @@ describe('UsersService member accounts', () => {
       findUnique: jest.fn(),
     },
   };
-  const service = new UsersService(prisma as never, { log: jest.fn() } as never);
+  const service = new UsersService(prisma as never, { log: jest.fn() } as never, {
+    canAccessAllSchools: () => true,
+    assertResourceSchoolAccess: jest.fn(),
+  } as never);
 
   beforeEach(() => {
     jest.clearAllMocks();

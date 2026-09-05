@@ -19,6 +19,10 @@ export class RolesGuard implements CanActivate {
     }
 
     const { user } = context.switchToHttp().getRequest();
+    // ไม่มี user = ยังไม่ผ่าน JwtAuthGuard ต้องปฏิเสธ ไม่ใช่โยน TypeError ออกไปเป็น 500
+    if (!user?.role) {
+      return false;
+    }
     return requiredRoles.some((role) => user.role === role);
   }
 }

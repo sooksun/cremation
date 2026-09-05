@@ -39,6 +39,8 @@ export class ReportsController {
   }
 
   @Get('dashboard')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.SCHOOL_ADMIN, Role.FINANCE, Role.ACCOUNTING, Role.VIEWER)
   getDashboard(
     @Request() req: { user: ScopedUser },
     @Query('schoolId') schoolId?: string,
@@ -52,6 +54,8 @@ export class ReportsController {
   }
 
   @Get('members')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.SCHOOL_ADMIN, Role.FINANCE, Role.ACCOUNTING, Role.GROUP_LEADER, Role.VIEWER)
   getMemberStats(
     @Request() req: { user: ScopedUser },
     @Query('year') year?: number,
@@ -64,6 +68,8 @@ export class ReportsController {
   }
 
   @Get('contributions')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.SCHOOL_ADMIN, Role.FINANCE, Role.ACCOUNTING, Role.GROUP_LEADER)
   getContributionReport(
     @Request() req: { user: ScopedUser },
     @Query('periodId') periodId: string,
@@ -76,6 +82,8 @@ export class ReportsController {
   }
 
   @Get('daily-movement')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.SCHOOL_ADMIN, Role.FINANCE, Role.ACCOUNTING)
   getDailyMovement(
     @Request() req: { user: ScopedUser },
     @Query('date') date: string,
@@ -88,6 +96,8 @@ export class ReportsController {
   }
 
   @Get('financial')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.SCHOOL_ADMIN, Role.FINANCE, Role.ACCOUNTING)
   getFinancialSummary(
     @Request() req: { user: ScopedUser },
     @Query('startDate') startDate: string,
@@ -225,6 +235,8 @@ export class ReportsController {
   }
 
   @Get('death-fund-reserve')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.SCHOOL_ADMIN, Role.FINANCE, Role.ACCOUNTING)
   getDeathFundReserveReport(
     @Request() req: { user: ScopedUser },
     @Query('year') year: number,
@@ -238,6 +250,8 @@ export class ReportsController {
 
   // Group 8: Cash Flow Report
   @Get('cash-flow')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.SCHOOL_ADMIN, Role.FINANCE, Role.ACCOUNTING)
   getCashFlow(
     @Request() req: { user: ScopedUser },
     @Query('startDate') startDate: string,
@@ -254,6 +268,8 @@ export class ReportsController {
   // Group 13: Statement of Changes in Equity
   // ยอดทั้งสมาคม — ไม่รับ schoolId เพราะตัวเลขมาจาก LedgerEntry ที่ไม่มีคอลัมน์โรงเรียน
   @Get('changes-in-equity')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.FINANCE, Role.ACCOUNTING)
   getChangesInEquity(
     @Query('startDate') startDate: string,
     @Query('endDate') endDate: string,

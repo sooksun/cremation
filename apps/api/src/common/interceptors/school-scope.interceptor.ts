@@ -20,10 +20,12 @@ export class SchoolScopeInterceptor implements NestInterceptor {
       return next.handle();
     }
 
+    // เรียก resolveSchoolId ทุกกรณีของบทบาทที่ผูกโรงเรียน ไม่ใช่เฉพาะตอน user.schoolId มีค่า
+    // เดิมถ้าบัญชีไม่มี schoolId จะไม่เข้าเงื่อนไขไหนเลย แล้ว query หลุดออกไปแบบไม่มีตัวกรอง
     if (req.query?.schoolId) {
       req.query.schoolId = this.schoolScope.resolveSchoolId(user, req.query.schoolId);
-    } else if (!this.schoolScope.canAccessAllSchools(user) && user.schoolId) {
-      req.query.schoolId = user.schoolId;
+    } else if (!this.schoolScope.canAccessAllSchools(user)) {
+      req.query.schoolId = this.schoolScope.resolveSchoolId(user, undefined);
     }
 
     if (req.body && typeof req.body === 'object' && 'schoolId' in req.body && req.body.schoolId) {

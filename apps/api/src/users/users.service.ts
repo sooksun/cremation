@@ -12,13 +12,14 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { validateStrongPassword } from '../common/utils/password.util';
 import { AuditLogService } from '../common/services/audit-log.service';
 import { AuditAction } from '@prisma/client';
-import { ScopedUser } from '../common/security/school-scope.service';
+import { ScopedUser, SchoolScopeService } from '../common/security/school-scope.service';
 
 @Injectable()
 export class UsersService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly auditLog: AuditLogService,
+    private readonly schoolScope: SchoolScopeService,
   ) {}
 
   private async getMemberForAccount(memberId: string, currentUserId?: string) {
@@ -130,6 +131,12 @@ export class UsersService {
     return user;
   }
 
+  /** เหมือน findById แต่ตัด passwordHash ออก — ใช้กับทุกเส้นทางที่ผลลัพธ์ถูกส่งออก HTTP */
+  async findByIdPublic(id: string) {
+    const { passwordHash, ...user } = await this.findById(id);
+    return user;
+  }
+
   async findByUsername(username: string) {
     return this.prisma.user.findUnique({
       where: { username },
@@ -142,6 +149,14 @@ export class UsersService {
 
   async update(id: string, dto: UpdateUserDto, actor?: ScopedUser) {
     const user = await this.findById(id);
+
+    // PATCH /users/:id/signature เปิดให้ SCHOOL_ADMIN/FINANCE ด้วย และรับ :id มาตรง ๆ
+    // ถ้าไม่กันตรงนี้ ผู้ใช้การเงินของโรงเรียนหนึ่งจะแก้ลายเซ็นของผู้ใช้อีกโรงเรียน
+    // (หรือของ ADMIN) ได้ ซึ่งเท่ากับปลอมลายเซ็นบนใบเสร็จ
+    if (actor && !this.schoolScope.canAccessAllSchools(actor)) {
+      this.schoolScope.assertResourceSchoolAccess(actor, user.schoolId);
+    }
+
     const nextRole = dto.role ?? user.role;
 
     if (

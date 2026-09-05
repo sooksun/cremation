@@ -20,7 +20,11 @@ import { Role } from '@prisma/client';
 import { ScopedUser } from '../common/security/school-scope.service';
 
 @Controller('bank-accounts')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
+// @Roles ระดับคลาสเป็นค่าเริ่มต้นของทุก route ในไฟล์นี้ — RolesGuard อ่านแบบ
+// getAllAndOverride([handler, class]) route ที่ประกาศเองจึงยัง override ได้ตามเดิม
+// เดิม GET ทุกตัวไม่มี @Roles เลย ทำให้ VIEWER/GROUP_LEADER เห็นข้อมูลการเงินทั้งสมาคม
+@Roles(Role.ADMIN, Role.SCHOOL_ADMIN, Role.FINANCE, Role.ACCOUNTING)
 export class BankAccountsController {
   constructor(private readonly bankAccountsService: BankAccountsService) {}
 

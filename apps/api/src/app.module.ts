@@ -27,7 +27,7 @@ import { AuditLogsModule } from './audit-logs/audit-logs.module';
 import { SchoolAdminsModule } from './school-admins/school-admins.module';
 import { AssistantModule } from './assistant/assistant.module';
 import { SchoolScopeInterceptor } from './common/interceptors/school-scope.interceptor';
-import { ViewerReadOnlyGuard } from './auth/guards/viewer-readonly.guard';
+import { ViewerReadOnlyInterceptor } from './common/interceptors/viewer-readonly.interceptor';
 import { HealthController } from './health.controller';
 
 @Module({
@@ -75,8 +75,9 @@ import { HealthController } from './health.controller';
       useClass: ThrottlerGuard,
     },
     {
-      provide: APP_GUARD,
-      useClass: ViewerReadOnlyGuard,
+      // ต้องมาก่อน SchoolScopeInterceptor: บล็อกคำขอเขียนของ VIEWER ตั้งแต่ต้นทาง
+      provide: APP_INTERCEPTOR,
+      useClass: ViewerReadOnlyInterceptor,
     },
     {
       provide: APP_INTERCEPTOR,

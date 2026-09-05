@@ -18,6 +18,13 @@ async function bootstrap() {
 
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
+  // หลัง nginxproxymanager ทุกคำขอมาจาก IP ของ proxy ตัวเดียว ทำให้ ThrottlerGuard
+  // ใช้ถังเดียวร่วมกันทั้งระบบ (ผู้ใช้คนเดียวยิงจนเต็มแล้วทุกคนโดนบล็อกพร้อมกัน)
+  // และ audit log บันทึก IP ของ proxy แทนของผู้ใช้จริง
+  // ค่าเป็นจำนวน hop ที่เชื่อถือได้ — ตั้งไว้ 1 เพราะมี proxy ชั้นเดียว
+  // ห้ามใส่ true: จะเชื่อ X-Forwarded-For ทั้งสายซึ่งไคลเอนต์ปลอมได้
+  app.set('trust proxy', Number(process.env.TRUSTED_PROXY_HOPS ?? 1));
+
   app.use(
     helmet({
       contentSecurityPolicy: isProduction

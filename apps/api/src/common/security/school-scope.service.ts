@@ -66,6 +66,12 @@ export class SchoolScopeService {
       }
       return user.schoolId;
     }
+    // บทบาทที่ผูกกับโรงเรียนแต่ไม่มี schoolId = บัญชีตั้งค่าไม่ครบ
+    // เดิมคืน requestedSchoolId ทำให้ตกไปเป็น "ไม่กรองอะไรเลย" แล้วเห็นข้อมูลทุกโรงเรียน
+    // ต้องปฏิเสธ ไม่ใช่ปล่อยผ่าน — ทางเลือกที่ปลอดภัยกว่าคือไม่เห็นอะไรเลย
+    if (this.isSchoolScopedRole(user)) {
+      throw new ForbiddenException('บัญชีนี้ยังไม่ได้กำหนดโรงเรียน กรุณาติดต่อผู้ดูแลระบบ');
+    }
     return requestedSchoolId;
   }
 

@@ -18,6 +18,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '@prisma/client';
+import { UpdateSignatureDto } from '../auth/dto/update-signature.dto';
 import { ScopedUser } from '../common/security/school-scope.service';
 
 @Controller('users')
@@ -41,7 +42,7 @@ export class UsersController {
   @Get(':id')
   @Roles(Role.ADMIN)
   findOne(@Param('id') id: string) {
-    return this.usersService.findById(id);
+    return this.usersService.findByIdPublic(id);
   }
 
   @Patch(':id')
@@ -58,8 +59,14 @@ export class UsersController {
 
   @Patch(':id/signature')
   @Roles(Role.ADMIN, Role.SCHOOL_ADMIN, Role.FINANCE)
-  updateSignature(@Param('id') id: string, @Body() body: { signature: string }, @Request() req: { user: ScopedUser }) {
-    return this.usersService.update(id, { signature: body.signature }, req.user);
+  updateSignature(
+    @Param('id') id: string,
+    // ต้องเป็น DTO ที่เป็น class จริง ไม่ใช่ inline type: ValidationPipe ข้าม metatype
+    // ที่ไม่ใช่ class ทำให้ทั้งเพดานความยาวและรูปแบบ data:image/... ไม่ถูกบังคับเลย
+    @Body() dto: UpdateSignatureDto,
+    @Request() req: { user: ScopedUser },
+  ) {
+    return this.usersService.update(id, { signature: dto.signature }, req.user);
   }
 }
 

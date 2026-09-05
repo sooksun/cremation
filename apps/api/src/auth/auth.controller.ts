@@ -69,7 +69,12 @@ export class AuthController {
   @Get('me')
   async getProfile(@Request() req: { user: Record<string, unknown> }) {
     const { passwordHash, ...user } = req.user;
-    return this.authService.toAuthUser(user as Parameters<AuthService['toAuthUser']>[0]);
+    // ลายเซ็นเป็น base64 ก้อนใหญ่ จึงส่งเฉพาะที่ /auth/me (หน้าตั้งค่าลายเซ็นและใบเสร็จใช้)
+    // ไม่ปนไปกับ response ตอน login
+    return {
+      ...this.authService.toAuthUser(user as Parameters<AuthService['toAuthUser']>[0]),
+      signature: (user.signature as string | null) ?? null,
+    };
   }
 
   @UseGuards(JwtAuthGuard)
