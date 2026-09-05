@@ -29,6 +29,9 @@ jobs:
       - name: Generate Prisma client
         run: pnpm --filter @cremation/api exec prisma generate
 
+      - name: Lint API
+        run: pnpm --filter @cremation/api run lint:ci
+
       - name: Lint Web
         run: pnpm --filter @cremation/web run lint
 

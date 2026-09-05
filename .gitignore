@@ -78,3 +78,6 @@ docs/env-production-*.txt
 
 # SDD scratch (ledger/briefs/review packages) — ไม่ commit
 .superpowers/
+
+# ไฟล์ทดสอบที่สคริปต์ PDF สร้างทิ้งไว้
+apps/web/test-*.pdf
