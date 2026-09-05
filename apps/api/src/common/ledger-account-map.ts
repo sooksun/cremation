@@ -14,9 +14,11 @@ export const RECEIPT_REVENUE_ACCOUNT: Record<ReceiptType, string> = {
   [ReceiptType.MEMBER_CONTRIBUTION]: '401',
   [ReceiptType.DEATH_COLLECTION]: '401',
   [ReceiptType.ADVANCE_WELFARE]: '401',
-  [ReceiptType.MEMBERSHIP_FEE]: '402',
-  [ReceiptType.BOOK_FEE]: '402',
-  [ReceiptType.ANNUAL_FEE]: '402',
+  // ห้ามใช้ 402: สมาคมยุบ "รายได้ค่าบริการ" เข้า 401 ไปแล้ว การชี้มาที่ 402
+  // เท่ากับรื้อมติเดิม จึงใช้รหัสใหม่ 405 สำหรับค่าสมัคร/ค่าคู่มือ/ค่าบำรุงรายปี
+  [ReceiptType.MEMBERSHIP_FEE]: '405',
+  [ReceiptType.BOOK_FEE]: '405',
+  [ReceiptType.ANNUAL_FEE]: '405',
   [ReceiptType.OTHER]: '409',
 };
 

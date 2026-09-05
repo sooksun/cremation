@@ -31,12 +31,19 @@ git fetch origin "${DEPLOY_BRANCH}"
 git checkout "${DEPLOY_BRANCH}"
 git pull --ff-only origin "${DEPLOY_BRANCH}"
 
-echo "==> rebuild api + web"
-$COMPOSE build api web
+echo "==> rebuild api + web + seed"
+# ต้อง build seed ด้วย แม้จะอยู่หลัง --profile seed: image ของมันไม่ถูกสร้างใหม่ตาม
+# ทำให้ `--profile seed run` หยิบ image เก่ามารัน ซึ่งเคยทำให้ผังบัญชีชุดใหม่ไม่ถูกสร้าง
+# และรันโค้ด seed รุ่นเก่าที่รีเซ็ตรหัสผ่านผู้ใช้ทับของจริง
+$COMPOSE --profile seed build api web seed
 
 echo "==> restart (api รัน 'prisma migrate deploy' ตอน boot)"
 # backup ต้อง recreate ด้วย ไม่งั้นจะค้าง env เก่า (เช่น DATABASE_URL ที่เปลี่ยนรหัสผ่านแล้ว)
 # จน dump ไม่ผ่านเงียบ ๆ
+# หยุด api ก่อน แล้วค่อยยกขึ้นจาก image ใหม่ ไม่งั้น container ตัวเก่าอาจรัน
+# `prisma migrate deploy` ด้วยโค้ดรุ่นเก่าชิงไปก่อนที่ image ใหม่จะพร้อม
+# ถ้า migration รุ่นเก่าล้ม prisma จะมาร์กว่า failed แล้วทุกรอบถัดมาเด้ง P3009 ทันที
+$COMPOSE stop api
 $COMPOSE up -d --force-recreate --no-deps api web backup
 
 echo "==> สถานะ"

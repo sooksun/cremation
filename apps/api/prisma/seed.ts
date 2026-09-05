@@ -152,77 +152,94 @@ async function main() {
 
   console.log('✅ Groups ready');
 
-  // 4) Users — unique passwords (set SEED_ADMIN_PASSWORD for deterministic admin login in dev)
+  // 4) Users
+  //
+  // ห้ามเขียนทับ passwordHash ของบัญชีที่มีอยู่แล้วเด็ดขาด: seed ถูกออกแบบมาให้รันซ้ำได้
+  // และเคยถูกเรียกบน production มาแล้ว การ upsert แบบ update: { passwordHash } ทำให้
+  // รหัสผ่านของ admin/finance/account และผู้ดูแลโรงเรียนถูกรีเซ็ตทั้งหมดโดยไม่ตั้งใจ
+  // จึงสร้างรหัสใหม่เฉพาะบัญชีที่ยังไม่มีเท่านั้น ส่วนบัญชีเดิมอัปเดตได้แค่ข้อมูลที่ไม่ลับ
   const { generateTemporaryPassword } = await import('../src/common/utils/password.util');
   const seedPasswords: string[] = [];
+  const keptUsers: string[] = [];
 
-  const adminPassword = process.env.SEED_ADMIN_PASSWORD || generateTemporaryPassword();
-  const adminHash = await bcrypt.hash(adminPassword, 10);
-  seedPasswords.push(`admin / ${adminPassword}`);
+  type UserSeed = {
+    username: string;
+    fullName: string;
+    role: Role;
+    schoolId?: string;
+    mustChangePassword: boolean;
+    fixedPassword?: string;
+  };
 
-  const admin = await prisma.user.upsert({
-    where: { username: 'admin' },
-    create: {
-      username: 'admin',
-      passwordHash: adminHash,
-      fullName: 'ผู้ดูแลระบบ',
-      role: Role.ADMIN,
-      mustChangePassword: false,
-    },
-    update: { passwordHash: adminHash, mustChangePassword: false },
+  const ensureUser = async (spec: UserSeed) => {
+    const existing = await prisma.user.findUnique({ where: { username: spec.username } });
+
+    if (existing) {
+      await prisma.user.update({
+        where: { username: spec.username },
+        data: { fullName: spec.fullName, role: spec.role, schoolId: spec.schoolId ?? null },
+      });
+      keptUsers.push(spec.username);
+      return existing;
+    }
+
+    const password = spec.fixedPassword || generateTemporaryPassword();
+    seedPasswords.push(`${spec.username} / ${password}`);
+    return prisma.user.create({
+      data: {
+        username: spec.username,
+        passwordHash: await bcrypt.hash(password, 10),
+        fullName: spec.fullName,
+        role: spec.role,
+        schoolId: spec.schoolId,
+        mustChangePassword: spec.mustChangePassword,
+      },
+    });
+  };
+
+  const admin = await ensureUser({
+    username: 'admin',
+    fullName: 'ผู้ดูแลระบบ',
+    role: Role.ADMIN,
+    mustChangePassword: false,
+    fixedPassword: process.env.SEED_ADMIN_PASSWORD,
   });
 
-  for (const [username, fullName, role, schoolId] of [
-    ['finance', 'เจ้าหน้าที่การเงิน', Role.FINANCE, schoolA.id],
-    ['account', 'เจ้าหน้าที่บัญชี', Role.ACCOUNTING, schoolA.id],
-  ] as const) {
-    const password = generateTemporaryPassword();
-    const passwordHash = await bcrypt.hash(password, 10);
-    seedPasswords.push(`${username} / ${password}`);
-    await prisma.user.upsert({
-      where: { username },
-      create: {
-        username,
-        passwordHash,
-        fullName,
-        role,
-        schoolId,
-        mustChangePassword: true,
-      },
-      update: { passwordHash, mustChangePassword: true },
+  await ensureUser({
+    username: 'finance',
+    fullName: 'เจ้าหน้าที่การเงิน',
+    role: Role.FINANCE,
+    schoolId: schoolA.id,
+    mustChangePassword: true,
+  });
+  await ensureUser({
+    username: 'account',
+    fullName: 'เจ้าหน้าที่บัญชี',
+    role: Role.ACCOUNTING,
+    schoolId: schoolA.id,
+    mustChangePassword: true,
+  });
+
+  for (const school of [schoolA, schoolB, schoolC]) {
+    await ensureUser({
+      username: `admin-${school.code.toLowerCase()}`,
+      fullName: `ผู้ดูแล ${school.name}`,
+      role: Role.SCHOOL_ADMIN,
+      schoolId: school.id,
+      mustChangePassword: true,
     });
   }
 
-  const seedSchools = [schoolA, schoolB, schoolC];
-  for (const school of seedSchools) {
-    const schoolAdminUsername = `admin-${school.code.toLowerCase()}`;
-    const password = generateTemporaryPassword();
-    const passwordHash = await bcrypt.hash(password, 10);
-    seedPasswords.push(`${schoolAdminUsername} / ${password}`);
-    await prisma.user.upsert({
-      where: { username: schoolAdminUsername },
-      create: {
-        username: schoolAdminUsername,
-        passwordHash,
-        fullName: `ผู้ดูแล ${school.name}`,
-        role: Role.SCHOOL_ADMIN,
-        schoolId: school.id,
-        mustChangePassword: true,
-      },
-      update: {
-        role: Role.SCHOOL_ADMIN,
-        schoolId: school.id,
-        fullName: `ผู้ดูแล ${school.name}`,
-        passwordHash,
-        mustChangePassword: true,
-      },
-    });
+  if (seedPasswords.length > 0) {
+    console.log('✅ สร้างผู้ใช้ใหม่ (รหัสผ่านแสดงครั้งเดียว — คัดลอกไว้)');
+    for (const line of seedPasswords) {
+      console.log(`   ${line}`);
+    }
+  }
+  if (keptUsers.length > 0) {
+    console.log(`✅ ผู้ใช้เดิม ${keptUsers.length} บัญชี — คงรหัสผ่านเดิมไว้ (${keptUsers.join(', ')})`);
   }
 
-  console.log('✅ Users ready (unique passwords — copy from log below)');
-  for (const line of seedPasswords) {
-    console.log(`   ${line}`);
-  }
 
   // 5) Chart of accounts (minimal) - upsert
   const cash = await prisma.account.upsert({
@@ -285,8 +302,10 @@ async function main() {
   // รายได้ที่ไม่ใช่เงินสงเคราะห์ (ค่าสมัคร ค่าคู่มือ ค่าบำรุงรายปี) — เดิมถูกบันทึกรวมเข้า 401
   // ทำให้รายงานรายได้เงินสงเคราะห์สูงเกินจริง
   await prisma.account.upsert({
-    where: { code: '402' },
-    create: { code: '402', name: 'รายได้ค่าสมัครและค่าบำรุง', type: AccountType.INCOME },
+    where: { code: '405' },
+    // ห้ามใช้รหัส 402: สมาคมยุบ "รายได้ค่าบริการ" เข้า 401 ไปแล้วใน migration
+    // merge_service_revenue_into_welfare_revenue การสร้าง 402 กลับมาคือการรื้อมติเดิม
+    create: { code: '405', name: 'รายได้ค่าสมัครและค่าบำรุง', type: AccountType.INCOME },
     update: {},
   });
   await prisma.account.upsert({
@@ -340,469 +359,484 @@ async function main() {
 
   console.log('✅ Bank accounts ready (Central Fund)');
 
-  // 7) สมาชิกสมาคม (ข้อมูลหลัก) — สร้างก่อน แล้วค่อยสร้างสมาชิกฌาปนกิจที่อ้างอิง (idempotent)
-  const am1 = (await prisma.associationMember.findFirst({ where: { schoolId: schoolA.id, firstName: 'สมชาย', lastName: 'ใจดี' } })) ?? await prisma.associationMember.create({
-    data: {
-      schoolId: schoolA.id,
-      memberTypeId: regularTeacher.id,
-      firstName: 'สมชาย',
-      lastName: 'ใจดี',
-      idCardNo: '1-5709-99999-01-1',
-      phone: '0812345678',
-      associationJoinDate: new Date('2018-05-01'),
-    },
-  });
-  const am2 = (await prisma.associationMember.findFirst({ where: { schoolId: schoolA.id, firstName: 'วิไล', lastName: 'สุขสันต์' } })) ?? await prisma.associationMember.create({
-    data: {
-      schoolId: schoolA.id,
-      memberTypeId: staff.id,
-      firstName: 'วิไล',
-      lastName: 'สุขสันต์',
-      idCardNo: '1-5709-99999-02-2',
-      phone: '0823456789',
-      associationJoinDate: new Date('2019-03-10'),
-    },
-  });
-  const am3 = (await prisma.associationMember.findFirst({ where: { schoolId: schoolA.id, firstName: 'ประสิทธิ์', lastName: 'มั่นคง' } })) ?? await prisma.associationMember.create({
-    data: {
-      schoolId: schoolA.id,
-      memberTypeId: regularTeacher.id,
-      firstName: 'ประสิทธิ์',
-      lastName: 'มั่นคง',
-      idCardNo: '1-5709-99999-03-3',
-      phone: '0834567890',
-      associationJoinDate: new Date('2015-06-15'),
-    },
-  });
-  const am4 = (await prisma.associationMember.findFirst({ where: { schoolId: schoolA.id, firstName: 'สมปอง', lastName: 'สงบ' } })) ?? await prisma.associationMember.create({
-    data: {
-      schoolId: schoolA.id,
-      memberTypeId: retiredTeacher.id,
-      firstName: 'สมปอง',
-      lastName: 'สงบ',
-      idCardNo: '1-5709-99999-04-4',
-      phone: '0845678901',
-      associationJoinDate: new Date('2000-01-01'),
-    },
-  });
-  const am5 = (await prisma.associationMember.findFirst({ where: { schoolId: schoolB.id, firstName: 'เกษียณ', lastName: 'มีสุข' } })) ?? await prisma.associationMember.create({
-    data: {
-      schoolId: schoolB.id,
-      memberTypeId: retiredTeacher.id,
-      firstName: 'เกษียณ',
-      lastName: 'มีสุข',
-      idCardNo: '1-5709-99999-05-5',
-      associationJoinDate: new Date('2010-01-01'),
-    },
-  });
-  const am6 = (await prisma.associationMember.findFirst({ where: { schoolId: schoolB.id, firstName: 'สุดา', lastName: 'รักเรียน' } })) ?? await prisma.associationMember.create({
-    data: {
-      schoolId: schoolB.id,
-      memberTypeId: regularTeacher.id,
-      firstName: 'สุดา',
-      lastName: 'รักเรียน',
-      idCardNo: '1-5709-99999-06-6',
-      phone: '0856789012',
-      associationJoinDate: new Date('2020-08-01'),
-    },
-  });
-  const am7 = (await prisma.associationMember.findFirst({ where: { schoolId: schoolC.id, firstName: 'มานะ', lastName: 'พัฒนา' } })) ?? await prisma.associationMember.create({
-    data: {
-      schoolId: schoolC.id,
-      memberTypeId: regularTeacher.id,
-      firstName: 'มานะ',
-      lastName: 'พัฒนา',
-      idCardNo: '1-5709-99999-07-7',
-      phone: '0867890123',
-      associationJoinDate: new Date('2021-05-01'),
-    },
-  });
-  const am8 = (await prisma.associationMember.findFirst({ where: { schoolId: schoolC.id, firstName: 'พิมพ์', lastName: 'สวย' } })) ?? await prisma.associationMember.create({
-    data: {
-      schoolId: schoolC.id,
-      memberTypeId: staff.id,
-      firstName: 'พิมพ์',
-      lastName: 'สวย',
-      associationJoinDate: new Date('2022-02-15'),
-    },
-  });
-  // สมาชิกสมาคมที่ยังไม่เข้าร่วมฌาปนกิจ (ตัวอย่าง)
-  if (!(await prisma.associationMember.findFirst({ where: { schoolId: schoolA.id, firstName: 'ทดสอบ', lastName: 'เฉพาะสมาคม' } }))) {
-    await prisma.associationMember.create({
+  // ─── ข้อมูลตัวอย่าง (สมาชิก งวดเรียกเก็บ ใบเสร็จ เรื่องฌาปนกิจ) ───
+  //
+  // ห้ามลงเครื่อง production: บล็อกนี้สร้าง "สมชาย ใจดี" และพวกเข้าเป็นสมาชิกสมาคมจริง
+  // ปนกับข้อมูลของสมาคม แล้วต้องมาไล่ลบทีหลัง ส่วนบัญชีผังบัญชีและตารางที่อยู่
+  // (ข้อ 5, 6, 17) เป็นข้อมูลตั้งต้นที่จำเป็น จึงอยู่นอกบล็อกนี้และรันเสมอ
+  //
+  // ตั้ง SEED_DEMO_DATA=1 ถ้าต้องการข้อมูลตัวอย่างบนเครื่อง production จริง ๆ
+  const seedDemoData =
+    process.env.SEED_DEMO_DATA === '1' || process.env.NODE_ENV !== 'production';
+
+  if (!seedDemoData) {
+    console.log('⏭️ ข้ามข้อมูลตัวอย่าง (NODE_ENV=production)');
+  } else {
+    // 7) สมาชิกสมาคม (ข้อมูลหลัก) — สร้างก่อน แล้วค่อยสร้างสมาชิกฌาปนกิจที่อ้างอิง (idempotent)
+    const am1 = (await prisma.associationMember.findFirst({ where: { schoolId: schoolA.id, firstName: 'สมชาย', lastName: 'ใจดี' } })) ?? await prisma.associationMember.create({
       data: {
         schoolId: schoolA.id,
         memberTypeId: regularTeacher.id,
-        firstName: 'ทดสอบ',
-        lastName: 'เฉพาะสมาคม',
-        associationJoinDate: new Date('2024-01-01'),
+        firstName: 'สมชาย',
+        lastName: 'ใจดี',
+        idCardNo: '1-5709-99999-01-1',
+        phone: '0812345678',
+        associationJoinDate: new Date('2018-05-01'),
       },
     });
-  }
-
-  console.log('✅ Created association members');
-
-  // 8) สมาชิกฌาปนกิจ — อ้างอิงจากสมาชิกสมาคม (ทุกคนในฌาปนกิจต้องเป็นสมาชิกสมาคม) (idempotent)
-  const member1Join = new Date('2018-05-01');
-  const member1Deadline = new Date(member1Join);
-  member1Deadline.setDate(member1Deadline.getDate() + 30);
-
-  const member1 = (await prisma.member.findFirst({ where: { associationMemberId: am1.id } })) ?? await prisma.member.create({
-    data: {
-      associationMemberId: am1.id,
-      memberNo: 'M0001',
-      schoolId: schoolA.id,
-      groupId: groupA1.id,
-      joinDate: member1Join,
-      status: MemberStatus.ACTIVE,
-      membershipClass: MembershipClass.ORDINARY,
-      salaryDeduction: true,
-      applicationSubmittedAt: member1Join,
-      applicationDeadline: member1Deadline,
-      beneficiaries: {
-        create: [
-          { fullName: 'นางสมศรี ใจดี', relationship: 'คู่สมรส', phone: '0899998888', priority: 1 },
-          { fullName: 'ด.ช.สมหวัง ใจดี', relationship: 'บุตร', phone: '0899998889', priority: 2 },
-        ],
-      },
-      protectedPersons: {
-        create: [
-          { fullName: 'นางสมศรี ใจดี', relationship: ProtectedRelationship.SPOUSE, phone: '0899998888' },
-          { fullName: 'ด.ช.สมหวัง ใจดี', relationship: ProtectedRelationship.CHILD, phone: '0899998889' },
-        ],
-      },
-    },
-  });
-  await prisma.member.update({
-    where: { id: member1.id },
-    data: {
-      membershipClass: MembershipClass.ORDINARY,
-      salaryDeduction: true,
-      applicationSubmittedAt: member1Join,
-      applicationDeadline: member1Deadline,
-    },
-  });
-
-  const member2Join = new Date('2019-03-10');
-  const member2Deadline = new Date(member2Join);
-  member2Deadline.setDate(member2Deadline.getDate() + 30);
-
-  const member2 = (await prisma.member.findFirst({ where: { associationMemberId: am2.id } })) ?? await prisma.member.create({
-    data: {
-      associationMemberId: am2.id,
-      memberNo: 'M0002',
-      schoolId: schoolA.id,
-      groupId: groupA1.id,
-      joinDate: member2Join,
-      status: MemberStatus.ACTIVE,
-      membershipClass: MembershipClass.CONTRIBUTORY,
-      applicationDeadline: member2Deadline,
-    },
-  });
-  await prisma.member.update({
-    where: { id: member2.id },
-    data: {
-      membershipClass: MembershipClass.CONTRIBUTORY,
-      applicationDeadline: member2Deadline,
-    },
-  });
-  const member3 = (await prisma.member.findFirst({ where: { associationMemberId: am3.id } })) ?? await prisma.member.create({
-    data: {
-      associationMemberId: am3.id,
-      memberNo: 'M0003',
-      schoolId: schoolA.id,
-      groupId: groupA2.id,
-      joinDate: new Date('2015-06-15'),
-      status: MemberStatus.ACTIVE,
-      membershipClass: MembershipClass.ORDINARY,
-      protectedPersons: {
-        create: [
-          { fullName: 'นายบิดา มั่นคง', relationship: ProtectedRelationship.PARENT },
-          { fullName: 'นางมารดา มั่นคง', relationship: ProtectedRelationship.PARENT },
-        ],
-      },
-    },
-  });
-  if (!(await prisma.protectedPerson.findFirst({ where: { memberId: member3.id } }))) {
-    await prisma.protectedPerson.createMany({
-      data: [
-        { memberId: member3.id, fullName: 'นายบิดา มั่นคง', relationship: ProtectedRelationship.PARENT },
-        { memberId: member3.id, fullName: 'นางมารดา มั่นคง', relationship: ProtectedRelationship.PARENT },
-      ],
-    });
-  }
-  const member4 = (await prisma.member.findFirst({ where: { associationMemberId: am4.id } })) ?? await prisma.member.create({
-    data: {
-      associationMemberId: am4.id,
-      memberNo: 'M0004',
-      schoolId: schoolA.id,
-      groupId: groupA1.id,
-      joinDate: new Date('2000-01-01'),
-      status: MemberStatus.ACTIVE,
-    },
-  });
-  const member5 = (await prisma.member.findFirst({ where: { associationMemberId: am5.id } })) ?? await prisma.member.create({
-    data: {
-      associationMemberId: am5.id,
-      memberNo: 'M0005',
-      schoolId: schoolB.id,
-      groupId: groupB1.id,
-      joinDate: new Date('2010-01-01'),
-      status: MemberStatus.ACTIVE,
-      beneficiaries: {
-        create: [
-          { fullName: 'นางสาวสุข มีสุข', relationship: 'บุตร', phone: '0888888888', priority: 1 },
-        ],
-      },
-    },
-  });
-  const member6 = (await prisma.member.findFirst({ where: { associationMemberId: am6.id } })) ?? await prisma.member.create({
-    data: {
-      associationMemberId: am6.id,
-      memberNo: 'M0006',
-      schoolId: schoolB.id,
-      groupId: groupB1.id,
-      joinDate: new Date('2020-08-01'),
-      status: MemberStatus.ARREARS,
-    },
-  });
-  if (!(await prisma.member.findFirst({ where: { associationMemberId: am7.id } }))) {
-  await prisma.member.create({
-    data: {
-      associationMemberId: am7.id,
-      memberNo: 'M0007',
-      schoolId: schoolC.id,
-      groupId: groupC1.id,
-      joinDate: new Date('2021-05-01'),
-      status: MemberStatus.ACTIVE,
-    },
-  });
-  }
-  if (!(await prisma.member.findFirst({ where: { associationMemberId: am8.id } }))) {
-  await prisma.member.create({
-    data: {
-      associationMemberId: am8.id,
-      memberNo: 'M0008',
-      schoolId: schoolC.id,
-      groupId: groupC1.id,
-      joinDate: new Date('2022-02-15'),
-      status: MemberStatus.ACTIVE,
-    },
-  });
-  }
-
-  console.log('✅ Created cremation members (linked to association members)');
-
-  // 9) Contribution periods - upsert
-  const period2024Nov = await prisma.contributionPeriod.upsert({
-    where: { year_month: { year: 2024, month: 11 } },
-    create: { year: 2024, month: 11, welfareRate: 100.0, serviceFee: 10.0, isClosed: true },
-    update: {},
-  });
-
-  const period2024Dec = await prisma.contributionPeriod.upsert({
-    where: { year_month: { year: 2024, month: 12 } },
-    create: { year: 2024, month: 12, welfareRate: 100.0, serviceFee: 10.0 },
-    update: {},
-  });
-
-  const period2025Jan = await prisma.contributionPeriod.upsert({
-    where: { year_month: { year: 2025, month: 1 } },
-    create: { year: 2025, month: 1, welfareRate: 100.0, serviceFee: 10.0 },
-    update: {},
-  });
-
-  console.log('✅ Contribution periods ready');
-
-  // 10) Sample contributions for Dec 2024 (ข้ามถ้ามีอยู่แล้ว)
-  const existingReceipt = await prisma.receipt.findUnique({ where: { receiptNo: 'R202412-M0001' } });
-  if (!existingReceipt) {
-  const welfareAmount = 100.0;
-  const serviceAmount = 10.0;
-  const totalAmount = welfareAmount + serviceAmount;
-
-  const activeMembers = [member1, member2, member3, member4, member5];
-  const activeAssociationMembers = [am1, am2, am3, am4, am5];
-
-  for (let i = 0; i < activeMembers.length; i++) {
-    const member = activeMembers[i];
-    const am = activeAssociationMembers[i];
-    const receipt = await prisma.receipt.create({
+    const am2 = (await prisma.associationMember.findFirst({ where: { schoolId: schoolA.id, firstName: 'วิไล', lastName: 'สุขสันต์' } })) ?? await prisma.associationMember.create({
       data: {
-        receiptNo: `R202412-${member.memberNo}`,
-        schoolId: member.schoolId,
-        date: new Date('2024-12-05'),
-        type: ReceiptType.MEMBER_CONTRIBUTION,
-        amount: totalAmount,
-        description: `ชำระเงินสงเคราะห์ประจำเดือน 12/2567 - ${am.firstName} ${am.lastName}`,
+        schoolId: schoolA.id,
+        memberTypeId: staff.id,
+        firstName: 'วิไล',
+        lastName: 'สุขสันต์',
+        idCardNo: '1-5709-99999-02-2',
+        phone: '0823456789',
+        associationJoinDate: new Date('2019-03-10'),
+      },
+    });
+    const am3 = (await prisma.associationMember.findFirst({ where: { schoolId: schoolA.id, firstName: 'ประสิทธิ์', lastName: 'มั่นคง' } })) ?? await prisma.associationMember.create({
+      data: {
+        schoolId: schoolA.id,
+        memberTypeId: regularTeacher.id,
+        firstName: 'ประสิทธิ์',
+        lastName: 'มั่นคง',
+        idCardNo: '1-5709-99999-03-3',
+        phone: '0834567890',
+        associationJoinDate: new Date('2015-06-15'),
+      },
+    });
+    const am4 = (await prisma.associationMember.findFirst({ where: { schoolId: schoolA.id, firstName: 'สมปอง', lastName: 'สงบ' } })) ?? await prisma.associationMember.create({
+      data: {
+        schoolId: schoolA.id,
+        memberTypeId: retiredTeacher.id,
+        firstName: 'สมปอง',
+        lastName: 'สงบ',
+        idCardNo: '1-5709-99999-04-4',
+        phone: '0845678901',
+        associationJoinDate: new Date('2000-01-01'),
+      },
+    });
+    const am5 = (await prisma.associationMember.findFirst({ where: { schoolId: schoolB.id, firstName: 'เกษียณ', lastName: 'มีสุข' } })) ?? await prisma.associationMember.create({
+      data: {
+        schoolId: schoolB.id,
+        memberTypeId: retiredTeacher.id,
+        firstName: 'เกษียณ',
+        lastName: 'มีสุข',
+        idCardNo: '1-5709-99999-05-5',
+        associationJoinDate: new Date('2010-01-01'),
+      },
+    });
+    const am6 = (await prisma.associationMember.findFirst({ where: { schoolId: schoolB.id, firstName: 'สุดา', lastName: 'รักเรียน' } })) ?? await prisma.associationMember.create({
+      data: {
+        schoolId: schoolB.id,
+        memberTypeId: regularTeacher.id,
+        firstName: 'สุดา',
+        lastName: 'รักเรียน',
+        idCardNo: '1-5709-99999-06-6',
+        phone: '0856789012',
+        associationJoinDate: new Date('2020-08-01'),
+      },
+    });
+    const am7 = (await prisma.associationMember.findFirst({ where: { schoolId: schoolC.id, firstName: 'มานะ', lastName: 'พัฒนา' } })) ?? await prisma.associationMember.create({
+      data: {
+        schoolId: schoolC.id,
+        memberTypeId: regularTeacher.id,
+        firstName: 'มานะ',
+        lastName: 'พัฒนา',
+        idCardNo: '1-5709-99999-07-7',
+        phone: '0867890123',
+        associationJoinDate: new Date('2021-05-01'),
+      },
+    });
+    const am8 = (await prisma.associationMember.findFirst({ where: { schoolId: schoolC.id, firstName: 'พิมพ์', lastName: 'สวย' } })) ?? await prisma.associationMember.create({
+      data: {
+        schoolId: schoolC.id,
+        memberTypeId: staff.id,
+        firstName: 'พิมพ์',
+        lastName: 'สวย',
+        associationJoinDate: new Date('2022-02-15'),
+      },
+    });
+    // สมาชิกสมาคมที่ยังไม่เข้าร่วมฌาปนกิจ (ตัวอย่าง)
+    if (!(await prisma.associationMember.findFirst({ where: { schoolId: schoolA.id, firstName: 'ทดสอบ', lastName: 'เฉพาะสมาคม' } }))) {
+      await prisma.associationMember.create({
+        data: {
+          schoolId: schoolA.id,
+          memberTypeId: regularTeacher.id,
+          firstName: 'ทดสอบ',
+          lastName: 'เฉพาะสมาคม',
+          associationJoinDate: new Date('2024-01-01'),
+        },
+      });
+    }
+
+    console.log('✅ Created association members');
+
+    // 8) สมาชิกฌาปนกิจ — อ้างอิงจากสมาชิกสมาคม (ทุกคนในฌาปนกิจต้องเป็นสมาชิกสมาคม) (idempotent)
+    const member1Join = new Date('2018-05-01');
+    const member1Deadline = new Date(member1Join);
+    member1Deadline.setDate(member1Deadline.getDate() + 30);
+
+    const member1 = (await prisma.member.findFirst({ where: { associationMemberId: am1.id } })) ?? await prisma.member.create({
+      data: {
+        associationMemberId: am1.id,
+        memberNo: 'M0001',
+        schoolId: schoolA.id,
+        groupId: groupA1.id,
+        joinDate: member1Join,
+        status: MemberStatus.ACTIVE,
+        membershipClass: MembershipClass.ORDINARY,
+        salaryDeduction: true,
+        applicationSubmittedAt: member1Join,
+        applicationDeadline: member1Deadline,
+        beneficiaries: {
+          create: [
+            { fullName: 'นางสมศรี ใจดี', relationship: 'คู่สมรส', phone: '0899998888', priority: 1 },
+            { fullName: 'ด.ช.สมหวัง ใจดี', relationship: 'บุตร', phone: '0899998889', priority: 2 },
+          ],
+        },
+        protectedPersons: {
+          create: [
+            { fullName: 'นางสมศรี ใจดี', relationship: ProtectedRelationship.SPOUSE, phone: '0899998888' },
+            { fullName: 'ด.ช.สมหวัง ใจดี', relationship: ProtectedRelationship.CHILD, phone: '0899998889' },
+          ],
+        },
+      },
+    });
+    await prisma.member.update({
+      where: { id: member1.id },
+      data: {
+        membershipClass: MembershipClass.ORDINARY,
+        salaryDeduction: true,
+        applicationSubmittedAt: member1Join,
+        applicationDeadline: member1Deadline,
+      },
+    });
+
+    const member2Join = new Date('2019-03-10');
+    const member2Deadline = new Date(member2Join);
+    member2Deadline.setDate(member2Deadline.getDate() + 30);
+
+    const member2 = (await prisma.member.findFirst({ where: { associationMemberId: am2.id } })) ?? await prisma.member.create({
+      data: {
+        associationMemberId: am2.id,
+        memberNo: 'M0002',
+        schoolId: schoolA.id,
+        groupId: groupA1.id,
+        joinDate: member2Join,
+        status: MemberStatus.ACTIVE,
+        membershipClass: MembershipClass.CONTRIBUTORY,
+        applicationDeadline: member2Deadline,
+      },
+    });
+    await prisma.member.update({
+      where: { id: member2.id },
+      data: {
+        membershipClass: MembershipClass.CONTRIBUTORY,
+        applicationDeadline: member2Deadline,
+      },
+    });
+    const member3 = (await prisma.member.findFirst({ where: { associationMemberId: am3.id } })) ?? await prisma.member.create({
+      data: {
+        associationMemberId: am3.id,
+        memberNo: 'M0003',
+        schoolId: schoolA.id,
+        groupId: groupA2.id,
+        joinDate: new Date('2015-06-15'),
+        status: MemberStatus.ACTIVE,
+        membershipClass: MembershipClass.ORDINARY,
+        protectedPersons: {
+          create: [
+            { fullName: 'นายบิดา มั่นคง', relationship: ProtectedRelationship.PARENT },
+            { fullName: 'นางมารดา มั่นคง', relationship: ProtectedRelationship.PARENT },
+          ],
+        },
+      },
+    });
+    if (!(await prisma.protectedPerson.findFirst({ where: { memberId: member3.id } }))) {
+      await prisma.protectedPerson.createMany({
+        data: [
+          { memberId: member3.id, fullName: 'นายบิดา มั่นคง', relationship: ProtectedRelationship.PARENT },
+          { memberId: member3.id, fullName: 'นางมารดา มั่นคง', relationship: ProtectedRelationship.PARENT },
+        ],
+      });
+    }
+    const member4 = (await prisma.member.findFirst({ where: { associationMemberId: am4.id } })) ?? await prisma.member.create({
+      data: {
+        associationMemberId: am4.id,
+        memberNo: 'M0004',
+        schoolId: schoolA.id,
+        groupId: groupA1.id,
+        joinDate: new Date('2000-01-01'),
+        status: MemberStatus.ACTIVE,
+      },
+    });
+    const member5 = (await prisma.member.findFirst({ where: { associationMemberId: am5.id } })) ?? await prisma.member.create({
+      data: {
+        associationMemberId: am5.id,
+        memberNo: 'M0005',
+        schoolId: schoolB.id,
+        groupId: groupB1.id,
+        joinDate: new Date('2010-01-01'),
+        status: MemberStatus.ACTIVE,
+        beneficiaries: {
+          create: [
+            { fullName: 'นางสาวสุข มีสุข', relationship: 'บุตร', phone: '0888888888', priority: 1 },
+          ],
+        },
+      },
+    });
+    const member6 = (await prisma.member.findFirst({ where: { associationMemberId: am6.id } })) ?? await prisma.member.create({
+      data: {
+        associationMemberId: am6.id,
+        memberNo: 'M0006',
+        schoolId: schoolB.id,
+        groupId: groupB1.id,
+        joinDate: new Date('2020-08-01'),
+        status: MemberStatus.ARREARS,
+      },
+    });
+    if (!(await prisma.member.findFirst({ where: { associationMemberId: am7.id } }))) {
+    await prisma.member.create({
+      data: {
+        associationMemberId: am7.id,
+        memberNo: 'M0007',
+        schoolId: schoolC.id,
+        groupId: groupC1.id,
+        joinDate: new Date('2021-05-01'),
+        status: MemberStatus.ACTIVE,
+      },
+    });
+    }
+    if (!(await prisma.member.findFirst({ where: { associationMemberId: am8.id } }))) {
+    await prisma.member.create({
+      data: {
+        associationMemberId: am8.id,
+        memberNo: 'M0008',
+        schoolId: schoolC.id,
+        groupId: groupC1.id,
+        joinDate: new Date('2022-02-15'),
+        status: MemberStatus.ACTIVE,
+      },
+    });
+    }
+
+    console.log('✅ Created cremation members (linked to association members)');
+
+    // 9) Contribution periods - upsert
+    const period2024Nov = await prisma.contributionPeriod.upsert({
+      where: { year_month: { year: 2024, month: 11 } },
+      create: { year: 2024, month: 11, welfareRate: 100.0, serviceFee: 10.0, isClosed: true },
+      update: {},
+    });
+
+    const period2024Dec = await prisma.contributionPeriod.upsert({
+      where: { year_month: { year: 2024, month: 12 } },
+      create: { year: 2024, month: 12, welfareRate: 100.0, serviceFee: 10.0 },
+      update: {},
+    });
+
+    const period2025Jan = await prisma.contributionPeriod.upsert({
+      where: { year_month: { year: 2025, month: 1 } },
+      create: { year: 2025, month: 1, welfareRate: 100.0, serviceFee: 10.0 },
+      update: {},
+    });
+
+    console.log('✅ Contribution periods ready');
+
+    // 10) Sample contributions for Dec 2024 (ข้ามถ้ามีอยู่แล้ว)
+    const existingReceipt = await prisma.receipt.findUnique({ where: { receiptNo: 'R202412-M0001' } });
+    if (!existingReceipt) {
+    const welfareAmount = 100.0;
+    const serviceAmount = 10.0;
+    const totalAmount = welfareAmount + serviceAmount;
+
+    const activeMembers = [member1, member2, member3, member4, member5];
+    const activeAssociationMembers = [am1, am2, am3, am4, am5];
+
+    for (let i = 0; i < activeMembers.length; i++) {
+      const member = activeMembers[i];
+      const am = activeAssociationMembers[i];
+      const receipt = await prisma.receipt.create({
+        data: {
+          receiptNo: `R202412-${member.memberNo}`,
+          schoolId: member.schoolId,
+          date: new Date('2024-12-05'),
+          type: ReceiptType.MEMBER_CONTRIBUTION,
+          amount: totalAmount,
+          description: `ชำระเงินสงเคราะห์ประจำเดือน 12/2567 - ${am.firstName} ${am.lastName}`,
+          bankAccountId: mainBank.id,
+        },
+      });
+
+      await prisma.memberContribution.create({
+        data: {
+          memberId: member.id,
+          periodId: period2024Dec.id,
+          schoolId: member.schoolId,
+          welfareAmount,
+          serviceAmount,
+          totalAmount,
+          paidAmount: totalAmount,
+          paidDate: new Date('2024-12-05'),
+          receiptId: receipt.id,
+        },
+      });
+
+      // Ledger entries
+      await prisma.ledgerEntry.createMany({
+        data: [
+          {
+            accountId: bank.id,
+            date: new Date('2024-12-05'),
+            description: `รับเงินสงเคราะห์ ${am.firstName} ${am.lastName}`,
+            debit: totalAmount,
+            credit: 0,
+            receiptId: receipt.id,
+          },
+          {
+            accountId: welfareRevenue.id,
+            date: new Date('2024-12-05'),
+            description: `รายได้เงินสงเคราะห์ ${am.firstName} ${am.lastName}`,
+            debit: 0,
+            credit: totalAmount,
+            receiptId: receipt.id,
+          },
+        ],
+      });
+    }
+
+    // Create unpaid contribution (arrears) for member6
+    await prisma.memberContribution.create({
+      data: {
+        memberId: member6.id,
+        periodId: period2024Dec.id,
+        schoolId: member6.schoolId,
+        welfareAmount,
+        serviceAmount,
+        totalAmount,
+        paidAmount: 0,
+        isArrears: true,
+      },
+    });
+
+    console.log('✅ Created contributions and receipts');
+
+    // 11) Example death claim for member1
+    const reportedDate = new Date('2024-12-10');
+    const deathDate = new Date('2024-12-08');
+    const workflow = computeWorkflowDeadlines({
+      deathDate,
+      reportedDate,
+      membershipClass: MembershipClass.ORDINARY,
+      salaryDeduction: true,
+    });
+    const documentChecklist = buildDefaultDocumentChecklist({
+      claimType: DeathClaimType.MEMBER_DEATH,
+      membershipClass: MembershipClass.ORDINARY,
+      salaryDeduction: true,
+    }).map((item) => ({ ...item, checked: true }));
+
+    const claim = await prisma.deathClaim.create({
+      data: {
+        memberId: member1.id,
+        schoolId: schoolA.id,
+        claimNo: 'DC-2024-0001',
+        reportedDate,
+        deathDate,
+        causeOfDeath: 'โรคประจำตัว',
+        mainBeneficiary: 'นางสมศรี ใจดี',
+        beneficiaryPhone: '0899998888',
+        claimType: DeathClaimType.MEMBER_DEATH,
+        deceasedType: DeceasedType.MEMBER,
+        activeMemberCount: 50,
+        welfareRate: 100.0,
+        totalContribution: 5000.0,
+        associationSupport: 500.0,
+        payoutRatio: 0.9,
+        otherDeductions: 0,
+        netToPay: 4500.0,
+        status: DeathClaimStatus.PAID,
+        collectionChannel: workflow.collectionChannel,
+        notifyAuthorityDeadline: workflow.notifyAuthorityDeadline,
+        collectionDeadline: workflow.collectionDeadline,
+        documentDeadline: workflow.documentDeadline,
+        paymentDeadline: workflow.paymentDeadline,
+        collectedAmount: 5000.0,
+        collectionCompletedAt: new Date('2024-12-12'),
+        documentsComplete: true,
+        documentChecklist,
+      },
+    });
+
+    await prisma.deathClaim.update({
+      where: { id: claim.id },
+      data: {
+        approvedById: admin.id,
+        approvedAt: new Date('2024-12-14'),
+        approverName: admin.fullName,
+      },
+    });
+
+    // Update member1 status to DECEASED
+    await prisma.member.update({
+      where: { id: member1.id },
+      data: { status: MemberStatus.DECEASED, deathDate: new Date('2024-12-08') },
+    });
+
+    // Create payment voucher for death benefit
+    const payment = await prisma.paymentVoucher.create({
+      data: {
+        voucherNo: 'PV-2024-0001',
+        schoolId: schoolA.id,
+        date: new Date('2024-12-15'),
+        type: PaymentType.DEATH_BENEFIT,
+        description: `จ่ายเงินสงเคราะห์ศพ ${am1.firstName} ${am1.lastName}`,
+        amount: 4500.0,
         bankAccountId: mainBank.id,
       },
     });
 
-    await prisma.memberContribution.create({
+    // Link death benefit payment
+    await prisma.deathBenefitPayment.create({
       data: {
-        memberId: member.id,
-        periodId: period2024Dec.id,
-        schoolId: member.schoolId,
-        welfareAmount,
-        serviceAmount,
-        totalAmount,
-        paidAmount: totalAmount,
-        paidDate: new Date('2024-12-05'),
-        receiptId: receipt.id,
+        deathClaimId: claim.id,
+        payDate: new Date('2024-12-15'),
+        method: 'BANK_TRANSFER',
+        bankAccountId: mainBank.id,
+        amount: 4500.0,
+        voucherId: payment.id,
       },
     });
 
-    // Ledger entries
+    // Ledger for payment
     await prisma.ledgerEntry.createMany({
       data: [
         {
-          accountId: bank.id,
-          date: new Date('2024-12-05'),
-          description: `รับเงินสงเคราะห์ ${am.firstName} ${am.lastName}`,
-          debit: totalAmount,
+          accountId: deathBenefitExpense.id,
+          date: new Date('2024-12-15'),
+          description: `จ่ายเงินสงเคราะห์ศพ ${am1.firstName} ${am1.lastName}`,
+          debit: 4500.0,
           credit: 0,
-          receiptId: receipt.id,
+          paymentId: payment.id,
         },
         {
-          accountId: welfareRevenue.id,
-          date: new Date('2024-12-05'),
-          description: `รายได้เงินสงเคราะห์ ${am.firstName} ${am.lastName}`,
+          accountId: bank.id,
+          date: new Date('2024-12-15'),
+          description: `จ่ายเงินสงเคราะห์ศพ ${am1.firstName} ${am1.lastName}`,
           debit: 0,
-          credit: totalAmount,
-          receiptId: receipt.id,
+          credit: 4500.0,
+          paymentId: payment.id,
         },
       ],
     });
-  }
 
-  // Create unpaid contribution (arrears) for member6
-  await prisma.memberContribution.create({
-    data: {
-      memberId: member6.id,
-      periodId: period2024Dec.id,
-      schoolId: member6.schoolId,
-      welfareAmount,
-      serviceAmount,
-      totalAmount,
-      paidAmount: 0,
-      isArrears: true,
-    },
-  });
+    console.log('✅ Created death claim and payment');
+    } else {
+      console.log('⏭️ Sample contributions/death claim already exist, skipped');
+    }
 
-  console.log('✅ Created contributions and receipts');
-
-  // 11) Example death claim for member1
-  const reportedDate = new Date('2024-12-10');
-  const deathDate = new Date('2024-12-08');
-  const workflow = computeWorkflowDeadlines({
-    deathDate,
-    reportedDate,
-    membershipClass: MembershipClass.ORDINARY,
-    salaryDeduction: true,
-  });
-  const documentChecklist = buildDefaultDocumentChecklist({
-    claimType: DeathClaimType.MEMBER_DEATH,
-    membershipClass: MembershipClass.ORDINARY,
-    salaryDeduction: true,
-  }).map((item) => ({ ...item, checked: true }));
-
-  const claim = await prisma.deathClaim.create({
-    data: {
-      memberId: member1.id,
-      schoolId: schoolA.id,
-      claimNo: 'DC-2024-0001',
-      reportedDate,
-      deathDate,
-      causeOfDeath: 'โรคประจำตัว',
-      mainBeneficiary: 'นางสมศรี ใจดี',
-      beneficiaryPhone: '0899998888',
-      claimType: DeathClaimType.MEMBER_DEATH,
-      deceasedType: DeceasedType.MEMBER,
-      activeMemberCount: 50,
-      welfareRate: 100.0,
-      totalContribution: 5000.0,
-      associationSupport: 500.0,
-      payoutRatio: 0.9,
-      otherDeductions: 0,
-      netToPay: 4500.0,
-      status: DeathClaimStatus.PAID,
-      collectionChannel: workflow.collectionChannel,
-      notifyAuthorityDeadline: workflow.notifyAuthorityDeadline,
-      collectionDeadline: workflow.collectionDeadline,
-      documentDeadline: workflow.documentDeadline,
-      paymentDeadline: workflow.paymentDeadline,
-      collectedAmount: 5000.0,
-      collectionCompletedAt: new Date('2024-12-12'),
-      documentsComplete: true,
-      documentChecklist,
-    },
-  });
-
-  await prisma.deathClaim.update({
-    where: { id: claim.id },
-    data: {
-      approvedById: admin.id,
-      approvedAt: new Date('2024-12-14'),
-      approverName: admin.fullName,
-    },
-  });
-
-  // Update member1 status to DECEASED
-  await prisma.member.update({
-    where: { id: member1.id },
-    data: { status: MemberStatus.DECEASED, deathDate: new Date('2024-12-08') },
-  });
-
-  // Create payment voucher for death benefit
-  const payment = await prisma.paymentVoucher.create({
-    data: {
-      voucherNo: 'PV-2024-0001',
-      schoolId: schoolA.id,
-      date: new Date('2024-12-15'),
-      type: PaymentType.DEATH_BENEFIT,
-      description: `จ่ายเงินสงเคราะห์ศพ ${am1.firstName} ${am1.lastName}`,
-      amount: 4500.0,
-      bankAccountId: mainBank.id,
-    },
-  });
-
-  // Link death benefit payment
-  await prisma.deathBenefitPayment.create({
-    data: {
-      deathClaimId: claim.id,
-      payDate: new Date('2024-12-15'),
-      method: 'BANK_TRANSFER',
-      bankAccountId: mainBank.id,
-      amount: 4500.0,
-      voucherId: payment.id,
-    },
-  });
-
-  // Ledger for payment
-  await prisma.ledgerEntry.createMany({
-    data: [
-      {
-        accountId: deathBenefitExpense.id,
-        date: new Date('2024-12-15'),
-        description: `จ่ายเงินสงเคราะห์ศพ ${am1.firstName} ${am1.lastName}`,
-        debit: 4500.0,
-        credit: 0,
-        paymentId: payment.id,
-      },
-      {
-        accountId: bank.id,
-        date: new Date('2024-12-15'),
-        description: `จ่ายเงินสงเคราะห์ศพ ${am1.firstName} ${am1.lastName}`,
-        debit: 0,
-        credit: 4500.0,
-        paymentId: payment.id,
-      },
-    ],
-  });
-
-  console.log('✅ Created death claim and payment');
-  } else {
-    console.log('⏭️ Sample contributions/death claim already exist, skipped');
   }
 
   // 17) Thai addresses (ฐานข้อมูลที่อยู่ประเทศไทย)
@@ -811,7 +845,7 @@ async function main() {
     const path = await import('path');
     const dataPath = path.join(__dirname, 'data', 'thai-addresses.json');
     if (fs.existsSync(dataPath)) {
-      const countRes: any = await prisma.$queryRawUnsafe('SELECT COUNT(*) as count FROM thaiaddress');
+      const countRes: any = await prisma.$queryRawUnsafe('SELECT COUNT(*) as count FROM ThaiAddress');
       const count = Number(countRes[0]?.count ?? 0);
       if (count === 0) {
         const list = JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
@@ -824,7 +858,7 @@ async function main() {
             )
             .join(',');
           await prisma.$executeRawUnsafe(
-            `INSERT IGNORE INTO thaiaddress (id, subdistrict, district, province, zipCode) VALUES ${values}`
+            `INSERT IGNORE INTO ThaiAddress (id, subdistrict, district, province, zipCode) VALUES ${values}`
           );
         }
         console.log(`✅ Seeded ${list.length} Thai addresses`);
@@ -833,16 +867,16 @@ async function main() {
       }
     }
   } catch (err) {
-    console.warn('Skipped Thai address seeding:', err);
+    // เดิมเป็น console.warn เฉย ๆ ทำให้ตอนชื่อตารางผิดตัวพิมพ์ ที่อยู่ไม่เคยถูกโหลด
+    // แต่ seed ก็ยังขึ้นว่า "completed successfully" จึงไม่มีใครรู้
+    console.error('❌ โหลดข้อมูลที่อยู่ไม่สำเร็จ:', err);
+    throw err;
   }
 
   console.log('');
   console.log('🎉 Seed completed successfully!');
   console.log('');
-  console.log('📋 Test accounts:');
-  console.log('   - admin / 1234 (ผู้ดูแลระบบ)');
-  console.log('   - finance / 1234 (เจ้าหน้าที่การเงิน)');
-  console.log('   - account / 1234 (เจ้าหน้าที่บัญชี)');
+  console.log('📋 รหัสผ่านของบัญชีที่สร้างใหม่แสดงไว้ด้านบนแล้ว (บัญชีเดิมไม่ถูกเปลี่ยน)');
 }
 
 main()
