@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -26,6 +27,7 @@ import {
   History,
   Package,
   TrendingUp,
+  ClipboardCheck,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/auth';
 import { api, type School } from '@/lib/api';
@@ -51,6 +53,13 @@ const menuItems = [
     roles: ['ADMIN', 'SCHOOL_ADMIN', 'FINANCE', 'ACCOUNTING'],
   },
   {
+    label: 'ใบสมัครรออนุมัติ',
+    href: '/member-applications',
+    icon: ClipboardCheck,
+    roles: ['ADMIN', 'SCHOOL_ADMIN'],
+    badge: 'pendingApplications' as const,
+  },
+  {
     label: 'จัดการผู้ใช้',
     href: '/users',
     icon: UserCog,
@@ -71,10 +80,7 @@ const menuItems = [
       { label: 'ประเภทสมาชิก', href: '/member-types', roles: ['ADMIN'] },
       { label: 'กลุ่มเก็บเงิน', href: '/groups', roles: ['ADMIN', 'SCHOOL_ADMIN', 'FINANCE'] },
       { label: 'ผังบัญชี', href: '/accounts', roles: ['ADMIN', 'ACCOUNTING'] },
-      { label: 'บัญชีธนาคาร', href: '/bank-accounts', roles: ['ADMIN', 'SCHOOL_ADMIN', 'FINANCE'] },
       { label: 'สินทรัพย์ถาวร', href: '/assets', roles: ['ADMIN', 'ACCOUNTING'] },
-      { label: 'สมุดเงินสด', href: '/cash-book', roles: ['ADMIN', 'SCHOOL_ADMIN', 'FINANCE'] },
-      { label: 'ใบสมัครสมาชิก', href: '/member-applications', roles: ['ADMIN', 'SCHOOL_ADMIN'] },
     ],
   },
   // ─── 2. งานสมาคม (สมาคมผู้ประกอบวิชาชีพ) ────────────────
@@ -189,6 +195,18 @@ export default function DashboardLayout({
       setSelectedSchool(user.schoolId);
     }
   }, [user, selectedSchoolId, setSelectedSchool]);
+
+  const canReviewApplications = user?.role === 'ADMIN' || user?.role === 'SCHOOL_ADMIN';
+  const { data: pendingApplications } = useQuery<{ count: number }>({
+    queryKey: ['member-applications', 'pending-count', selectedSchoolId],
+    queryFn: async () => {
+      const params = selectedSchoolId ? `?schoolId=${selectedSchoolId}` : '';
+      const response = await api.get(`/member-applications/pending-count${params}`);
+      return response.data;
+    },
+    enabled: sessionChecked && canReviewApplications,
+    refetchInterval: 60_000,
+  });
 
   useEffect(() => {
     if (!sessionChecked || !user || user.role === 'MEMBER') return;
@@ -347,7 +365,12 @@ export default function DashboardLayout({
                 onClick={() => setSidebarOpen(false)}
               >
                 {Icon && <Icon size={20} />}
-                <span>{item.label}</span>
+                <span className="flex-1">{item.label}</span>
+                {item.badge === 'pendingApplications' && (pendingApplications?.count ?? 0) > 0 && (
+                  <span className="ml-auto min-w-[1.5rem] px-1.5 py-0.5 rounded-full bg-rose-500 text-white text-xs font-semibold text-center">
+                    {pendingApplications?.count}
+                  </span>
+                )}
               </Link>
             );
           })}

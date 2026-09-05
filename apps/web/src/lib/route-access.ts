@@ -1,3 +1,7 @@
+// หน้าที่สมาคมสั่งเลิกใช้ — ปิดสำหรับทุกบทบาทรวมถึง ADMIN
+// ข้อมูลและ API ยังอยู่ครบ (ใบเสร็จ/ใบสำคัญจ่ายยังผูกกับบัญชีธนาคาร) แค่ไม่มีหน้าจอให้เข้า
+const RETIRED_PREFIXES = ['/bank-accounts', '/cash-book'];
+
 const VIEWER_BLOCKED_PREFIXES = [
   '/users',
   '/schools',
@@ -116,6 +120,10 @@ export function isPathAllowedForRole(
       return true;
     }
     return /^\/receipts\/[^/]+$/.test(pathname) && pathname !== '/receipts/new';
+  }
+
+  if (RETIRED_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`))) {
+    return false;
   }
 
   const blocked = ROLE_BLOCKED_PREFIXES[role];

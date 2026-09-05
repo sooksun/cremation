@@ -18,12 +18,12 @@ interface PaymentItem {
   type: string;
   description?: string;
   amount: number;
-  school: School;
+  school?: School | null;
   bankAccount?: { bankName: string; accountNo: string };
 }
 
 interface PaymentForm {
-  schoolId: string;
+  schoolId?: string;
   date: string;
   type: string;
   description?: string;
@@ -105,7 +105,8 @@ export default function PaymentsPage() {
 
   const openModal = () => {
     reset({
-      schoolId: selectedSchoolId || '',
+      // ค่าเริ่มต้นคือ "สมาคม" — ไม่ผูกกับโรงเรียนที่เลือกอยู่บนแถบด้านบน
+      schoolId: '',
       date: new Date().toISOString().split('T')[0],
       type: 'DEATH_BENEFIT',
       amount: 0,
@@ -120,6 +121,7 @@ export default function PaymentsPage() {
 
   const onSubmit = (data: PaymentForm) => {
     if (!data.bankAccountId) delete data.bankAccountId;
+    if (!data.schoolId) delete data.schoolId;
     createMutation.mutate(data);
   };
 
@@ -171,7 +173,16 @@ export default function PaymentsPage() {
           </p>
           <p className="text-sm text-slate-500">{summary?.total?.count || 0} รายการ</p>
         </div>
-        {summary?.byType?.slice(0, 3).map((item: any) => (
+        <div className="stat-card">
+          <p className="stat-label">เงินรายได้ 10% ที่หักเข้าสมาคม</p>
+          <p className="text-xl font-bold text-emerald-600">
+            {formatCurrency(summary?.associationIncome?.amount || 0)}
+          </p>
+          <p className="text-sm text-slate-500">
+            คงเหลือหลังหักรายจ่าย {formatCurrency(summary?.associationIncome?.remaining || 0)}
+          </p>
+        </div>
+        {summary?.byType?.slice(0, 2).map((item: any) => (
           <div key={item.type} className="stat-card">
             <p className="stat-label">{typeLabels[item.type]}</p>
             <p className="text-xl font-bold text-slate-900">
@@ -222,7 +233,7 @@ export default function PaymentsPage() {
                     <td className="text-slate-500 text-sm max-w-xs truncate">
                       {payment.description || '-'}
                     </td>
-                    <td className="text-slate-500 text-sm">{payment.school.name}</td>
+                    <td className="text-slate-500 text-sm">{payment.school?.name || 'สมาคม'}</td>
                     <td className="text-right font-semibold text-red-600">
                       {formatCurrency(payment.amount)}
                     </td>
@@ -260,13 +271,16 @@ export default function PaymentsPage() {
 
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                 <div>
-                  <label className="label">โรงเรียน</label>
-                  <select {...register('schoolId', { required: true })} className="input">
-                    <option value="">เลือกโรงเรียน</option>
+                  <label className="label">ออกในนาม</label>
+                  <select {...register('schoolId')} className="input">
+                    <option value="">สมาคม (ไม่ระบุโรงเรียน)</option>
                     {schools?.map((school) => (
                       <option key={school.id} value={school.id}>{school.name}</option>
                     ))}
                   </select>
+                  <p className="text-xs text-slate-500 mt-1">
+                    ใบสำคัญจ่ายออกในนามสมาคมเป็นค่าเริ่มต้น เลือกโรงเรียนเฉพาะรายการที่ผูกกับโรงเรียนโดยตรง
+                  </p>
                 </div>
 
                 <div>

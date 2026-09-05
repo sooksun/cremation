@@ -8,6 +8,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { showSuccess, showError } from '@/lib/toast';
 import { api, type School } from '@/lib/api';
 import { useAuthStore } from '@/store/auth';
+import { canSelectAllSchools, filterSchoolsForUser } from '@/lib/school-scope';
 import ThaiDatePicker from '@/components/ThaiDatePicker';
 import dayjs from 'dayjs';
 import Link from 'next/link';
@@ -43,10 +44,28 @@ const typeLabels: Record<string, string> = {
   OTHER: 'อื่นๆ',
 };
 
+const THAI_MONTHS = [
+  'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
+  'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม',
+];
+
+// ช่วงวันที่ของตัวกรอง — เดือน 0 คือทั้งปี
+function buildDateRange(year: number, month: number) {
+  if (!month) {
+    return { startDate: `${year}-01-01`, endDate: `${year}-12-31` };
+  }
+  const mm = String(month).padStart(2, '0');
+  const lastDay = new Date(year, month, 0).getDate();
+  return { startDate: `${year}-${mm}-01`, endDate: `${year}-${mm}-${lastDay}` };
+}
+
 export default function ReceiptsPage() {
   const queryClient = useQueryClient();
-  const { selectedSchoolId, selectedYear } = useAuthStore();
+  const { user, selectedSchoolId, setSelectedSchool, selectedYear } = useAuthStore();
   const [modalOpen, setModalOpen] = useState(false);
+  const [selectedMonth, setSelectedMonth] = useState(0);
+
+  const { startDate, endDate } = buildDateRange(selectedYear, selectedMonth);
 
   const { register, handleSubmit, reset, control, formState: { errors } } = useForm<ReceiptForm>({
     defaultValues: {
@@ -55,12 +74,12 @@ export default function ReceiptsPage() {
   });
 
   const { data: receipts, isLoading } = useQuery<ReceiptItem[]>({
-    queryKey: ['receipts', selectedSchoolId, selectedYear],
+    queryKey: ['receipts', selectedSchoolId, selectedYear, selectedMonth],
     queryFn: async () => {
       const params = new URLSearchParams();
       if (selectedSchoolId) params.append('schoolId', selectedSchoolId);
-      params.append('startDate', `${selectedYear}-01-01`);
-      params.append('endDate', `${selectedYear}-12-31`);
+      params.append('startDate', startDate);
+      params.append('endDate', endDate);
       const response = await api.get(`/receipts?${params}`);
       return response.data;
     },
@@ -84,16 +103,23 @@ export default function ReceiptsPage() {
   });
 
   const { data: summary } = useQuery({
-    queryKey: ['receipts-summary', selectedSchoolId, selectedYear],
+    queryKey: ['receipts-summary', selectedSchoolId, selectedYear, selectedMonth],
     queryFn: async () => {
       const params = new URLSearchParams();
       if (selectedSchoolId) params.append('schoolId', selectedSchoolId);
-      params.append('startDate', `${selectedYear}-01-01`);
-      params.append('endDate', `${selectedYear}-12-31`);
+      params.append('startDate', startDate);
+      params.append('endDate', endDate);
       const response = await api.get(`/receipts/summary?${params}`);
       return response.data;
     },
   });
+
+  const schoolOptions = filterSchoolsForUser(schools ?? [], user?.role, user?.schoolId);
+  const selectedSchoolName =
+    schoolOptions.find((school) => school.id === selectedSchoolId)?.name || 'ทุกโรงเรียน';
+  const periodLabel = selectedMonth
+    ? `${THAI_MONTHS[selectedMonth - 1]} ${selectedYear + 543}`
+    : `ปี พ.ศ. ${selectedYear + 543}`;
 
   const createMutation = useMutation({
     mutationFn: (data: ReceiptForm) => api.post('/receipts', data),
@@ -158,13 +184,54 @@ export default function ReceiptsPage() {
             ใบเสร็จรับเงิน
           </h1>
           <p className="text-slate-500 mt-1">
-            บันทึกรายรับของสมาคม ปี พ.ศ. {selectedYear + 543}
+            บันทึกรายรับของสมาคม — {selectedSchoolName} · {periodLabel}
           </p>
         </div>
         <button onClick={openModal} className="btn-primary">
           <Plus size={20} />
           บันทึกใบเสร็จ
         </button>
+      </div>
+
+      {/* Filters — พิมพ์ใบเสร็จต้องเลือกได้ทั้งรายโรงเรียนและรายเดือน */}
+      <div className="card p-4 flex flex-col md:flex-row gap-4">
+        <div className="flex-1">
+          <label className="label flex items-center gap-2">
+            <Building2 size={16} className="text-slate-400" />
+            โรงเรียน
+          </label>
+          <select
+            className="input"
+            value={selectedSchoolId || ''}
+            onChange={(e) => setSelectedSchool(e.target.value || null)}
+            disabled={!canSelectAllSchools(user?.role)}
+          >
+            {canSelectAllSchools(user?.role) && <option value="">ทุกโรงเรียน</option>}
+            {schoolOptions.map((school) => (
+              <option key={school.id} value={school.id}>
+                {school.name}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="flex-1">
+          <label className="label flex items-center gap-2">
+            <Calendar size={16} className="text-slate-400" />
+            เดือน
+          </label>
+          <select
+            className="input"
+            value={selectedMonth}
+            onChange={(e) => setSelectedMonth(Number(e.target.value))}
+          >
+            <option value={0}>ทั้งปี</option>
+            {THAI_MONTHS.map((month, index) => (
+              <option key={month} value={index + 1}>
+                {month}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       {/* Summary */}

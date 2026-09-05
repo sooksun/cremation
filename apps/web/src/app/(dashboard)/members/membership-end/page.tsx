@@ -30,7 +30,7 @@ const statusConfig: Record<string, { label: string; class: string }> = {
   RESIGNED: { label: 'สิ้นสุดสมาชิกภาพ', class: 'badge-neutral' },
   DECEASED: { label: 'เสียชีวิต', class: 'badge-danger' },
   ARREARS: { label: 'ค้างชำระ', class: 'badge-warning' },
-  SUSPENDED: { label: 'พักสมาชิก', class: 'badge-info' },
+  SUSPENDED: { label: 'รออนุมัติ', class: 'badge-info' },
 };
 
 // เหตุที่เจ้าหน้าที่บันทึกเองได้ — DECEASED ต้องไปทำผ่านงานแจ้งเสียชีวิตเพื่อให้เปิดเรื่องเคลมด้วย

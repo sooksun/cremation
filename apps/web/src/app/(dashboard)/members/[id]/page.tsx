@@ -13,7 +13,7 @@ const statusConfig = {
   RESIGNED: { label: 'ลาออก', class: 'badge-neutral' },
   DECEASED: { label: 'เสียชีวิต', class: 'badge-danger' },
   ARREARS: { label: 'ค้างชำระ', class: 'badge-warning' },
-  SUSPENDED: { label: 'พักสมาชิก', class: 'badge-info' },
+  SUSPENDED: { label: 'รออนุมัติ', class: 'badge-info' },
 };
 
 export default function MemberDetailPage() {

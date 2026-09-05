@@ -36,7 +36,7 @@ function black(): RGB {
 }
 
 const DEFAULT_SIZE = 10;
-const FONT_URL = '/fonts/Sarabun-Regular.ttf';
+const FONT_URL = '/fonts/THSarabunNew.ttf';
 /** Fine-tune overlay: shift right +10pt, up +2pt (PDF user space) */
 const OFFSET_X = 10;
 const OFFSET_Y = 2;
@@ -131,7 +131,7 @@ const BENEFICIARY_FIELDS: BeneficiaryFieldCoords = {
   subdistrictX: 298.1,
   districtX: 424.9,
   provinceX: 95.6,
-  zipX: 236.5,
+  zipX: 256.5,
   phoneX: 398.6,
   contactX: 176,
   contactPhoneX: 400.9,
@@ -227,7 +227,7 @@ const TEMPLATE_COORDS: Record<MembershipType, TemplateCoords> = {
       yTop: 285.5,
       district: 105,
       province: 205,
-      zip: 334,
+      zip: 314,
       phone: 438,
     },
     maritalStatus: { yTop: 307.3, singleX: 108, marriedX: 178, spouseX: 317.1 },
@@ -243,7 +243,7 @@ const TEMPLATE_COORDS: Record<MembershipType, TemplateCoords> = {
       yTop: 391,
       district: 105,
       province: 205,
-      zip: 334,
+      zip: 314,
       phone: 410,
     },
     bloodRelatives: {
@@ -301,6 +301,95 @@ function formatFullThaiDate(iso: string | undefined): string {
   return `${date.date()} ${THAI_MONTHS[date.month()]} ${date.year() + 543}`;
 }
 
+/**
+ * ปรับแต่งสระและวรรณยุกต์ภาษาไทย (Thai Glyph Shaping / PUA Mapping)
+ * เพื่อแก้ปัญหาสระลอย วรรณยุกต์ลอย หรือตัวอักษรกระโดดแยกช่องว่างใน PDF
+ */
+export function shapeThai(text: string | undefined): string {
+  if (!text) return '';
+  const chars = Array.from(text);
+  const result: string[] = [];
+  const TALL_CONSONANTS = new Set(['ป', 'ผ', 'ฝ', 'ฟ', 'ฬ']);
+  const LOWER_CUT_CONSONANTS = new Set(['ฐ', 'ญ']);
+  const LOWER_CUT_TARGETS = new Set(['ฎ', 'ฏ']);
+  const UPPER_VOWELS = new Set(['\u0E31', '\u0E34', '\u0E35', '\u0E36', '\u0E37', '\u0E47', '\u0E4D']);
+  const LOWER_VOWELS = new Set(['\u0E38', '\u0E39', '\u0E3A']);
+  const TONE_MARKS = new Set(['\u0E48', '\u0E49', '\u0E4A', '\u0E4B', '\u0E4C']);
+
+  for (let i = 0; i < chars.length; i++) {
+    const curr = chars[i];
+    const prev = chars[i - 1] || '';
+    const prev2 = chars[i - 2] || '';
+    const next = chars[i + 1] || '';
+
+    // 1) ฐ / ญ เมื่อมีสระล่าง ให้ตัดเชิง (Base-less)
+    if (LOWER_CUT_CONSONANTS.has(curr) && LOWER_VOWELS.has(next)) {
+      if (curr === 'ฐ') result.push('\uF700');
+      else if (curr === 'ญ') result.push('\uF70F');
+      continue;
+    }
+
+    // 2) สระล่างใต้ ฎ / ฏ ให้ดึงระดับลงหลบหาง
+    if (LOWER_VOWELS.has(curr) && LOWER_CUT_TARGETS.has(prev)) {
+      if (curr === '\u0E38') result.push('\uF718');
+      else if (curr === '\u0E39') result.push('\uF719');
+      else if (curr === '\u0E3A') result.push('\uF71A');
+      continue;
+    }
+
+    // 3) สระบนเหนือพยัญชนะหางยาว (ป, ผ, ฝ, ฟ, ฬ) ให้เลื่อนซ้ายหลบหาง
+    if (UPPER_VOWELS.has(curr) && TALL_CONSONANTS.has(prev)) {
+      if (curr === '\u0E34') result.push('\uF701');
+      else if (curr === '\u0E35') result.push('\uF702');
+      else if (curr === '\u0E36') result.push('\uF703');
+      else if (curr === '\u0E37') result.push('\uF704');
+      else if (curr === '\u0E31') result.push('\uF711');
+      else if (curr === '\u0E47') result.push('\uF712');
+      else result.push(curr);
+      continue;
+    }
+
+    // 4) วรรณยุกต์และเครื่องหมายการันต์
+    if (TONE_MARKS.has(curr)) {
+      const hasUpperVowelBefore = UPPER_VOWELS.has(prev);
+      const hasLowerVowelBefore = LOWER_VOWELS.has(prev);
+      const baseConsonant = hasUpperVowelBefore || hasLowerVowelBefore ? prev2 : prev;
+      const isTall = TALL_CONSONANTS.has(baseConsonant);
+
+      if (hasUpperVowelBefore) {
+        // วรรณยุกต์ระดับบน (ซ้อนเหนือสระบน เช่น ชั่, ที่, ปี้, ซิ์)
+        if (isTall) {
+          if (curr === '\u0E48') result.push('\uF713');
+          else if (curr === '\u0E49') result.push('\uF714');
+          else if (curr === '\u0E4A') result.push('\uF715');
+          else if (curr === '\u0E4B') result.push('\uF716');
+          else if (curr === '\u0E4C') result.push('\uF717');
+        } else {
+          if (curr === '\u0E48') result.push('\uF70A');
+          else if (curr === '\u0E49') result.push('\uF70B');
+          else if (curr === '\u0E4A') result.push('\uF70C');
+          else if (curr === '\u0E4B') result.push('\uF70D');
+          else if (curr === '\u0E4C') result.push('\uF70E');
+        }
+      } else if (isTall) {
+        // วรรณยุกต์เหนือพยัญชนะหางยาวโดยไม่มีสระบน (เช่น ฟ้า, ป่า, ฟ้อง, ผู้) ให้เลื่อนซ้ายหลบหาง
+        if (curr === '\u0E48') result.push('\uF713');
+        else if (curr === '\u0E49') result.push('\uF714');
+        else if (curr === '\u0E4A') result.push('\uF715');
+        else if (curr === '\u0E4B') result.push('\uF716');
+        else if (curr === '\u0E4C') result.push('\uF717');
+      } else {
+        // วรรณยุกต์ระดับปกติ (เช่น แม่, บ้าน, ได้)
+        result.push(curr);
+      }
+      continue;
+    }
+
+    result.push(curr);
+  }
+  return result.join('');
+}
+
 function drawText(
   page: PDFPage,
   font: PDFFont,
@@ -310,8 +399,9 @@ function drawText(
   const value = truncate(text, pos.maxChars ?? 80);
   if (!value) return;
 
+  const shapedText = shapeThai(value);
   const size = pos.size ?? DEFAULT_SIZE;
-  page.drawText(value, {
+  page.drawText(shapedText, {
     x: pos.x + OFFSET_X,
     y: pos.y,
     size,
@@ -436,6 +526,28 @@ function drawBeneficiaryBlock(
   drawText(page, font, beneficiary.contactPhone, { page: pageIndex, x: fields.contactPhoneX, y: yContact, maxChars: 12 });
 }
 
+function drawCheckmark(
+  page: PDFPage,
+  cx: number,
+  cy: number,
+  size = 7,
+) {
+  page.drawLine({
+    start: { x: cx - size * 0.4, y: cy + size * 0.1 },
+    end: { x: cx - size * 0.05, y: cy - size * 0.4 },
+    thickness: 1.5,
+    color: black(),
+    lineCap: pdfLib?.LineCapStyle?.Round,
+  });
+  page.drawLine({
+    start: { x: cx - size * 0.05, y: cy - size * 0.4 },
+    end: { x: cx + size * 0.65, y: cy + size * 0.55 },
+    thickness: 1.5,
+    color: black(),
+    lineCap: pdfLib?.LineCapStyle?.Round,
+  });
+}
+
 function drawMaritalStatus(
   page: PDFPage,
   font: PDFFont,
@@ -444,9 +556,9 @@ function drawMaritalStatus(
 ) {
   const y = toPdfY(page, coords.yTop);
   if (data.maritalStatus === 'single') {
-    drawText(page, font, '✓', { page: 0, x: coords.singleX, y, size: 11, maxChars: 1 });
+    drawCheckmark(page, coords.singleX + OFFSET_X + 4, y + 4, 7);
   } else {
-    drawText(page, font, '✓', { page: 0, x: coords.marriedX, y, size: 11, maxChars: 1 });
+    drawCheckmark(page, coords.marriedX + OFFSET_X + 4, y + 4, 7);
     drawText(page, font, data.spouseName, { page: 0, x: coords.spouseX, y, maxChars: 38 });
   }
 }

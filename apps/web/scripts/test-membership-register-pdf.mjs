@@ -18,7 +18,85 @@ const WEB_BASE = process.env.WEB_BASE_URL ?? 'http://localhost:3000';
 const OFFSET_X = 10;
 const OFFSET_Y = 2;
 const DEFAULT_SIZE = 10;
-const FONT_REL = '/fonts/Sarabun-Regular.ttf';
+const FONT_REL = '/fonts/THSarabunNew.ttf';
+
+function shapeThai(text) {
+  if (!text) return '';
+  const chars = Array.from(text);
+  const result = [];
+  const TALL_CONSONANTS = new Set(['ป', 'ผ', 'ฝ', 'ฟ', 'ฬ']);
+  const LOWER_CUT_CONSONANTS = new Set(['ฐ', 'ญ']);
+  const LOWER_CUT_TARGETS = new Set(['ฎ', 'ฏ']);
+  const UPPER_VOWELS = new Set(['\u0E31', '\u0E34', '\u0E35', '\u0E36', '\u0E37', '\u0E47', '\u0E4D']);
+  const LOWER_VOWELS = new Set(['\u0E38', '\u0E39', '\u0E3A']);
+  const TONE_MARKS = new Set(['\u0E48', '\u0E49', '\u0E4A', '\u0E4B', '\u0E4C']);
+
+  for (let i = 0; i < chars.length; i++) {
+    const curr = chars[i];
+    const prev = chars[i - 1] || '';
+    const prev2 = chars[i - 2] || '';
+    const next = chars[i + 1] || '';
+
+    if (LOWER_CUT_CONSONANTS.has(curr) && LOWER_VOWELS.has(next)) {
+      if (curr === 'ฐ') result.push('\uF700');
+      else if (curr === 'ญ') result.push('\uF70F');
+      continue;
+    }
+
+    if (LOWER_VOWELS.has(curr) && LOWER_CUT_TARGETS.has(prev)) {
+      if (curr === '\u0E38') result.push('\uF718');
+      else if (curr === '\u0E39') result.push('\uF719');
+      else if (curr === '\u0E3A') result.push('\uF71A');
+      continue;
+    }
+
+    if (UPPER_VOWELS.has(curr) && TALL_CONSONANTS.has(prev)) {
+      if (curr === '\u0E34') result.push('\uF701');
+      else if (curr === '\u0E35') result.push('\uF702');
+      else if (curr === '\u0E36') result.push('\uF703');
+      else if (curr === '\u0E37') result.push('\uF704');
+      else if (curr === '\u0E31') result.push('\uF711');
+      else if (curr === '\u0E47') result.push('\uF712');
+      else result.push(curr);
+      continue;
+    }
+
+    if (TONE_MARKS.has(curr)) {
+      const hasUpperVowelBefore = UPPER_VOWELS.has(prev);
+      const hasLowerVowelBefore = LOWER_VOWELS.has(prev);
+      const baseConsonant = hasUpperVowelBefore || hasLowerVowelBefore ? prev2 : prev;
+      const isTall = TALL_CONSONANTS.has(baseConsonant);
+
+      if (hasUpperVowelBefore) {
+        if (isTall) {
+          if (curr === '\u0E48') result.push('\uF713');
+          else if (curr === '\u0E49') result.push('\uF714');
+          else if (curr === '\u0E4A') result.push('\uF715');
+          else if (curr === '\u0E4B') result.push('\uF716');
+          else if (curr === '\u0E4C') result.push('\uF717');
+        } else {
+          if (curr === '\u0E48') result.push('\uF70A');
+          else if (curr === '\u0E49') result.push('\uF70B');
+          else if (curr === '\u0E4A') result.push('\uF70C');
+          else if (curr === '\u0E4B') result.push('\uF70D');
+          else if (curr === '\u0E4C') result.push('\uF70E');
+        }
+      } else if (isTall) {
+        if (curr === '\u0E48') result.push('\uF713');
+        else if (curr === '\u0E49') result.push('\uF714');
+        else if (curr === '\u0E4A') result.push('\uF715');
+        else if (curr === '\u0E4B') result.push('\uF716');
+        else if (curr === '\u0E4C') result.push('\uF717');
+      } else {
+        result.push(curr);
+      }
+      continue;
+    }
+
+    result.push(curr);
+  }
+  return result.join('');
+}
 
 const THAI_MONTHS = [
   'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
@@ -181,11 +259,26 @@ function fitText(text, maxChars, baseSize) {
 function drawText(page, font, text, pos) {
   const { text: value, size } = fitText(text, pos.maxChars, pos.size ?? DEFAULT_SIZE);
   if (!value) return;
-  page.drawText(value, {
+  page.drawText(shapeThai(value), {
     x: pos.x + OFFSET_X,
     y: pos.y,
     size,
     font,
+  });
+}
+
+function drawCheckmark(page, cx, cy, size = 7) {
+  page.drawLine({
+    start: { x: cx - size * 0.4, y: cy + size * 0.1 },
+    end: { x: cx - size * 0.05, y: cy - size * 0.4 },
+    thickness: 1.5,
+    color: { type: 'RGB', red: 0, green: 0, blue: 0 },
+  });
+  page.drawLine({
+    start: { x: cx - size * 0.05, y: cy - size * 0.4 },
+    end: { x: cx + size * 0.65, y: cy + size * 0.55 },
+    thickness: 1.5,
+    color: { type: 'RGB', red: 0, green: 0, blue: 0 },
   });
 }
 
@@ -255,8 +348,12 @@ async function buildPdf(data) {
   drawAddr2(page1, data.registeredAddress, coords.registeredAddress2);
 
   const maritalY = toPdfY(page1, coords.maritalStatus.yTop);
-  drawText(page1, font, '✓', { x: coords.maritalStatus.marriedX, y: maritalY, size: 11 });
-  drawText(page1, font, data.spouseName, { x: coords.maritalStatus.spouseX, y: maritalY });
+  if (data.maritalStatus === 'single') {
+    drawCheckmark(page1, coords.maritalStatus.singleX + OFFSET_X + 4, maritalY + 4, 7);
+  } else {
+    drawCheckmark(page1, coords.maritalStatus.marriedX + OFFSET_X + 4, maritalY + 4, 7);
+    drawText(page1, font, data.spouseName, { x: coords.maritalStatus.spouseX, y: maritalY });
+  }
 
   drawAddr1(page1, data.contactAddress, coords.contactAddress1);
   drawAddr2(page1, data.contactAddress, coords.contactAddress2);

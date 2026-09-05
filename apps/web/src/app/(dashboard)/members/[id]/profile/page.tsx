@@ -86,7 +86,7 @@ const statusLabels: Record<string, string> = {
   RESIGNED: 'ลาออก',
   DECEASED: 'เสียชีวิต',
   ARREARS: 'ค้างชำระ',
-  SUSPENDED: 'พักสมาชิก',
+  SUSPENDED: 'รออนุมัติ',
 };
 
 const statusColors: Record<string, string> = {

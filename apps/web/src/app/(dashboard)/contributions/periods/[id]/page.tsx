@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
@@ -59,6 +59,7 @@ interface SchoolSummaryResponse {
 
 interface PayAllResponse {
   message: string;
+  skippedContributory?: number;
   batch: {
     total: number;
     success: number;
@@ -150,6 +151,22 @@ export default function PeriodDetailPage() {
     },
     enabled: !!periodId,
   });
+
+  // คลิกแถวโรงเรียนในตารางสรุป เพื่อดูรายการชำระเฉพาะโรงเรียนนั้น
+  const [focusedSchoolId, setFocusedSchoolId] = useState<string | null>(null);
+
+  const visibleContributions = useMemo(
+    () =>
+      focusedSchoolId
+        ? contributions?.filter((c) => c.school.id === focusedSchoolId)
+        : contributions,
+    [contributions, focusedSchoolId],
+  );
+
+  const focusedSchoolName = useMemo(
+    () => schoolSummary?.schools.find((row) => row.schoolId === focusedSchoolId)?.schoolName,
+    [schoolSummary, focusedSchoolId],
+  );
 
   const unpaidCount = useMemo(
     () => contributions?.filter((c) => Number(c.paidAmount) === 0).length ?? 0,
@@ -255,7 +272,9 @@ export default function PeriodDetailPage() {
       return;
     }
     showConfirm(
-      `บันทึกการชำระเงินสำหรับสมาชิกที่ยังไม่ชำระทั้งหมด ${unpaidCount} คนในงวดนี้?`,
+      `บันทึกการชำระเงินให้ "สมาชิกสามัญ" ที่ยังไม่ชำระในงวดนี้?\n\n` +
+        `ยังไม่ชำระทั้งหมด ${unpaidCount} คน — สมาชิกสมทบจะถูกข้าม ` +
+        'เพราะต้องนำเงินมาชำระเองและต้องบันทึกทีละคนให้ตรวจสอบได้',
       () => payAllMutation.mutate(),
     );
   };
@@ -421,7 +440,18 @@ export default function PeriodDetailPage() {
               </thead>
               <tbody>
                 {schoolSummary.schools.map((row) => (
-                  <tr key={row.schoolId}>
+                  <tr
+                    key={row.schoolId}
+                    onClick={() =>
+                      setFocusedSchoolId((current) =>
+                        current === row.schoolId ? null : row.schoolId,
+                      )
+                    }
+                    className={`cursor-pointer hover:bg-slate-50 ${
+                      focusedSchoolId === row.schoolId ? 'bg-primary-50' : ''
+                    }`}
+                    title="คลิกเพื่อดูรายการชำระของโรงเรียนนี้"
+                  >
                     <td className="font-medium">{row.schoolName}</td>
                     <td className="text-center">{row.totalMembers}</td>
                     <td className="text-center text-emerald-600 font-medium">{row.paidMembers}</td>
@@ -448,15 +478,34 @@ export default function PeriodDetailPage() {
 
       {/* Contributions Table */}
       <div className="card overflow-hidden">
+        {focusedSchoolId && (
+          <div className="p-3 border-b border-slate-100 bg-primary-50 flex items-center justify-between gap-3">
+            <span className="text-sm text-primary-800">
+              กำลังดูรายการชำระของ {focusedSchoolName || 'โรงเรียนที่เลือก'}
+              {' '}({visibleContributions?.length ?? 0} รายการ)
+            </span>
+            <button
+              type="button"
+              onClick={() => setFocusedSchoolId(null)}
+              className="text-sm text-primary-700 underline"
+            >
+              แสดงทุกโรงเรียน
+            </button>
+          </div>
+        )}
         {isLoading ? (
           <div className="flex justify-center py-20">
             <div className="w-8 h-8 border-4 border-primary-500 border-t-transparent rounded-full animate-spin" />
           </div>
-        ) : contributions?.length === 0 ? (
+        ) : visibleContributions?.length === 0 ? (
           <div className="text-center py-20 text-slate-500">
             <Users className="w-16 h-16 mx-auto text-slate-300 mb-4" />
             <p className="text-lg font-medium">ยังไม่มีรายการ</p>
-            <p className="text-sm mt-1">กรุณา "สร้างรายการ" จากหน้ารายการงวดก่อน</p>
+            <p className="text-sm mt-1">
+              {focusedSchoolId
+                ? 'โรงเรียนนี้ยังไม่มีรายการในงวดนี้'
+                : 'กรุณา "สร้างรายการ" จากหน้ารายการงวดก่อน'}
+            </p>
           </div>
         ) : (
           <div className="table-container border-0">
@@ -475,7 +524,7 @@ export default function PeriodDetailPage() {
                 </tr>
               </thead>
               <tbody>
-                {contributions?.map((contrib) => (
+                {visibleContributions?.map((contrib) => (
                   <tr key={contrib.id}>
                     <td className="font-mono text-sm">{contrib.member.memberNo}</td>
                     <td className="font-medium">{memberName(contrib)}</td>

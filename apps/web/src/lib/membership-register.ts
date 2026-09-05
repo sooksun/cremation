@@ -86,14 +86,14 @@ export const MEMBERSHIP_TYPE_CONFIG: Record<
 export const REFERENCE_DOCUMENTS = [
   {
     id: 'regulation',
-    title: 'ระเบียบฌาปนกิจสงเคราะห์ครูแม่ฟ้าหลวง',
+    title: 'ระเบียบว่าด้วยฌาปนกิจสงเคราะห์ข้าราชการครูและบุคลากรทางการศึกษา อำเภอแม่ฟ้าหลวง',
     subtitle: 'พ.ศ. 2568',
     href: '/doc/ref1.pdf',
     pages: 9,
   },
   {
     id: 'bylaws',
-    title: 'ข้อบังคับสมาคมฌาปนกิจสงเคราะห์ครูแม่ฟ้าหลวง',
+    title: 'ข้อบังคับสมาคมผู้ประกอบวิชาชีพผู้บริหาร ครู และบุคลากรทางการศึกษาอำเภอแม่ฟ้าหลวง',
     subtitle: 'ฉบับปรับปรุง พ.ศ. 2566',
     href: '/doc/ref2.pdf',
     pages: 9,

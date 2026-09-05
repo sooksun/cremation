@@ -8,6 +8,7 @@ import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import { motion } from 'framer-motion';
 import {
   ArrowLeft,
+  Copy,
   Download,
   FileText,
   Printer,
@@ -15,6 +16,7 @@ import {
 } from 'lucide-react';
 import ThaiDatePicker from '@/components/ThaiDatePicker';
 import { MembershipRegisterPrint } from '@/components/MembershipRegisterPrint';
+import { ThaiAddressCombobox } from '@/components/ThaiAddressCombobox';
 import { exportMembershipRegisterPdf, printMembershipRegisterPdf } from '@/lib/membership-register-pdf';
 import { showError, showSuccess } from '@/lib/toast';
 import { api } from '@/lib/api';
@@ -31,27 +33,21 @@ import dayjs from 'dayjs';
 function AddressFieldsSection({
   prefix,
   register,
+  setValue,
+  watch,
   title,
   disabled = false,
   headerAction,
 }: {
   prefix: 'registeredAddress' | 'contactAddress';
   register: ReturnType<typeof useForm<MembershipRegisterForm>>['register'];
+  setValue: ReturnType<typeof useForm<MembershipRegisterForm>>['setValue'];
+  watch: ReturnType<typeof useForm<MembershipRegisterForm>>['watch'];
   title: string;
   disabled?: boolean;
   headerAction?: ReactNode;
 }) {
-  const fields: { key: keyof AddressFields; label: string; className?: string }[] = [
-    { key: 'houseNo', label: 'บ้านเลขที่' },
-    { key: 'moo', label: 'หมู่ที่' },
-    { key: 'road', label: 'ถนน' },
-    { key: 'soi', label: 'ซอย' },
-    { key: 'subdistrict', label: 'ตำบล' },
-    { key: 'district', label: 'อำเภอ' },
-    { key: 'province', label: 'จังหวัด' },
-    { key: 'zip', label: 'รหัสไปรษณีย์' },
-    { key: 'phone', label: 'เบอร์โทร', className: 'md:col-span-2' },
-  ];
+  const currentSubdistrict = watch(`${prefix}.subdistrict`);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -59,17 +55,104 @@ function AddressFieldsSection({
         <p className="text-sm font-medium text-slate-700">{title}</p>
         {headerAction}
       </div>
-      {fields.map((f) => (
-        <div key={f.key} className={f.className}>
-          <label className="label">{f.label}</label>
-          <input
-            className={`input ${disabled ? 'bg-slate-100 text-slate-500 cursor-not-allowed' : ''}`}
-            autoComplete="off"
-            disabled={disabled}
-            {...register(`${prefix}.${f.key}`)}
-          />
-        </div>
-      ))}
+
+      <div>
+        <label className="label">บ้านเลขที่</label>
+        <input
+          className={`input ${disabled ? 'bg-slate-100 text-slate-500 cursor-not-allowed' : ''}`}
+          autoComplete="off"
+          disabled={disabled}
+          {...register(`${prefix}.houseNo`)}
+        />
+      </div>
+
+      <div>
+        <label className="label">หมู่ที่</label>
+        <input
+          className={`input ${disabled ? 'bg-slate-100 text-slate-500 cursor-not-allowed' : ''}`}
+          autoComplete="off"
+          disabled={disabled}
+          {...register(`${prefix}.moo`)}
+        />
+      </div>
+
+      <div>
+        <label className="label">ถนน</label>
+        <input
+          className={`input ${disabled ? 'bg-slate-100 text-slate-500 cursor-not-allowed' : ''}`}
+          autoComplete="off"
+          disabled={disabled}
+          {...register(`${prefix}.road`)}
+        />
+      </div>
+
+      <div>
+        <label className="label">ซอย</label>
+        <input
+          className={`input ${disabled ? 'bg-slate-100 text-slate-500 cursor-not-allowed' : ''}`}
+          autoComplete="off"
+          disabled={disabled}
+          {...register(`${prefix}.soi`)}
+        />
+      </div>
+
+      <div>
+        <label className="label">ตำบล (พิมพ์เพื่อค้นหา)</label>
+        <ThaiAddressCombobox
+          disabled={disabled}
+          value={currentSubdistrict}
+          placeholder="พิมพ์ชื่อตำบล..."
+          onChangeValue={(val) => {
+            setValue(`${prefix}.subdistrict`, val, { shouldDirty: true });
+          }}
+          onSelectAddress={(addr) => {
+            setValue(`${prefix}.subdistrict`, addr.subdistrict, { shouldDirty: true });
+            setValue(`${prefix}.district`, addr.district, { shouldDirty: true });
+            setValue(`${prefix}.province`, addr.province, { shouldDirty: true });
+            setValue(`${prefix}.zip`, addr.zipCode, { shouldDirty: true });
+          }}
+        />
+      </div>
+
+      <div>
+        <label className="label">อำเภอ</label>
+        <input
+          className={`input ${disabled ? 'bg-slate-100 text-slate-500 cursor-not-allowed' : ''}`}
+          autoComplete="off"
+          disabled={disabled}
+          {...register(`${prefix}.district`)}
+        />
+      </div>
+
+      <div>
+        <label className="label">จังหวัด</label>
+        <input
+          className={`input ${disabled ? 'bg-slate-100 text-slate-500 cursor-not-allowed' : ''}`}
+          autoComplete="off"
+          disabled={disabled}
+          {...register(`${prefix}.province`)}
+        />
+      </div>
+
+      <div>
+        <label className="label">รหัสไปรษณีย์</label>
+        <input
+          className={`input ${disabled ? 'bg-slate-100 text-slate-500 cursor-not-allowed' : ''}`}
+          autoComplete="off"
+          disabled={disabled}
+          {...register(`${prefix}.zip`)}
+        />
+      </div>
+
+      <div className="md:col-span-2">
+        <label className="label">เบอร์โทร</label>
+        <input
+          className={`input ${disabled ? 'bg-slate-100 text-slate-500 cursor-not-allowed' : ''}`}
+          autoComplete="off"
+          disabled={disabled}
+          {...register(`${prefix}.phone`)}
+        />
+      </div>
     </div>
   );
 }
@@ -171,13 +254,59 @@ function RegisterForm() {
   const [isPrinting, setIsPrinting] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+  const [nationalIdError, setNationalIdError] = useState<string | null>(null);
+  const [isCheckingNationalId, setIsCheckingNationalId] = useState(false);
 
   const { register, handleSubmit, control, watch, setValue, getValues, reset } = useForm<MembershipRegisterForm>({
     defaultValues: createDefaultForm(initialType),
   });
 
   const memberType = watch('type');
+  const watchedNationalId = watch('nationalId');
   const config = MEMBERSHIP_TYPE_CONFIG[memberType];
+
+  const checkNationalIdUnique = useCallback(async (rawId: string) => {
+    const cleanId = rawId.replace(/\D/g, '');
+    if (!cleanId) {
+      setNationalIdError(null);
+      return;
+    }
+    if (cleanId.length < 13) {
+      setNationalIdError(null);
+      return;
+    }
+    if (cleanId.length === 13) {
+      setIsCheckingNationalId(true);
+      try {
+        const res = await api.get<{ exists: boolean; isMember: boolean; message?: string }>(
+          '/member-applications/check-national-id',
+          { params: { nationalId: cleanId } },
+        );
+        if (res.data?.exists) {
+          setNationalIdError(
+            res.data.message || 'เลขประจำตัวประชาชนนี้มีข้อมูลในระบบสมาชิกฌาปนกิจแล้ว ไม่สามารถสมัครซ้ำได้',
+          );
+        } else {
+          setNationalIdError(null);
+        }
+      } catch {
+        // If network error, don't hard block typing
+      } finally {
+        setIsCheckingNationalId(false);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (watchedNationalId) {
+        checkNationalIdUnique(watchedNationalId);
+      } else {
+        setNationalIdError(null);
+      }
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [watchedNationalId, checkNationalIdUnique]);
 
   const [schools, setSchools] = useState<SchoolOption[]>([]);
   useEffect(() => {
@@ -212,8 +341,13 @@ function RegisterForm() {
 
   const fillDemo = (index: number) => {
     const school = schools[index] ?? schools[0];
-    reset(createDemoForm(index, school));
+    const demo = createDemoForm(index, school);
+    reset(demo);
     setSameAsRegistered(false);
+    setNationalIdError(null);
+    if (demo.nationalId) {
+      checkNationalIdUnique(demo.nationalId);
+    }
   };
 
   const bloodRelativesArray = useFieldArray({ control, name: 'bloodRelatives' });
@@ -261,8 +395,34 @@ function RegisterForm() {
       showError('กรุณาเลือกโรงเรียนจากรายการ');
       return;
     }
+    const cleanNationalId = data.nationalId ? data.nationalId.replace(/\D/g, '') : '';
+    if (cleanNationalId && cleanNationalId.length !== 13) {
+      showError('เลขประจำตัวประชาชนต้องมี 13 หลัก');
+      return;
+    }
+    if (nationalIdError) {
+      showError(nationalIdError);
+      return;
+    }
+
     setIsSubmitting(true);
     try {
+      if (cleanNationalId.length === 13) {
+        const checkRes = await api.get<{ exists: boolean; message?: string }>(
+          '/member-applications/check-national-id',
+          { params: { nationalId: cleanNationalId } },
+        );
+        if (checkRes.data?.exists) {
+          const msg =
+            checkRes.data.message ||
+            'เลขประจำตัวประชาชนนี้มีข้อมูลในระบบสมาชิกฌาปนกิจแล้ว ไม่สามารถสมัครซ้ำได้';
+          setNationalIdError(msg);
+          showError(msg);
+          setIsSubmitting(false);
+          return;
+        }
+      }
+
       const response = await api.post('/member-applications/submit', {
         type: data.type,
         governmentAgency: data.governmentAgency,
@@ -442,8 +602,29 @@ function RegisterForm() {
                 <input className="input" type="number" min={1} max={120} {...register('age')} />
               </div>
               <div>
-                <label className="label">เลขประจำตัวประชาชน</label>
-                <input className="input" maxLength={13} {...register('nationalId')} />
+                <div className="flex items-center justify-between">
+                  <label className="label">เลขประจำตัวประชาชน</label>
+                  {isCheckingNationalId && (
+                    <span className="text-xs text-slate-400 animate-pulse">กำลังตรวจสอบ...</span>
+                  )}
+                </div>
+                <input
+                  className={`input ${
+                    nationalIdError ? 'border-red-500 ring-1 ring-red-500 focus:border-red-500 focus:ring-red-500' : ''
+                  }`}
+                  maxLength={13}
+                  placeholder="เลข 13 หลัก"
+                  {...register('nationalId')}
+                  onChange={(e) => {
+                    const clean = e.target.value.replace(/\D/g, '').slice(0, 13);
+                    setValue('nationalId', clean, { shouldValidate: true, shouldDirty: true });
+                  }}
+                />
+                {nationalIdError && (
+                  <p className="text-xs text-red-600 mt-1 font-medium flex items-center gap-1">
+                    <span>⚠️</span> {nationalIdError}
+                  </p>
+                )}
               </div>
               <div className="md:col-span-2 lg:col-span-3 flex flex-wrap gap-6 items-center">
                 <span className="label mb-0">สถานภาพ</span>
@@ -468,22 +649,40 @@ function RegisterForm() {
           <section className="card p-6">
             <h2 className="font-semibold text-slate-900 mb-4">ที่อยู่</h2>
             <div className="space-y-6">
-              <AddressFieldsSection prefix="registeredAddress" register={register} title="ที่อยู่ตามทะเบียนราษฎร" />
+              <AddressFieldsSection
+                prefix="registeredAddress"
+                register={register}
+                setValue={setValue}
+                watch={watch}
+                title="ที่อยู่ตามทะเบียนราษฎร"
+              />
               <hr className="border-slate-100" />
               <AddressFieldsSection
                 prefix="contactAddress"
                 register={register}
+                setValue={setValue}
+                watch={watch}
                 title="ที่อยู่ที่สามารถติดต่อได้"
                 disabled={sameAsRegistered}
                 headerAction={
-                  <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer whitespace-nowrap">
+                  <label className="inline-flex items-center gap-2 text-xs md:text-sm font-medium text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-3 py-1.5 rounded-lg cursor-pointer transition-colors shadow-sm">
                     <input
                       type="checkbox"
-                      className="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                      className="h-4 w-4 rounded border-emerald-400 text-emerald-600 focus:ring-emerald-500"
                       checked={sameAsRegistered}
-                      onChange={(e) => setSameAsRegistered(e.target.checked)}
+                      onChange={(e) => {
+                        const checked = e.target.checked;
+                        setSameAsRegistered(checked);
+                        if (checked) {
+                          const reg = getValues('registeredAddress');
+                          (Object.keys(reg) as (keyof AddressFields)[]).forEach((k) => {
+                            setValue(`contactAddress.${k}`, reg[k] ?? '', { shouldDirty: true });
+                          });
+                        }
+                      }}
                     />
-                    เป็นที่อยู่ตามทะเบียนราษฎร
+                    <Copy size={14} className="text-emerald-700 shrink-0" />
+                    <span>คัดลอกที่อยู่ (ใช้ที่อยู่เดียวกับข้างบน)</span>
                   </label>
                 }
               />
@@ -542,8 +741,20 @@ function RegisterForm() {
                     <input className="input" {...register(`beneficiaries.${i}.soi`)} />
                   </div>
                   <div>
-                    <label className="label">ตำบล</label>
-                    <input className="input" {...register(`beneficiaries.${i}.subdistrict`)} />
+                    <label className="label">ตำบล (พิมพ์เพื่อค้นหา)</label>
+                    <ThaiAddressCombobox
+                      value={watch(`beneficiaries.${i}.subdistrict`)}
+                      placeholder="พิมพ์ชื่อตำบล..."
+                      onChangeValue={(val) => {
+                        setValue(`beneficiaries.${i}.subdistrict`, val, { shouldDirty: true });
+                      }}
+                      onSelectAddress={(addr) => {
+                        setValue(`beneficiaries.${i}.subdistrict`, addr.subdistrict, { shouldDirty: true });
+                        setValue(`beneficiaries.${i}.district`, addr.district, { shouldDirty: true });
+                        setValue(`beneficiaries.${i}.province`, addr.province, { shouldDirty: true });
+                        setValue(`beneficiaries.${i}.zip`, addr.zipCode, { shouldDirty: true });
+                      }}
+                    />
                   </div>
                   <div>
                     <label className="label">อำเภอ</label>
@@ -562,7 +773,7 @@ function RegisterForm() {
                     <input className="input" {...register(`beneficiaries.${i}.phone`)} />
                   </div>
                   <div>
-                    <label className="label">บุคคลที่ติดต่อได้</label>
+                    <label className="label">ชื่อบุคคลที่ติดต่อได้</label>
                     <input className="input" {...register(`beneficiaries.${i}.contactPerson`)} />
                   </div>
                   <div>

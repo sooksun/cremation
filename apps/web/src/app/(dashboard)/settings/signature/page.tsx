@@ -3,11 +3,12 @@
 import { useState, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
-import { Settings, PenTool, X, Check, Save } from 'lucide-react';
+import { Settings, PenTool, X, Check, Upload, Image as ImageIcon } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { api } from '@/lib/api';
 import { showSuccess, showError } from '@/lib/toast';
 import { useAuthStore } from '@/store/auth';
+import { prepareSignatureImage, SignatureImageError } from '@/lib/signature-image';
 
 // Dynamically import SignatureCanvas to avoid SSR issues
 const SignatureCanvas = dynamic(
@@ -19,7 +20,11 @@ export default function SignatureSettingsPage() {
   const { user } = useAuthStore();
   const queryClient = useQueryClient();
   const sigCanvas = useRef<any>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [showSignModal, setShowSignModal] = useState(false);
+  const [signMode, setSignMode] = useState<'draw' | 'upload'>('draw');
+  const [uploadPreview, setUploadPreview] = useState<string | null>(null);
+  const [preparingUpload, setPreparingUpload] = useState(false);
 
   // Get current user signature
   const { data: currentUser, isLoading } = useQuery({
@@ -39,7 +44,7 @@ export default function SignatureSettingsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
       showSuccess('บันทึกลายเซ็นสำเร็จ');
-      setShowSignModal(false);
+      closeSignModal();
     },
     onError: () => {
       showError('เกิดข้อผิดพลาดในการบันทึกลายเซ็น');
@@ -51,6 +56,47 @@ export default function SignatureSettingsPage() {
     if (sigCanvas.current) {
       sigCanvas.current.clear();
     }
+  };
+
+  const openSignModal = (mode: 'draw' | 'upload') => {
+    setSignMode(mode);
+    setUploadPreview(null);
+    setShowSignModal(true);
+  };
+
+  const closeSignModal = () => {
+    setShowSignModal(false);
+    setUploadPreview(null);
+    setPreparingUpload(false);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  // อัปโหลดรูปลายเซ็น — แปลงเป็น PNG พื้นหลังโปร่งใสให้เหมือนลายเซ็นที่วาดบนหน้าจอก่อนบันทึก
+  const handleFileSelected = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    setPreparingUpload(true);
+    try {
+      setUploadPreview(await prepareSignatureImage(file));
+    } catch (error) {
+      setUploadPreview(null);
+      showError(
+        error instanceof SignatureImageError
+          ? error.message
+          : 'เตรียมรูปลายเซ็นไม่สำเร็จ',
+      );
+    } finally {
+      setPreparingUpload(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const saveUploadedSignature = () => {
+    if (!uploadPreview) {
+      showError('กรุณาเลือกไฟล์รูปลายเซ็นก่อน');
+      return;
+    }
+    updateSignatureMutation.mutate(uploadPreview);
   };
 
   // Save signature
@@ -149,13 +195,20 @@ export default function SignatureSettingsPage() {
                 className="max-h-32 object-contain"
               />
             </div>
-            <div className="flex gap-3">
+            <div className="flex flex-wrap gap-3">
               <button
-                onClick={() => setShowSignModal(true)}
+                onClick={() => openSignModal('draw')}
                 className="btn-primary flex-1"
               >
                 <PenTool size={18} />
                 แก้ไขลายเซ็น
+              </button>
+              <button
+                onClick={() => openSignModal('upload')}
+                className="btn-secondary flex-1"
+              >
+                <Upload size={18} />
+                อัปโหลดรูปลายเซ็น
               </button>
               <button
                 onClick={clearExistingSignature}
@@ -174,13 +227,22 @@ export default function SignatureSettingsPage() {
                 กรุณาลงลายเซ็นเพื่อใช้งาน
               </p>
             </div>
-            <button
-              onClick={() => setShowSignModal(true)}
-              className="btn-primary w-full"
-            >
-              <PenTool size={18} />
-              ลงลายเซ็น
-            </button>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <button
+                onClick={() => openSignModal('draw')}
+                className="btn-primary flex-1"
+              >
+                <PenTool size={18} />
+                ลงลายเซ็น
+              </button>
+              <button
+                onClick={() => openSignModal('upload')}
+                className="btn-secondary flex-1"
+              >
+                <Upload size={18} />
+                อัปโหลดรูปลายเซ็น
+              </button>
+            </div>
           </div>
         )}
       </div>
@@ -196,53 +258,141 @@ export default function SignatureSettingsPage() {
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-semibold">ลงลายเซ็นอิเล็กทรอนิกส์</h2>
               <button
-                onClick={() => setShowSignModal(false)}
+                onClick={closeSignModal}
                 className="p-2 hover:bg-slate-100 rounded-lg"
               >
                 <X size={20} />
               </button>
             </div>
 
-            <div className="border-2 border-dashed border-slate-300 rounded-xl mb-4 bg-slate-50">
-              <SignatureCanvas
-                ref={sigCanvas}
-                canvasProps={{
-                  width: 460,
-                  height: 200,
-                  className: 'signature-canvas rounded-xl',
-                  style: { width: '100%', height: '200px', backgroundColor: 'transparent' },
-                }}
-                backgroundColor="transparent"
-                penColor="black"
-              />
-            </div>
-
-            <p className="text-sm text-slate-500 mb-4 text-center">
-              ใช้เมาส์หรือนิ้วในการลงลายเซ็น
-            </p>
-
-            <div className="flex gap-3">
+            <div className="flex gap-2 p-1 bg-slate-100 rounded-xl mb-4">
               <button
-                onClick={clearSignature}
-                className="btn-secondary flex-1"
+                type="button"
+                onClick={() => setSignMode('draw')}
+                className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition ${
+                  signMode === 'draw' ? 'bg-white shadow text-slate-900' : 'text-slate-500'
+                }`}
               >
-                ล้าง
+                <PenTool size={16} />
+                วาดลายเซ็น
               </button>
               <button
-                onClick={saveSignature}
-                disabled={updateSignatureMutation.isPending}
-                className="btn-primary flex-1"
+                type="button"
+                onClick={() => setSignMode('upload')}
+                className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition ${
+                  signMode === 'upload' ? 'bg-white shadow text-slate-900' : 'text-slate-500'
+                }`}
               >
-                {updateSignatureMutation.isPending ? (
-                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                ) : (
-                  <>
-                    <Check size={18} />
-                    บันทึกลายเซ็น
-                  </>
-                )}
+                <Upload size={16} />
+                อัปโหลดรูป
               </button>
             </div>
+
+            {signMode === 'draw' ? (
+              <>
+                <div className="border-2 border-dashed border-slate-300 rounded-xl mb-4 bg-slate-50">
+                  <SignatureCanvas
+                    ref={sigCanvas}
+                    canvasProps={{
+                      width: 460,
+                      height: 200,
+                      className: 'signature-canvas rounded-xl',
+                      style: { width: '100%', height: '200px', backgroundColor: 'transparent' },
+                    }}
+                    backgroundColor="transparent"
+                    penColor="black"
+                  />
+                </div>
+
+                <p className="text-sm text-slate-500 mb-4 text-center">
+                  ใช้เมาส์หรือนิ้วในการลงลายเซ็น
+                </p>
+
+                <div className="flex gap-3">
+                  <button
+                    onClick={clearSignature}
+                    className="btn-secondary flex-1"
+                  >
+                    ล้าง
+                  </button>
+                  <button
+                    onClick={saveSignature}
+                    disabled={updateSignatureMutation.isPending}
+                    className="btn-primary flex-1"
+                  >
+                    {updateSignatureMutation.isPending ? (
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    ) : (
+                      <>
+                        <Check size={18} />
+                        บันทึกลายเซ็น
+                      </>
+                    )}
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  onChange={handleFileSelected}
+                  className="hidden"
+                />
+
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={preparingUpload}
+                  className="w-full border-2 border-dashed border-slate-300 rounded-xl bg-slate-50 hover:bg-slate-100 transition min-h-[200px] flex flex-col items-center justify-center gap-2 p-4 mb-4 disabled:opacity-60"
+                >
+                  {preparingUpload ? (
+                    <div className="w-8 h-8 border-4 border-primary-500 border-t-transparent rounded-full animate-spin" />
+                  ) : uploadPreview ? (
+                    <img
+                      src={uploadPreview}
+                      alt="ตัวอย่างลายเซ็นที่อัปโหลด"
+                      className="max-h-40 object-contain"
+                    />
+                  ) : (
+                    <>
+                      <ImageIcon className="w-8 h-8 text-slate-400" />
+                      <span className="text-sm text-slate-500">คลิกเพื่อเลือกไฟล์รูปลายเซ็น</span>
+                    </>
+                  )}
+                </button>
+
+                <p className="text-sm text-slate-500 mb-4 text-center">
+                  รองรับ PNG, JPG, WebP — ระบบจะตัดขอบและลบพื้นหลังขาวให้อัตโนมัติ
+                </p>
+
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={preparingUpload}
+                    className="btn-secondary flex-1"
+                  >
+                    เลือกไฟล์ใหม่
+                  </button>
+                  <button
+                    onClick={saveUploadedSignature}
+                    disabled={!uploadPreview || preparingUpload || updateSignatureMutation.isPending}
+                    className="btn-primary flex-1 disabled:opacity-60"
+                  >
+                    {updateSignatureMutation.isPending ? (
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    ) : (
+                      <>
+                        <Check size={18} />
+                        บันทึกลายเซ็น
+                      </>
+                    )}
+                  </button>
+                </div>
+              </>
+            )}
           </motion.div>
         </div>
       )}

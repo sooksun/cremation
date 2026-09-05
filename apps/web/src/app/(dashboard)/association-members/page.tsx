@@ -36,7 +36,7 @@ const statusConfig = {
   RESIGNED: { label: 'ลาออก', class: 'badge-neutral' },
   DECEASED: { label: 'เสียชีวิต', class: 'badge-danger' },
   ARREARS: { label: 'ค้างชำระ', class: 'badge-warning' },
-  SUSPENDED: { label: 'พักสมาชิก', class: 'badge-info' },
+  SUSPENDED: { label: 'รออนุมัติ', class: 'badge-info' },
 };
 
 interface AssociationMemberRow {
@@ -284,7 +284,7 @@ export default function AssociationMembersPage() {
             <option value="ARREARS">ค้างชำระ</option>
             <option value="RESIGNED">ลาออก</option>
             <option value="DECEASED">เสียชีวิต</option>
-            <option value="SUSPENDED">พักสมาชิก</option>
+            <option value="SUSPENDED">รออนุมัติ</option>
           </select>
         </div>
       </div>
