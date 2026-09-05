@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { Download } from 'lucide-react';
@@ -24,6 +24,12 @@ export default function DisbursementLedgerReportPage() {
     startDate: `${selectedYear}-01-01`,
     endDate: `${selectedYear}-12-31`,
   });
+
+  // ช่วงวันที่ถูก seed จาก selectedYear แค่ตอน mount ครั้งแรก ถ้าไม่ sync ต่อ
+  // การสลับปีที่หัวจอจะเปลี่ยนแค่หัวข้อรายงาน แต่ตัวเลขยังเป็นของปีเดิม
+  useEffect(() => {
+    setRange({ startDate: `${selectedYear}-01-01`, endDate: `${selectedYear}-12-31` });
+  }, [selectedYear]);
   const [type, setType] = useState('');
   const contentRef = useRef<HTMLDivElement>(null);
 

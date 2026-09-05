@@ -1,5 +1,7 @@
 'use client';
 
+import Link from 'next/link';
+
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import {
@@ -29,7 +31,7 @@ const statusLabels = {
   RESIGNED: 'ลาออก',
   DECEASED: 'เสียชีวิต',
   ARREARS: 'ค้างชำระ',
-  SUSPENDED: 'พักสมาชิก',
+  SUSPENDED: 'รออนุมัติ',
 };
 
 const containerVariants = {
@@ -238,13 +240,13 @@ export default function DashboardPage() {
               <Flower2 className="w-5 h-5 text-rose-500" />
               การแจ้งเสียชีวิตล่าสุด
             </h3>
-            <a
+            <Link
               href="/death-claims"
               className="text-sm text-primary-600 hover:text-primary-700 flex items-center gap-1"
             >
               ดูทั้งหมด
               <ArrowUpRight className="w-4 h-4" />
-            </a>
+            </Link>
           </div>
 
           {recentClaims && recentClaims.length > 0 ? (

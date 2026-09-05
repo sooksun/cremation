@@ -126,7 +126,15 @@ export default function DeathClaimDetailPage() {
   };
 
   const handleSaveCollected = () => {
-    const amount = Number(collectedInput);
+    // ช่องนี้เป็น controlled input ที่เริ่มด้วยค่าว่าง และ Number('') = 0 ซึ่งผ่านเงื่อนไข
+    // !isNaN && >= 0 ได้ ถ้าไม่ดักไว้ การกดปุ่มโดยไม่พิมพ์อะไรจะล้างยอดเก็บเงินเป็น 0
+    // ซึ่งเป็นตัวเดียวกับที่ใช้ตัดสินว่าเก็บครบพอจะจ่ายเงินสงเคราะห์ได้หรือยัง
+    const raw = collectedInput.trim();
+    if (raw === '') {
+      showError('กรุณากรอกยอดเก็บเงินก่อนบันทึก');
+      return;
+    }
+    const amount = Number(raw);
     if (Number.isNaN(amount) || amount < 0) {
       showError('กรุณากรอกยอดเก็บเงินที่ถูกต้อง');
       return;
@@ -320,6 +328,9 @@ export default function DeathClaimDetailPage() {
                           className="input mt-1"
                           placeholder={String(collectedAmount || targetAmount)}
                           value={collectedInput}
+                          onFocus={(e) => {
+                            if (e.target.value === '') setCollectedInput(String(collectedAmount || ''));
+                          }}
                           onChange={(e) => setCollectedInput(e.target.value)}
                           min={0}
                         />

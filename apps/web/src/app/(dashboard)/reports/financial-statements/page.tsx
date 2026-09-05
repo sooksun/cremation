@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { FileSpreadsheet, Scale, Download } from 'lucide-react';
@@ -18,6 +18,12 @@ export default function FinancialStatementsPage() {
     startDate: `${selectedYear}-01-01`,
     endDate: `${selectedYear}-12-31`,
   });
+
+  // ช่วงวันที่ถูก seed จาก selectedYear แค่ตอน mount ครั้งแรก ถ้าไม่ sync ต่อ
+  // การสลับปีที่หัวจอจะเปลี่ยนแค่หัวข้อรายงาน แต่ตัวเลขยังเป็นของปีเดิม
+  useEffect(() => {
+    setPlRange({ startDate: `${selectedYear}-01-01`, endDate: `${selectedYear}-12-31` });
+  }, [selectedYear]);
   const contentRef = useRef<HTMLDivElement>(null);
 
   // งบดุลเป็นยอดทั้งสมาคม — ไม่ส่ง schoolId และไม่ใส่ selectedSchoolId ใน queryKey

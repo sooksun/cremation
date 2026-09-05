@@ -137,6 +137,15 @@ export default function EditMemberPage() {
     if (data.joinDate?.trim() !== '') memberPayload.joinDate = data.joinDate;
     if (data.status === 'RESIGNED' && member?.resignDate) memberPayload.resignDate = new Date(member.resignDate).toISOString().split('T')[0];
     if (data.status === 'DECEASED' && member?.deathDate) memberPayload.deathDate = new Date(member.deathDate).toISOString().split('T')[0];
+    // ต้องส่งผู้รับผลประโยชน์ไปด้วย ไม่งั้นฟอร์มแก้ได้แต่ค่าไม่เคยถูกบันทึก
+    // แล้วผู้ใช้เห็นข้อความ "แก้ไขสำเร็จ" ทั้งที่รายชื่อผู้รับเงินยังเป็นชุดเดิม
+    memberPayload.beneficiaries = (data.beneficiaries ?? [])
+      .filter((b) => b.fullName?.trim() && b.relationship?.trim())
+      .map((b) => ({
+        fullName: b.fullName.trim(),
+        relationship: b.relationship.trim(),
+        phone: b.phone?.trim() || undefined,
+      }));
 
     const associationPayload = {
       firstName: data.firstName,
@@ -341,7 +350,9 @@ export default function EditMemberPage() {
                 <option value="ARREARS">ค้างชำระ</option>
                 <option value="RESIGNED">ลาออก</option>
                 <option value="DECEASED">เสียชีวิต</option>
-                <option value="SUSPENDED">พักสมาชิก</option>
+                {member?.status === 'SUSPENDED' && (
+                  <option value="SUSPENDED">รออนุมัติ (อนุมัติที่หน้าใบสมัครสมาชิก)</option>
+                )}
               </select>
             </div>
 
@@ -377,7 +388,7 @@ export default function EditMemberPage() {
           {fields.length === 0 ? (
             <div className="text-center py-8 text-slate-500 border-2 border-dashed border-slate-200 rounded-xl">
               <p>ยังไม่มีผู้รับผลประโยชน์</p>
-              <p className="text-sm mt-1">คลิกปุ่ม "เพิ่มผู้รับผลประโยชน์" เพื่อเพิ่ม (สูงสุด 3 คน)</p>
+              <p className="text-sm mt-1">คลิกปุ่ม &quot;เพิ่มผู้รับผลประโยชน์&quot; เพื่อเพิ่ม (สูงสุด 3 คน)</p>
             </div>
           ) : (
             <div className="space-y-4">

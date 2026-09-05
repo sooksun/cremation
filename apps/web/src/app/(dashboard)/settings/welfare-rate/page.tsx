@@ -245,7 +245,7 @@ export default function WelfareRateSettingsPage() {
           <div className="text-center py-20 text-slate-500">
             <Calculator className="w-16 h-16 mx-auto text-slate-300 mb-4" />
             <p className="text-lg font-medium">ยังไม่มีงวด</p>
-            <p className="text-sm mt-1">กรุณาสร้างงวดจากหน้า "งวดเงินสงเคราะห์" ก่อน</p>
+            <p className="text-sm mt-1">กรุณาสร้างงวดจากหน้า &quot;งวดเงินสงเคราะห์&quot; ก่อน</p>
           </div>
         ) : (
           <div className="table-container border-0">

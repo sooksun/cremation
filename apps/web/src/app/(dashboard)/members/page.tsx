@@ -24,7 +24,7 @@ const statusConfig = {
   RESIGNED: { label: 'ลาออก', class: 'badge-neutral' },
   DECEASED: { label: 'เสียชีวิต', class: 'badge-danger' },
   ARREARS: { label: 'ค้างชำระ', class: 'badge-warning' },
-  SUSPENDED: { label: 'พักสมาชิก', class: 'badge-info' },
+  SUSPENDED: { label: 'รออนุมัติ', class: 'badge-info' },
 };
 
 interface MemberListResponse {
@@ -62,15 +62,53 @@ export default function MembersPage() {
     }
   };
 
+  /**
+   * แยกฟิลด์ CSV หนึ่งบรรทัด รองรับค่าที่ครอบด้วย " และ "" ที่แปลว่าอัญประกาศจริง
+   *
+   * ห้ามกลับไปใช้ String.match(/("([^"]|"")*"|[^,]*)/g): [^,]* แมตช์สตริงว่างที่ตำแหน่ง
+   * ของทุกคอมมาด้วย ทำให้ได้อาเรย์ที่มีค่าว่างแทรกสลับทุกตัว ("a,b" -> ['a','','b',''])
+   * ค่าทุกคอลัมน์จึงเลื่อนตำแหน่ง — ข้อมูลนำเข้าเพี้ยนทั้งไฟล์โดยไม่มี error ให้เห็น
+   */
+  const parseCsvLine = (line: string): string[] => {
+    const values: string[] = [];
+    let current = '';
+    let inQuotes = false;
+
+    for (let i = 0; i < line.length; i += 1) {
+      const char = line[i];
+      if (inQuotes) {
+        if (char === '"') {
+          if (line[i + 1] === '"') {
+            current += '"';
+            i += 1;
+          } else {
+            inQuotes = false;
+          }
+        } else {
+          current += char;
+        }
+      } else if (char === '"') {
+        inQuotes = true;
+      } else if (char === ',') {
+        values.push(current);
+        current = '';
+      } else {
+        current += char;
+      }
+    }
+    values.push(current);
+    return values.map((v) => v.trim());
+  };
+
   const parseCsvRows = (text: string) => {
-    const lines = text.replace(/^\uFEFF/, '').trim().split(/\r?\n/);
-    const headers = lines[0].split(',').map((h) => h.replace(/^"|"$/g, '').trim());
+    const lines = text.replace(/^﻿/, '').trim().split(/\r?\n/);
+    const headers = parseCsvLine(lines[0]);
     return lines.slice(1).map((line) => {
-      const values = line.match(/("([^"]|"")*"|[^,]*)/g)?.map((v) =>
-        v.replace(/^"|"$/g, '').replace(/""/g, '"').trim(),
-      ) || [];
+      const values = parseCsvLine(line);
       const row: Record<string, string> = {};
-      headers.forEach((h, i) => { row[h] = values[i] || ''; });
+      headers.forEach((h, i) => {
+        row[h] = values[i] ?? '';
+      });
       return row;
     });
   };
@@ -176,7 +214,7 @@ export default function MembersPage() {
             <option value="ARREARS">ค้างชำระ</option>
             <option value="RESIGNED">ลาออก</option>
             <option value="DECEASED">เสียชีวิต</option>
-            <option value="SUSPENDED">พักสมาชิก</option>
+            <option value="SUSPENDED">รออนุมัติ</option>
           </select>
           <select
             className="input w-full md:w-48"

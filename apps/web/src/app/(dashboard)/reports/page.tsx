@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { 
@@ -36,6 +36,13 @@ export default function ReportsPage() {
     startDate: `${selectedYear}-01-01`,
     endDate: `${selectedYear}-12-31`,
   });
+
+  // ช่วงวันที่ถูก seed จาก selectedYear แค่ตอน mount ครั้งแรก ถ้าไม่ sync ต่อ
+  // การสลับปีที่หัวจอจะเปลี่ยนแค่หัวข้อรายงาน แต่ตัวเลขยังเป็นของปีเดิม
+  useEffect(() => {
+    setDateRange({ startDate: `${selectedYear}-01-01`, endDate: `${selectedYear}-12-31` });
+    setDeathBenefitRange({ startDate: `${selectedYear}-01-01`, endDate: `${selectedYear}-12-31` });
+  }, [selectedYear]);
 
   const { data: memberStats, isLoading: loadingMembers } = useQuery({
     queryKey: ['member-stats', selectedYear, selectedSchoolId],

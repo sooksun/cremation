@@ -78,7 +78,7 @@ const statusLabels: Record<string, string> = {
   RESIGNED: 'ลาออก',
   DECEASED: 'เสียชีวิต',
   ARREARS: 'ค้างชำระ',
-  SUSPENDED: 'พักสมาชิก',
+  SUSPENDED: 'รออนุมัติ',
 };
 
 const statusColors: Record<string, string> = {
@@ -117,6 +117,16 @@ export default function ExecutiveDashboardPage() {
     return new Intl.NumberFormat('th-TH').format(num);
   };
 
+  // hook ทุกตัวต้องอยู่เหนือ early return ทั้งหมด ไม่งั้นจำนวน hook ต่อ render ไม่เท่ากัน
+  // แล้ว React จะโยน "Rendered more hooks than during the previous render"
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  const handleExportPdf = async () => {
+    if (contentRef.current) {
+      await exportElementToPdf(contentRef.current, `executive-report-${dayjs().format('YYYY-MM-DD')}.pdf`);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -150,14 +160,6 @@ export default function ExecutiveDashboardPage() {
     value: s.count,
     color: statusColors[s.status] || '#94a3b8',
   }));
-
-  const contentRef = useRef<HTMLDivElement>(null);
-
-  const handleExportPdf = async () => {
-    if (contentRef.current) {
-      await exportElementToPdf(contentRef.current, `executive-report-${dayjs().format('YYYY-MM-DD')}.pdf`);
-    }
-  };
 
   return (
     <motion.div

@@ -1,6 +1,7 @@
 'use client';
 
 import {
+  ComposedChart,
   BarChart,
   Bar,
   XAxis,
@@ -39,8 +40,10 @@ export function MonthlyAreaChart({ data }: { data: Record<string, any>[] }) {
         <YAxis tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`} tick={{ fontSize: 12 }} />
         <Tooltip formatter={(value: number) => formatCurrency(value)} />
         <Legend />
-        <Area type="monotone" dataKey="รายรับ" stackId="1" stroke="#10b981" fill="#10b981" fillOpacity={0.6} />
-        <Area type="monotone" dataKey="รายจ่าย" stackId="2" stroke="#f43f5e" fill="#f43f5e" fillOpacity={0.6} />
+        {/* ไม่ใส่ stackId: รายรับกับรายจ่ายเป็นคนละชุด ไม่ควรซ้อนทับกัน
+            (เดิมใส่ stackId="1" กับ "2" ซึ่งคนละกลุ่ม จึงไม่เคย stack จริงอยู่แล้ว) */}
+        <Area type="monotone" dataKey="รายรับ" stroke="#10b981" fill="#10b981" fillOpacity={0.6} />
+        <Area type="monotone" dataKey="รายจ่าย" stroke="#f43f5e" fill="#f43f5e" fillOpacity={0.6} />
       </AreaChart>
     </ResponsiveContainer>
   );
@@ -64,7 +67,10 @@ export function TypeDonutChart({ data }: { data: PieSlice[] }) {
 export function CollectionRateChart({ data }: { data: Record<string, any>[] }) {
   return (
     <ResponsiveContainer width="100%" height="100%">
-      <BarChart data={data}>
+      {/* ต้องเป็น ComposedChart: BarChart รับเฉพาะ <Bar> เป็น graphical child
+          <Line> ที่ซ้อนอยู่ข้างในจึงถูกตัดทิ้งเงียบ ๆ ทำให้เส้น "คาดหวัง"/"เก็บได้" ไม่เคยถูกวาด
+          และแกน Y ขวาไม่มีข้อมูลอะไรผูกอยู่เลย */}
+      <ComposedChart data={data}>
         <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
         <XAxis dataKey="name" tick={{ fontSize: 12 }} />
         <YAxis yAxisId="left" tick={{ fontSize: 12 }} domain={[0, 100]} unit="%" />
@@ -83,7 +89,7 @@ export function CollectionRateChart({ data }: { data: Record<string, any>[] }) {
         <Bar yAxisId="left" dataKey="อัตราเก็บ" fill="#10b981" radius={[4, 4, 0, 0]} />
         <Line yAxisId="right" type="monotone" dataKey="คาดหวัง" stroke="#f59e0b" strokeWidth={2} />
         <Line yAxisId="right" type="monotone" dataKey="เก็บได้" stroke="#3b82f6" strokeWidth={2} />
-      </BarChart>
+      </ComposedChart>
     </ResponsiveContainer>
   );
 }
