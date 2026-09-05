@@ -234,14 +234,40 @@ describe('PaymentsService — สรุปยอดจ่ายและกา�
     return true;
   }
 
+  // เงินรายได้ 10% ที่หักเข้าสมาคม — เก็บที่ MemberContribution.serviceAmount
+  // เป็นเงินของสมาคมทั้งก้อน ไม่ได้แยกตามโรงเรียน
+  const CONTRIBUTION_ROWS = [
+    { schoolId: 'school-1', serviceAmount: 5, paidDate: new Date('2026-02-05') },
+    { schoolId: 'school-1', serviceAmount: 5, paidDate: new Date('2026-02-10') },
+    { schoolId: 'school-2', serviceAmount: 5, paidDate: new Date('2026-02-25') },
+  ];
+
   function buildService() {
     const wheres: any[] = [];
+    const contributionWheres: any[] = [];
     const select = (where: any) => {
       wheres.push(where);
       return ROWS.filter((r) => matches(r, where));
     };
 
     const prisma: any = {
+      memberContribution: {
+        aggregate: jest.fn(async ({ where }: any = {}) => {
+          contributionWheres.push(where);
+          const rows = CONTRIBUTION_ROWS.filter((r) => {
+            if (where?.paidDate?.gte && r.paidDate < where.paidDate.gte) return false;
+            if (where?.paidDate?.lte && r.paidDate > where.paidDate.lte) return false;
+            return true;
+          });
+          return {
+            _sum: {
+              serviceAmount: rows.length
+                ? new Prisma.Decimal(rows.reduce((sum, r) => sum + r.serviceAmount, 0).toFixed(2))
+                : null,
+            },
+          };
+        }),
+      },
       paymentVoucher: {
         findMany: jest.fn(async ({ where }: any = {}) => select(where)),
         aggregate: jest.fn(async ({ where }: any = {}) => {
@@ -278,7 +304,7 @@ describe('PaymentsService — สรุปยอดจ่ายและกา�
       {} as CashBookService,
     );
 
-    return { service, wheres };
+    return { service, wheres, contributionWheres };
   }
 
   it('สรุปยอดจ่ายต้องนับเฉพาะโรงเรียนที่ขอ — 90,000 ของอีกโรงเรียนต้องไม่เข้ามา', async () => {
@@ -290,6 +316,19 @@ describe('PaymentsService — สรุปยอดจ่ายและกา�
     expect(summary.total.count).toBe(3);
     for (const where of wheres) {
       expect(where).toMatchObject({ schoolId: 'school-1' });
+    }
+  });
+
+  it('เงินรายได้ 10% ที่หักเข้าสมาคมต้องนับทั้งสมาคม ไม่ถูกกรองด้วยโรงเรียนที่เลือก', async () => {
+    const { service, contributionWheres } = buildService();
+
+    const summary = await service.getSummary('school-1');
+
+    // 3 รายการ × 5 บาท — รวมของ school-2 ด้วย เพราะเงิน 10% เป็นของสมาคมทั้งก้อน
+    expect(summary.associationIncome.amount).toBe(15);
+    expect(summary.associationIncome.remaining).toBe(15 - 54305.75);
+    for (const where of contributionWheres) {
+      expect(where).not.toHaveProperty('schoolId');
     }
   });
 

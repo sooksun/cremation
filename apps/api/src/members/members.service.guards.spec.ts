@@ -18,7 +18,7 @@ describe('MembersService guards', () => {
     deathClaims: [],
   };
 
-  const prisma = {
+  const prisma: any = {
     member: {
       findUnique: jest.fn().mockResolvedValue(deceasedMember),
       findFirst: jest.fn(),
@@ -34,6 +34,17 @@ describe('MembersService guards', () => {
     memberType: {
       findUnique: jest.fn(),
     },
+    beneficiary: {
+      deleteMany: jest.fn(),
+      createMany: jest.fn(),
+    },
+    protectedPerson: {
+      deleteMany: jest.fn(),
+    },
+    memberContribution: { count: jest.fn().mockResolvedValue(0) },
+    deathClaim: { count: jest.fn().mockResolvedValue(0) },
+    // update() ห่อการแก้สมาชิกกับผู้รับผลประโยชน์ไว้ใน transaction เดียวกัน
+    $transaction: jest.fn((fn: any): any => fn(prisma)),
   };
   const schoolScope = {
     assertSchoolAccess: jest.fn(),

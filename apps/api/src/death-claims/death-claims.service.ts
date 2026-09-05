@@ -26,7 +26,6 @@ import { UpdateDeathClaimDocumentsDto } from './dto/update-documents.dto';
 import {
   buildDefaultDocumentChecklist,
   computeWorkflowDeadlines,
-  deriveStatusAfterCollection,
   isChecklistComplete,
   parseDocumentChecklist,
   resolveWorkflowStatus,
@@ -637,11 +636,14 @@ export class DeathClaimsService {
           status: DeathClaimStatus.PAID,
           collectionReceiptId: receipt.id,
           benefitVoucherId: voucher.id,
-          activeMemberCount: calc.payingMemberCount,
-          totalContribution: gross,
-          associationSupport: fund,
-          netToPay: calc.netToPay,
-          welfareRate: calc.collectionRate,
+          // เขียนยอด ณ วันจ่ายลงคอลัมน์ payout* ไม่ทับ snapshot ตอนสร้างเรื่อง
+          // snapshot เดิมคือ "เป้าเก็บเงิน" ที่ใช้ตัดสินว่าเก็บครบหรือยัง ถ้าทับทิ้ง
+          // เงื่อนไข collectedAmount >= totalContribution จะตรวจย้อนหลังไม่ได้อีก
+          payoutMemberCount: calc.payingMemberCount,
+          payoutTotalContribution: gross,
+          payoutAssociationSupport: fund,
+          payoutNetToPay: calc.netToPay,
+          payoutWelfareRate: calc.collectionRate,
         },
       });
 

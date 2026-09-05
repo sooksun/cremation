@@ -107,11 +107,11 @@ describe('DeathClaimsService transactions', () => {
           status: DeathClaimStatus.PAID,
           collectionReceiptId: 'rcpt-1',
           benefitVoucherId: 'vch-1',
-          activeMemberCount: 50,
-          totalContribution: 5000,
-          associationSupport: 500,
-          netToPay: 4500,
-          welfareRate: 100,
+          payoutMemberCount: 50,
+          payoutTotalContribution: 5000,
+          payoutAssociationSupport: 500,
+          payoutNetToPay: 4500,
+          payoutWelfareRate: 100,
         },
       });
     });
@@ -130,18 +130,19 @@ describe('DeathClaimsService transactions', () => {
 
       await service.recordPayment(claimId, { payDate: '2026-06-01', method: 'CASH' }, actor);
 
-      // snapshot ถูก update ด้วยค่าใหม่ ณ payDate
+      // ยอด ณ payDate ลงคอลัมน์ payout* — snapshot ตอนสร้างเรื่องต้องไม่ถูกแตะ
+      // เพราะ totalContribution เดิมคือ "เป้าเก็บเงิน" ที่ใช้ตัดสินว่าจ่ายได้แล้วหรือยัง
       expect(txClaimUpdate).toHaveBeenCalledWith({
         where: { id: claimId },
         data: {
           status: DeathClaimStatus.PAID,
           collectionReceiptId: 'rcpt-1',
           benefitVoucherId: 'vch-1',
-          activeMemberCount: 48,
-          totalContribution: 4800,
-          associationSupport: 480,
-          netToPay: 4320,
-          welfareRate: 100,
+          payoutMemberCount: 48,
+          payoutTotalContribution: 4800,
+          payoutAssociationSupport: 480,
+          payoutNetToPay: 4320,
+          payoutWelfareRate: 100,
         },
       });
       // จ่ายด้วย net ใหม่ (4320) ไม่ใช่ snapshot เดิม (4500)

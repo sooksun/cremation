@@ -121,7 +121,7 @@ export class AssetsService {
   }
 
   // Calculate straight-line depreciation for a year
-  calculateAnnualDepreciation(asset: any, year?: number): number {
+  calculateAnnualDepreciation(asset: any, _year?: number): number {
     const cost = Number(asset.originalCost);
     const salvage = Number(asset.salvageValue || 0);
     const life = asset.usefulLifeYears;

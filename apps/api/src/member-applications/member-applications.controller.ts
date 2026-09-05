@@ -36,6 +36,31 @@ export class MemberApplicationsController {
     return this.service.listSchoolsForRegistration();
   }
 
+  // Public: ตรวจสอบเลขบัตรประชาชนซ้ำ (สำหรับหน้าใบสมัคร)
+  @Get('check-national-id')
+  @Throttle({ default: { limit: 60, ttl: 60000 } })
+  checkNationalId(@Query('nationalId') nationalId?: string) {
+    if (!nationalId) {
+      return { exists: false, isMember: false };
+    }
+    return this.service.checkNationalId(nationalId);
+  }
+
+  // Public: ค้นหาตำบล อำเภอ จังหวัด รหัสไปรษณีย์ จากฐานข้อมูล (สำหรับหน้าใบสมัคร)
+  @Get('addresses')
+  @Throttle({ default: { limit: 120, ttl: 60000 } })
+  addresses(@Query('q') query?: string, @Query('limit') limit = '20') {
+    return this.service.searchAddresses(query, Math.min(parseInt(limit) || 20, 50));
+  }
+
+  // จำนวนใบสมัครที่ยังรออนุมัติ — เมนูใช้แสดงป้ายแจ้งเตือน
+  @Get('pending-count')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN, Role.SCHOOL_ADMIN)
+  pendingCount(@Request() req: { user: ScopedUser }, @Query('schoolId') schoolId?: string) {
+    return this.service.countPendingApplications(schoolId, req.user);
+  }
+
   @Get()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN, Role.SCHOOL_ADMIN)

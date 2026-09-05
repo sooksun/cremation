@@ -262,18 +262,47 @@ export class MembersService {
     const before = await this.findById(id, actor);
     this.assertNotLocked(before.status, actor);
 
-    const updated = await this.prisma.member.update({
-      where: { id },
-      data: {
-        groupId: dto.groupId,
-        joinDate: dto.joinDate ? new Date(dto.joinDate) : undefined,
-        status: dto.status,
-        salaryDeduction: dto.salaryDeduction,
-        membershipClass: dto.membershipClass,
-        resignDate: dto.resignDate ? new Date(dto.resignDate) : undefined,
-        deathDate: dto.deathDate ? new Date(dto.deathDate) : undefined,
-      },
-      include: memberInclude,
+    // การเปลี่ยนสถานะต้องผ่าน changeStatus เท่านั้น ที่นั่นมีการคำนวณวันสิ้นสุดสมาชิกภาพ
+    // เหตุผลการสิ้นสุด และการปิดสิทธิ์ผู้อยู่ในความคุ้มครองตามระเบียบ
+    // ถ้ายอมให้เขียนผ่าน update ตรง ๆ จะได้สมาชิกสถานะ DECEASED ที่ไม่มี deathDate
+    // และผู้อยู่ในความคุ้มครองยังเปิดใช้งานค้างอยู่
+    if (dto.status && dto.status !== before.status) {
+      throw new BadRequestException(
+        'เปลี่ยนสถานะสมาชิกผ่านเมนูเปลี่ยนสถานะเท่านั้น เพื่อให้ระบบบันทึกวันที่และเหตุผลตามระเบียบ',
+      );
+    }
+
+    // แก้สมาชิกและผู้รับผลประโยชน์ต้องอยู่ transaction เดียวกัน ผู้รับผลประโยชน์คือคนที่จะได้เงิน
+    // ฌาปนกิจ ถ้าเขียนครึ่งเดียวแล้วพังจะเหลือรายชื่อที่ไม่ตรงกับที่ผู้ใช้เห็นว่าบันทึกสำเร็จ
+    const updated = await this.prisma.$transaction(async (tx) => {
+      if (dto.beneficiaries) {
+        await tx.beneficiary.deleteMany({ where: { memberId: id } });
+        if (dto.beneficiaries.length > 0) {
+          await tx.beneficiary.createMany({
+            data: dto.beneficiaries.map((b, i) => ({
+              memberId: id,
+              fullName: b.fullName,
+              relationship: b.relationship,
+              phone: b.phone,
+              priority: i + 1,
+            })),
+          });
+        }
+      }
+
+      return tx.member.update({
+        where: { id },
+        data: {
+          groupId: dto.groupId,
+          joinDate: dto.joinDate ? new Date(dto.joinDate) : undefined,
+          status: dto.status,
+          salaryDeduction: dto.salaryDeduction,
+          membershipClass: dto.membershipClass,
+          resignDate: dto.resignDate ? new Date(dto.resignDate) : undefined,
+          deathDate: dto.deathDate ? new Date(dto.deathDate) : undefined,
+        },
+        include: memberInclude,
+      });
     });
 
     if (actor) {
@@ -429,7 +458,26 @@ export class MembersService {
     this.assertNotLocked(member.status, actor);
     const associationMemberId = member.associationMemberId;
 
+    // FK ของ MemberContribution และ DeathClaim เป็น ON DELETE RESTRICT (ตั้งใจ: ห้ามลบ
+    // ประวัติการเงินทิ้ง) ถ้าไม่เช็คก่อน Prisma จะโยน error ดิบออกไปเป็น 500
+    // ส่วน Beneficiary/ProtectedPerson เป็นข้อมูลลูกของสมาชิกล้วน ๆ จึงลบพร้อมกันได้
+    const [contributions, claims] = await Promise.all([
+      this.prisma.memberContribution.count({ where: { memberId: id } }),
+      this.prisma.deathClaim.count({ where: { memberId: id } }),
+    ]);
+    if (contributions > 0 || claims > 0) {
+      const reasons = [
+        contributions > 0 ? `รายการเรียกเก็บเงิน ${contributions} รายการ` : null,
+        claims > 0 ? `เรื่องฌาปนกิจ ${claims} เรื่อง` : null,
+      ].filter(Boolean);
+      throw new BadRequestException(
+        `ลบไม่ได้เพราะมี${reasons.join(' และ ')}ผูกอยู่ กรุณาเปลี่ยนสถานะเป็นลาออกแทน`,
+      );
+    }
+
     await this.prisma.$transaction(async (tx) => {
+      await tx.beneficiary.deleteMany({ where: { memberId: id } });
+      await tx.protectedPerson.deleteMany({ where: { memberId: id } });
       await tx.member.delete({ where: { id } });
       await tx.associationMember.delete({ where: { id: associationMemberId } });
     });

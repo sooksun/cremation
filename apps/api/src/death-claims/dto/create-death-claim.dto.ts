@@ -5,6 +5,7 @@ import {
   IsOptional,
   IsNumber,
   IsEnum,
+  Min,
 } from 'class-validator';
 import { DeathClaimType, DeceasedType } from '@prisma/client';
 
@@ -59,5 +60,8 @@ export class CreateDeathClaimDto {
 
   @IsOptional()
   @IsNumber()
+  // ค่าติดลบจะกลายเป็น "บวกเพิ่ม" ในสูตร netToPay = gross*0.9 - otherDeductions
+  // ทำให้จ่ายเงินสงเคราะห์เกินจริงโดยที่การตรวจเดบิต/เครดิตยังผ่านปกติ
+  @Min(0, { message: 'ยอดหักอื่น ๆ ต้องไม่ติดลบ' })
   otherDeductions?: number;
 }

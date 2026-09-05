@@ -12,6 +12,7 @@ describe('MemberApplicationsService.submit', () => {
     associationMember: { findFirst: jest.fn(), create: jest.fn() },
     member: { findUnique: jest.fn(), create: jest.fn(), update: jest.fn() },
     user: { findUnique: jest.fn() },
+    $queryRawUnsafe: jest.fn(),
   };
 
   const schoolScope = {
@@ -176,6 +177,87 @@ describe('MemberApplicationsService.submit', () => {
       service.submit({ ...baseDto, governmentAgency: 'แม่ฟ้าหลวง' } as never),
     ).rejects.toThrow(BadRequestException);
     expect(prisma.member.create).not.toHaveBeenCalled();
+  });
+
+  it('rejects submission if national ID is already registered as a cremation member in any school', async () => {
+    prisma.associationMember.findFirst.mockResolvedValueOnce({
+      id: 'am-dup',
+      idCardNo: '1100701234567',
+      schoolId: 'school-other',
+      cremationMember: { id: 'm-dup', memberNo: 'M0099', status: MemberStatus.ACTIVE },
+    });
+
+    await expect(
+      service.submit({ ...baseDto, nationalId: '1-1007-01234-56-7' } as never),
+    ).rejects.toThrow(BadRequestException);
+    expect(prisma.member.create).not.toHaveBeenCalled();
+  });
+
+  describe('checkNationalId', () => {
+    it('returns exists true when national ID belongs to an existing cremation member', async () => {
+      prisma.associationMember.findFirst.mockResolvedValueOnce({
+        id: 'am-1',
+        idCardNo: '1100701234567',
+        cremationMember: { id: 'm-1', memberNo: 'M0001', status: MemberStatus.ACTIVE },
+      });
+
+      const result = await service.checkNationalId('1-1007-01234-56-7');
+      expect(result.exists).toBe(true);
+      expect(result.isMember).toBe(true);
+    });
+
+    it('returns exists false when national ID is not registered with cremation member', async () => {
+      prisma.associationMember.findFirst.mockResolvedValueOnce(null);
+
+      const result = await service.checkNationalId('1100709999999');
+      expect(result.exists).toBe(false);
+      expect(result.isMember).toBe(false);
+    });
+
+    it('returns exists false for invalid or short ID', async () => {
+      const result = await service.checkNationalId('123');
+      expect(result.exists).toBe(false);
+      expect(prisma.associationMember.findFirst).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('searchAddresses', () => {
+    it('returns default addresses when query is empty', async () => {
+      const defaultMfl = [
+        { id: 1, subdistrict: 'เทอดไทย', district: 'แม่ฟ้าหลวง', province: 'เชียงราย', zipCode: '57240' },
+      ];
+      prisma.$queryRawUnsafe.mockResolvedValueOnce(defaultMfl);
+
+      const result = await service.searchAddresses('');
+      expect(prisma.$queryRawUnsafe).toHaveBeenCalledWith(
+        expect.stringContaining('province = \'เชียงราย\' AND district = \'แม่ฟ้าหลวง\''),
+        20,
+      );
+      expect(result).toEqual(defaultMfl);
+    });
+
+    it('queries matching subdistricts when query is provided', async () => {
+      const mockResult = [
+        { id: 2, subdistrict: 'แม่สลองนอก', district: 'แม่ฟ้าหลวง', province: 'เชียงราย', zipCode: '57110' },
+      ];
+      prisma.$queryRawUnsafe.mockResolvedValueOnce(mockResult);
+
+      const result = await service.searchAddresses('แม่สลอง', 10);
+      expect(prisma.$queryRawUnsafe).toHaveBeenCalledWith(
+        expect.stringContaining('WHERE subdistrict LIKE ?'),
+        '%แม่สลอง%',
+        '%แม่สลอง%',
+        '%แม่สลอง%',
+        '%แม่สลอง%',
+        'แม่สลอง',
+        'แม่สลอง%',
+        'แม่สลอง',
+        'แม่สลอง%',
+        'แม่สลอง',
+        10,
+      );
+      expect(result).toEqual(mockResult);
+    });
   });
 
   describe('approveApplication / rejectApplication (art.15)', () => {

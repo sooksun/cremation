@@ -16,7 +16,6 @@ describe('ReceiptsService.create — คู่บัญชีของใบเ�
     '101': { id: 'acc-cash', code: '101' },
     '102': { id: 'acc-bank', code: '102' },
     '401': { id: 'acc-welfare', code: '401' },
-    '402': { id: 'acc-service', code: '402' },
   };
 
   function buildDeps(overrides: { accounts?: Record<string, any> } = {}) {

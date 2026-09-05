@@ -33,6 +33,86 @@ export class MemberApplicationsService {
     });
   }
 
+  // Public: ตรวจสอบเลขบัตรประชาชนซ้ำ (สำหรับหน้าใบสมัคร)
+  async checkNationalId(nationalId: string) {
+    const cleanId = nationalId.replace(/\D/g, '');
+    if (!cleanId || cleanId.length !== 13) {
+      return { exists: false, isMember: false };
+    }
+
+    const duplicate = await this.prisma.associationMember.findFirst({
+      where: {
+        OR: [
+          { idCardNo: cleanId },
+          { idCardNo: nationalId.trim() },
+        ],
+      },
+      include: {
+        cremationMember: {
+          select: { id: true, memberNo: true, status: true },
+        },
+      },
+    });
+
+    if (duplicate?.cremationMember) {
+      return {
+        exists: true,
+        isMember: true,
+        message: 'เลขประจำตัวประชาชนนี้มีข้อมูลในระบบสมาชิกฌาปนกิจแล้ว ไม่สามารถสมัครซ้ำได้',
+      };
+    }
+
+    return { exists: false, isMember: false };
+  }
+
+  // Public: ค้นหาตำบล อำเภอ จังหวัด รหัสไปรษณีย์ จากฐานข้อมูล
+  async searchAddresses(query?: string, limit = 20) {
+    const q = query?.trim() || '';
+    if (!q) {
+      return this.prisma.$queryRawUnsafe<
+        { id: number; subdistrict: string; district: string; province: string; zipCode: string }[]
+      >(
+        `SELECT id, subdistrict, district, province, zipCode
+         FROM thaiaddress
+         WHERE province = 'เชียงราย' AND district = 'แม่ฟ้าหลวง'
+         ORDER BY id ASC
+         LIMIT ?`,
+        limit,
+      );
+    }
+
+    const searchPattern = `%${q}%`;
+    return this.prisma.$queryRawUnsafe<
+      { id: number; subdistrict: string; district: string; province: string; zipCode: string }[]
+    >(
+      `SELECT id, subdistrict, district, province, zipCode
+       FROM thaiaddress
+       WHERE subdistrict LIKE ? OR district LIKE ? OR province LIKE ? OR zipCode LIKE ?
+       ORDER BY 
+         CASE 
+           WHEN subdistrict = ? THEN 1
+           WHEN subdistrict LIKE ? THEN 2
+           WHEN district = ? THEN 3
+           WHEN district LIKE ? THEN 4
+           WHEN zipCode = ? THEN 5
+           ELSE 6 
+         END,
+         province = 'เชียงราย' DESC,
+         id ASC
+       LIMIT ?`,
+      searchPattern,
+      searchPattern,
+      searchPattern,
+      searchPattern,
+      q,
+      `${q}%`,
+      q,
+      `${q}%`,
+      q,
+      limit,
+    );
+  }
+
   async submit(dto: SubmitApplicationDto) {
     const school = dto.schoolId
       ? await this.resolveSchoolById(dto.schoolId)
@@ -47,13 +127,19 @@ export class MemberApplicationsService {
       throw new BadRequestException('ไม่พบประเภทสมาชิกในระบบ');
     }
 
-    if (dto.nationalId) {
+    const cleanNationalId = dto.nationalId?.replace(/\D/g, '') || undefined;
+    const idFilters = [
+      ...(cleanNationalId ? [{ idCardNo: cleanNationalId }] : []),
+      ...(dto.nationalId?.trim() ? [{ idCardNo: dto.nationalId.trim() }] : []),
+    ];
+
+    if (idFilters.length > 0) {
       const duplicate = await this.prisma.associationMember.findFirst({
-        where: { schoolId: school.id, idCardNo: dto.nationalId },
+        where: { OR: idFilters },
         include: { cremationMember: true },
       });
       if (duplicate?.cremationMember) {
-        throw new BadRequestException('มีใบสมัคร/สมาชิกที่ใช้เลขบัตรประชาชนนี้แล้ว');
+        throw new BadRequestException('เลขประจำตัวประชาชนนี้มีข้อมูลในระบบสมาชิกฌาปนกิจแล้ว ไม่สามารถสมัครซ้ำได้');
       }
     }
 
@@ -69,9 +155,12 @@ export class MemberApplicationsService {
       salaryDeduction: dto.type === 'ordinary',
     });
 
-    const existingAm = dto.nationalId
+    const existingAm = idFilters.length > 0
       ? await this.prisma.associationMember.findFirst({
-          where: { schoolId: school.id, idCardNo: dto.nationalId },
+          where: {
+            schoolId: school.id,
+            OR: idFilters,
+          },
         })
       : null;
 
@@ -83,7 +172,7 @@ export class MemberApplicationsService {
           memberTypeId: memberType.id,
           firstName,
           lastName,
-          idCardNo: dto.nationalId,
+          idCardNo: cleanNationalId ?? dto.nationalId,
           birthDate: dto.birthDate ? new Date(dto.birthDate) : undefined,
           address,
           phone,
@@ -265,6 +354,21 @@ export class MemberApplicationsService {
         beneficiaries: true,
       },
     });
+  }
+
+  // ใบสมัครที่ยังไม่ถูกอนุมัติ/ปฏิเสธ (applicationStatus ยังว่างหรือ PENDING)
+  async countPendingApplications(schoolId?: string, actor?: ScopedUser) {
+    const scopedSchoolId = actor
+      ? this.schoolScope.resolveSchoolId(actor, schoolId)
+      : schoolId;
+    const count = await this.prisma.member.count({
+      where: {
+        applicationSubmittedAt: { not: null },
+        OR: [{ applicationStatus: null }, { applicationStatus: ApplicationStatus.PENDING }],
+        ...(scopedSchoolId ? { schoolId: scopedSchoolId } : {}),
+      },
+    });
+    return { count };
   }
 
   async getApplication(id: string, actor?: ScopedUser) {
