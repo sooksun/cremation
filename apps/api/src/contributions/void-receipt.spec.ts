@@ -7,6 +7,7 @@ import { BankAccountsService } from '../bank-accounts/bank-accounts.service';
 import { SchoolScopeService } from '../common/security/school-scope.service';
 import { AuditLogService } from '../common/services/audit-log.service';
 import { AppSettingsService } from '../common/services/app-settings.service';
+import { CashBookService } from '../cash-book/cash-book.service';
 
 /**
  * เลขที่ใบเสร็จห้ามถูกนำกลับมาใช้ซ้ำ
@@ -79,6 +80,9 @@ function buildHarness(options?: { auditLog?: { log: jest.Mock } }) {
         ledger.push(...data);
         return { count: data.length };
       }),
+      findMany: jest.fn(async ({ where }: any) =>
+        ledger.filter((e: any) => e.receiptId === where.receiptId),
+      ),
       deleteMany: jest.fn(async ({ where }: any) => {
         const before = ledger.length;
         for (let i = ledger.length - 1; i >= 0; i--) {
@@ -88,6 +92,10 @@ function buildHarness(options?: { auditLog?: { log: jest.Mock } }) {
       }),
     },
     cashBook: {
+      updateMany: jest.fn(),
+      findMany: jest.fn(async ({ where }: any) =>
+        ledger.filter((e: any) => e.receiptId === where.receiptId),
+      ),
       deleteMany: jest.fn(async ({ where }: any) => {
         const before = cashBook.length;
         for (let i = cashBook.length - 1; i >= 0; i--) {
@@ -120,6 +128,7 @@ function buildHarness(options?: { auditLog?: { log: jest.Mock } }) {
       isServiceFeeEnabled: jest.fn().mockResolvedValue(true),
       effectiveServiceFee: jest.fn((fee: number) => fee),
     } as unknown as AppSettingsService,
+    { createFromReceipt: jest.fn(), createFromPayment: jest.fn() } as unknown as CashBookService,
   );
 
   return { service, prisma, receipts, ledger, cashBook, contribution, auditLog };
@@ -140,16 +149,35 @@ describe('F1 — ยกเลิกการชำระต้องยกเล
     expect(receipts.get(receiptId).voidReason).toEqual(expect.any(String));
   });
 
-  it('รายการบัญชีและสมุดเงินสดของใบที่ยกเลิกต้องหายไป เพราะไม่ใช่เงินจริงแล้ว', async () => {
+  it('ยกเลิกแล้วต้องตั้งรายการบัญชีกลับให้ผลสุทธิเป็นศูนย์ ไม่ใช่ลบแถวทิ้ง', async () => {
+    // บัญชีแยกประเภทห้ามลบย้อนหลัง ไม่งั้นงบทดลองก่อน/หลังยกเลิกต่างกันโดยไม่มีร่องรอย
     const { service, prisma, ledger, contribution } = buildHarness();
 
     await service.recordPayment('c1', { amount: 105, paidDate: '2026-01-20' });
-    expect(ledger).toHaveLength(3);
+    expect(ledger).toHaveLength(2);
 
     await service.recordPayment('c1', { amount: 0, paidDate: '2026-01-20' });
 
-    expect(ledger).toHaveLength(0);
-    expect(prisma.cashBook.deleteMany).toHaveBeenCalled();
+    // แถวเดิมยังอยู่ + มีแถวกลับรายการเพิ่มมาอีกชุด
+    expect(ledger).toHaveLength(4);
+    expect(ledger.filter((e) => String(e.description).startsWith('ยกเลิกใบเสร็จ'))).toHaveLength(2);
+
+    const debit = ledger.reduce((sum, e) => sum + Number(e.debit || 0), 0);
+    const credit = ledger.reduce((sum, e) => sum + Number(e.credit || 0), 0);
+    expect(debit).toBe(credit);
+
+    // ผลสุทธิรายบัญชีต้องเป็นศูนย์ — เงินก้อนนี้ไม่เหลืออยู่ในงบแล้ว
+    const netByAccount = new Map<string, number>();
+    for (const e of ledger) {
+      netByAccount.set(
+        e.accountId,
+        (netByAccount.get(e.accountId) ?? 0) + Number(e.debit || 0) - Number(e.credit || 0),
+      );
+    }
+    for (const net of netByAccount.values()) expect(net).toBe(0);
+
+    // สมุดเงินสดใช้ soft delete (เก็บ 10 ปีตามระเบียบ) ไม่ใช่ลบแถว
+    expect(prisma.cashBook.updateMany).toHaveBeenCalled();
     expect(contribution.receiptId).toBeNull();
     expect(contribution.isArrears).toBe(true);
   });
@@ -244,51 +272,71 @@ describe('F3 — แก้ยอดชำระ ใบเสร็จและ�
     expect(Number(contribution.paidAmount)).toBe(50);
   });
 
-  it('บัญชีต้องเหลือเฉพาะรายการของใบใหม่และดุลที่ยอดใหม่', async () => {
+  it('แก้ยอดแล้วผลสุทธิในบัญชีต้องเท่ากับยอดใหม่ (ใบเก่าถูกกลับรายการจนเป็นศูนย์)', async () => {
     const { service, receipts, ledger } = buildHarness();
 
     await service.recordPayment('c1', { amount: 105, paidDate: '2026-01-20' });
     await service.recordPayment('c1', { amount: 50, paidDate: '2026-01-20' });
 
     const active = Array.from(receipts.values()).filter((r) => !r.voidedAt);
-    expect(ledger.every((e) => e.receiptId === active[0].id)).toBe(true);
+    const voided = Array.from(receipts.values()).filter((r) => r.voidedAt);
 
-    const debit = ledger.reduce((sum, e) => sum + Number(e.debit || 0), 0);
-    const credit = ledger.reduce((sum, e) => sum + Number(e.credit || 0), 0);
-    expect(debit).toBe(50);
-    expect(credit).toBe(50);
+    // ใบที่ยกเลิกต้องเหลือผลสุทธิรายบัญชีเป็นศูนย์ ไม่ใช่หายไปจากสมุด
+    const netByAccountOf = (receiptId: string) => {
+      const net = new Map<string, number>();
+      for (const e of ledger.filter((x) => x.receiptId === receiptId)) {
+        net.set(e.accountId, (net.get(e.accountId) ?? 0) + Number(e.debit || 0) - Number(e.credit || 0));
+      }
+      return net;
+    };
+    expect(voided).toHaveLength(1);
+    for (const r of voided) {
+      const net = netByAccountOf(r.id);
+      expect(net.size).toBeGreaterThan(0);
+      for (const v of net.values()) expect(v).toBe(0);
+    }
+
+    const netByAccount = new Map<string, number>();
+    for (const e of ledger) {
+      netByAccount.set(
+        e.accountId,
+        (netByAccount.get(e.accountId) ?? 0) + Number(e.debit || 0) - Number(e.credit || 0),
+      );
+    }
+    // ยอดสุทธิที่ค้างอยู่ในบัญชีต้องเป็นของใบใหม่เท่านั้น = 50 เดบิต / 50 เครดิต
+    const totalPositive = [...netByAccount.values()].filter((v) => v > 0).reduce((a, b) => a + b, 0);
+    const totalNegative = [...netByAccount.values()].filter((v) => v < 0).reduce((a, b) => a + b, 0);
+    expect(totalPositive).toBe(50);
+    expect(totalNegative).toBe(-50);
+    expect(ledger.some((e) => e.receiptId === active[0].id)).toBe(true);
   });
 
   /**
    * ยอดที่รับจริงไม่เท่ากับยอดที่เรียกเก็บ (105 = สงเคราะห์ 100 + ค่าบริการ 5)
-   * ด้านเครดิตต้องกระจายจากยอดที่รับจริง ไม่ใช่ยอดที่เรียกเก็บ ไม่งั้นเดบิตกับเครดิตไม่ดุล
+   * บัญชี 402 ถูกยุบเข้า 401 แล้ว เครดิตทั้งก้อนจึงต้องลงบัญชี 401 บัญชีเดียวและดุลกับเดบิต
    *
    * ยอดที่เกิน 105 ไม่มีในชุดนี้ เพราะ I3 ปฏิเสธตั้งแต่ก่อนถึงการลงบัญชี
    * (เทสต์การปฏิเสธอยู่ที่ record-payment.spec.ts)
    */
-  it.each([
-    [105, { welfare: 100, service: 5 }],
-    [50, { welfare: 50, service: 0 }],
-    [102, { welfare: 100, service: 2 }],
-  ])('รับจริง %d บาท ต้องลงบัญชีดุลและกระจายเงินสงเคราะห์ก่อนค่าบริการ', async (amount, expected) => {
-    const { service, ledger } = buildHarness();
+  it.each([105, 50, 102])(
+    'รับจริง %d บาท ต้องลงบัญชีดุลและเครดิตเข้าบัญชีรายได้เงินสงเคราะห์ทั้งก้อน',
+    async (amount) => {
+      const { service, ledger } = buildHarness();
 
-    await service.recordPayment('c1', { amount, paidDate: '2026-01-20' });
+      await service.recordPayment('c1', { amount, paidDate: '2026-01-20' });
 
-    const debit = ledger.reduce((sum, e) => sum + Number(e.debit || 0), 0);
-    const credit = ledger.reduce((sum, e) => sum + Number(e.credit || 0), 0);
-    expect(debit).toBe(amount);
-    expect(credit).toBe(amount);
+      const debit = ledger.reduce((sum, e) => sum + Number(e.debit || 0), 0);
+      const credit = ledger.reduce((sum, e) => sum + Number(e.credit || 0), 0);
+      expect(debit).toBe(amount);
+      expect(credit).toBe(amount);
 
-    const welfare = ledger
-      .filter((e) => e.accountId === 'acc-401')
-      .reduce((sum, e) => sum + Number(e.credit || 0), 0);
-    const serviceFee = ledger
-      .filter((e) => e.accountId === 'acc-402')
-      .reduce((sum, e) => sum + Number(e.credit || 0), 0);
-    expect(welfare).toBe(expected.welfare);
-    expect(serviceFee).toBe(expected.service);
-  });
+      const welfare = ledger
+        .filter((e) => e.accountId === 'acc-401')
+        .reduce((sum, e) => sum + Number(e.credit || 0), 0);
+      expect(welfare).toBe(amount);
+      expect(ledger.some((e) => e.accountId === 'acc-402')).toBe(false);
+    },
+  );
 
   it('ยอดเท่าเดิม ต้องใช้ใบเสร็จเดิมต่อ ไม่ออกใบที่สองให้เงินก้อนเดียว', async () => {
     const { service, prisma, receipts } = buildHarness();

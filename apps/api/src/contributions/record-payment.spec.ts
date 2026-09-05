@@ -1,4 +1,5 @@
 import { BadRequestException, Logger } from '@nestjs/common';
+import { ReceiptType } from '@prisma/client';
 import { ContributionsService } from './contributions.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { MembersService } from '../members/members.service';
@@ -8,6 +9,7 @@ import { BankAccountsService } from '../bank-accounts/bank-accounts.service';
 import { SchoolScopeService } from '../common/security/school-scope.service';
 import { AuditLogService } from '../common/services/audit-log.service';
 import { AppSettingsService } from '../common/services/app-settings.service';
+import { CashBookService } from '../cash-book/cash-book.service';
 
 /**
  * การลงชำระเงินมี 3 ทาง (อัปโหลด Excel / ตาราง 12 เดือน / หน้างวดรายคน)
@@ -16,6 +18,7 @@ import { AppSettingsService } from '../common/services/app-settings.service';
 describe('ContributionsService.recordPayment — ต้องออกใบเสร็จและลงบัญชีเหมือนทางอื่น', () => {
   let service: ContributionsService;
   let prisma: any;
+  let cashBook: { createFromReceipt: jest.Mock; createFromPayment: jest.Mock };
   let membershipRules: { resetArrearsTracking: jest.Mock };
 
   const CONTRIBUTION = {
@@ -43,8 +46,8 @@ describe('ContributionsService.recordPayment — ต้องออกใบเ�
         findUnique: jest.fn().mockResolvedValue(null),
         delete: jest.fn(),
       },
-      ledgerEntry: { createMany: jest.fn().mockResolvedValue({ count: 3 }), deleteMany: jest.fn() },
-      cashBook: { deleteMany: jest.fn() },
+      ledgerEntry: { createMany: jest.fn().mockResolvedValue({ count: 3 }), deleteMany: jest.fn(), findMany: jest.fn().mockResolvedValue([]) },
+      cashBook: { deleteMany: jest.fn(), updateMany: jest.fn() },
       bankAccount: { findUnique: jest.fn().mockResolvedValue({ id: 'bank-1' }) },
       account: {
         findFirst: jest.fn().mockImplementation(({ where }: any) =>
@@ -55,6 +58,7 @@ describe('ContributionsService.recordPayment — ต้องออกใบเ�
     };
 
     membershipRules = { resetArrearsTracking: jest.fn() };
+    cashBook = { createFromReceipt: jest.fn(), createFromPayment: jest.fn() };
 
     service = new ContributionsService(
       prisma as unknown as PrismaService,
@@ -68,6 +72,19 @@ describe('ContributionsService.recordPayment — ต้องออกใบเ�
         isServiceFeeEnabled: jest.fn().mockResolvedValue(true),
         effectiveServiceFee: jest.fn((fee: number) => fee),
       } as unknown as AppSettingsService,
+      cashBook as unknown as CashBookService,
+    );
+  });
+
+  it('ใบเสร็จเงินสดจากการเก็บเงินสมทบต้องเข้าสมุดเงินสดด้วย', async () => {
+    // เส้นทางนี้สร้างใบเสร็จเองด้วย tx.receipt.create จึงไม่ผ่าน ReceiptsService
+    // เดิมจึงไม่เคยเขียน CashBook เลย (แต่ตอนยกเลิกกลับสั่งลบ) สมุดเงินสดจึงว่างเปล่า
+    await service.recordPayment('c1', { amount: 105, paidDate: '2026-01-20' });
+
+    expect(cashBook.createFromReceipt).toHaveBeenCalledTimes(1);
+    expect(cashBook.createFromReceipt).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'receipt-1' }),
+      expect.anything(),
     );
   });
 
@@ -88,12 +105,47 @@ describe('ContributionsService.recordPayment — ต้องออกใบเ�
     expect(prisma.ledgerEntry.createMany).toHaveBeenCalledTimes(1);
   });
 
-  it('ไม่ออกใบเสร็จซ้ำถ้ารายการมีใบเสร็จอยู่แล้ว', async () => {
+  it('ไม่ออกใบเสร็จซ้ำถ้ารายการมีใบเสร็จของตัวเองอยู่แล้วและยอดตรงกัน', async () => {
     prisma.memberContribution.findUnique.mockResolvedValue({ ...CONTRIBUTION, receiptId: 'existing' });
+    prisma.receipt.findUnique.mockResolvedValue({
+      id: 'existing',
+      amount: 105,
+      type: ReceiptType.MEMBER_CONTRIBUTION,
+      voidedAt: null,
+      memberContribution: { id: 'c1' },
+    });
 
     await service.recordPayment('c1', { amount: 105, paidDate: '2026-01-20' });
 
     expect(prisma.receipt.create).not.toHaveBeenCalled();
+  });
+
+  it('ปฏิเสธใบเสร็จที่ไม่ใช่ของรายการนี้ แทนที่จะบันทึกว่าชำระแล้วโดยไม่ลงบัญชี', async () => {
+    // ใบเสร็จของ contribution อื่น (หรือใบเสร็จประเภทอื่น) ต้องไม่ถูกนำมาผูก
+    prisma.receipt.findUnique.mockResolvedValue({
+      id: 'other-receipt',
+      amount: 105,
+      type: ReceiptType.MEMBER_CONTRIBUTION,
+      voidedAt: null,
+      memberContribution: { id: 'c-other' },
+    });
+
+    await expect(
+      service.recordPayment('c1', { amount: 105, paidDate: '2026-01-20', receiptId: 'other-receipt' }),
+    ).rejects.toThrow(BadRequestException);
+
+    expect(prisma.memberContribution.update).not.toHaveBeenCalled();
+    expect(prisma.ledgerEntry.createMany).not.toHaveBeenCalled();
+  });
+
+  it('ปฏิเสธ receiptId ที่ไม่มีอยู่จริง', async () => {
+    prisma.receipt.findUnique.mockResolvedValue(null);
+
+    await expect(
+      service.recordPayment('c1', { amount: 105, paidDate: '2026-01-20', receiptId: 'ghost' }),
+    ).rejects.toThrow(BadRequestException);
+
+    expect(prisma.memberContribution.update).not.toHaveBeenCalled();
   });
 
   it('ยกเลิกการชำระแล้วต้องกลับไปเป็นค้างชำระ เหมือนทาง batch', async () => {
@@ -215,7 +267,7 @@ describe('ContributionsService — หาบัญชีธนาคารเร
         update: jest.fn().mockResolvedValue({ id: 'c1' }),
       },
       receipt: { create: jest.fn().mockResolvedValue({ id: 'receipt-1' }), findUnique: jest.fn() },
-      ledgerEntry: { createMany: jest.fn().mockResolvedValue({ count: 3 }) },
+      ledgerEntry: { createMany: jest.fn().mockResolvedValue({ count: 3 }), deleteMany: jest.fn(), findMany: jest.fn().mockResolvedValue([]) },
       bankAccount: { findUnique: jest.fn() },
       account: {
         findFirst: jest.fn().mockImplementation(({ where }: any) =>
@@ -237,6 +289,7 @@ describe('ContributionsService — หาบัญชีธนาคารเร
         isServiceFeeEnabled: jest.fn().mockResolvedValue(true),
         effectiveServiceFee: jest.fn((fee: number) => fee),
       } as unknown as AppSettingsService,
+      { createFromReceipt: jest.fn(), createFromPayment: jest.fn() } as unknown as CashBookService,
     );
 
     return { service, prisma };
@@ -350,7 +403,10 @@ describe('ContributionsService.recordPayment — ชำระ → ยกเล�
           ledger.push(...data);
           return { count: data.length };
         }),
-        deleteMany: jest.fn(async ({ where }: any) => {
+        findMany: jest.fn(async ({ where }: any) =>
+        ledger.filter((e: any) => e.receiptId === where.receiptId),
+      ),
+      deleteMany: jest.fn(async ({ where }: any) => {
           const before = ledger.length;
           for (let i = ledger.length - 1; i >= 0; i--) {
             if (ledger[i].receiptId === where.receiptId) ledger.splice(i, 1);
@@ -358,7 +414,7 @@ describe('ContributionsService.recordPayment — ชำระ → ยกเล�
           return { count: before - ledger.length };
         }),
       },
-      cashBook: { deleteMany: jest.fn(async () => ({ count: 0 })) },
+      cashBook: { deleteMany: jest.fn(async () => ({ count: 0 })), updateMany: jest.fn(async () => ({ count: 0 })) },
       bankAccount: { findUnique: jest.fn(async () => ({ id: 'bank-1' })) },
       account: {
         findFirst: jest.fn(async ({ where }: any) => ({ id: `acc-${where.code}`, code: where.code })),
@@ -386,15 +442,19 @@ describe('ContributionsService.recordPayment — ชำระ → ยกเล�
         isServiceFeeEnabled: jest.fn().mockResolvedValue(true),
         effectiveServiceFee: jest.fn((fee: number) => fee),
       } as unknown as AppSettingsService,
+      { createFromReceipt: jest.fn(), createFromPayment: jest.fn() } as unknown as CashBookService,
     );
 
     await service.recordPayment('c1', { amount: 105, paidDate: '2026-01-20' });
     await service.recordPayment('c1', { amount: 0, paidDate: '2026-01-20' });
 
-    // ยกเลิกแล้วต้องไม่เหลือใบเสร็จที่ใช้ได้หรือรายการบัญชีค้างอยู่ในระบบ
+    // ยกเลิกแล้วต้องไม่เหลือใบเสร็จที่ใช้ได้ และผลสุทธิในบัญชีต้องเป็นศูนย์
+    // (แถวยังอยู่ครบ เพราะบัญชีแยกประเภทใช้การตั้งกลับรายการ ไม่ใช่การลบ)
     const usable = () => Array.from(receipts.values()).filter((r) => !r.voidedAt);
+    const netDebit = () => ledger.reduce((s, e) => s + Number(e.debit || 0) - Number(e.credit || 0), 0);
     expect(usable()).toHaveLength(0);
-    expect(ledger).toHaveLength(0);
+    expect(ledger).toHaveLength(4);
+    expect(netDebit()).toBe(0);
     expect(contribution.receiptId).toBeNull();
     expect(contribution.isArrears).toBe(true);
 
@@ -404,11 +464,15 @@ describe('ContributionsService.recordPayment — ชำระ → ยกเล�
     const receiptId = usable()[0].id;
     expect(contribution.receiptId).toBe(receiptId);
     expect(Number(receipts.get(receiptId).amount)).toBe(105);
+    // ใบเก่า 2 แถว + กลับรายการ 2 แถว + ใบใหม่ 2 แถว และผลสุทธิเท่ากับใบใหม่ใบเดียว
+    expect(ledger).toHaveLength(6);
+    expect(netDebit()).toBe(0);
 
-    expect(ledger).toHaveLength(3);
-    expect(ledger.every((entry) => entry.receiptId === receiptId)).toBe(true);
-    const debit = ledger.reduce((sum, entry) => sum + Number(entry.debit || 0), 0);
-    const credit = ledger.reduce((sum, entry) => sum + Number(entry.credit || 0), 0);
+    // ยอดที่ยังมีผลจริงต้องมาจากใบใหม่ใบเดียว: เดบิต 105 / เครดิต 105
+    const activeEntries = ledger.filter((entry) => entry.receiptId === receiptId);
+    expect(activeEntries).toHaveLength(2);
+    const debit = activeEntries.reduce((sum, entry) => sum + Number(entry.debit || 0), 0);
+    const credit = activeEntries.reduce((sum, entry) => sum + Number(entry.credit || 0), 0);
     expect(debit).toBe(105);
     expect(credit).toBe(105);
   });

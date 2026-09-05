@@ -7,6 +7,7 @@ import { BankAccountsService } from '../bank-accounts/bank-accounts.service';
 import { SchoolScopeService } from '../common/security/school-scope.service';
 import { AuditLogService } from '../common/services/audit-log.service';
 import { AppSettingsService } from '../common/services/app-settings.service';
+import { CashBookService } from '../cash-book/cash-book.service';
 
 /**
  * I6: ตั้งแต่การชำระไม่ครบยอดถูกบังคับให้คง isArrears = true ไว้ (I2)
@@ -41,6 +42,7 @@ describe('ContributionsService.getArrears — คนจ่ายไม่คร�
       { resolveSchoolId: jest.fn((_actor, schoolId?: string) => schoolId) } as unknown as SchoolScopeService,
       { log: jest.fn() } as unknown as AuditLogService,
       {} as AppSettingsService,
+      { createFromReceipt: jest.fn(), createFromPayment: jest.fn() } as unknown as CashBookService,
     );
 
     return { service, findMany };

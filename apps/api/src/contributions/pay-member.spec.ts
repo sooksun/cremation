@@ -9,6 +9,7 @@ import { BankAccountsService } from '../bank-accounts/bank-accounts.service';
 import { SchoolScopeService } from '../common/security/school-scope.service';
 import { AuditLogService } from '../common/services/audit-log.service';
 import { AppSettingsService } from '../common/services/app-settings.service';
+import { CashBookService } from '../cash-book/cash-book.service';
 
 /**
  * ทางอัปโหลด Excel สร้างรายการให้เองเมื่อสมาชิกยังไม่มีรายการของงวดนั้น
@@ -44,8 +45,8 @@ describe('ContributionsService.payMemberForPeriod', () => {
         findUnique: jest.fn().mockResolvedValue(null),
         delete: jest.fn(),
       },
-      ledgerEntry: { createMany: jest.fn().mockResolvedValue({ count: 3 }), deleteMany: jest.fn() },
-      cashBook: { deleteMany: jest.fn() },
+      ledgerEntry: { createMany: jest.fn().mockResolvedValue({ count: 3 }), deleteMany: jest.fn(), findMany: jest.fn().mockResolvedValue([]) },
+      cashBook: { deleteMany: jest.fn(), updateMany: jest.fn() },
       bankAccount: { findUnique: jest.fn().mockResolvedValue(null) },
       // ผังบัญชีต้องมีจริง ไม่งั้นบล็อกลงบัญชีจะไม่ถูกรัน แล้วเทสต์ชุดนี้จะเขียวทั้งที่ลบการลงบัญชีทิ้ง
       account: {
@@ -73,6 +74,7 @@ describe('ContributionsService.payMemberForPeriod', () => {
         isServiceFeeEnabled: jest.fn().mockResolvedValue(true),
         effectiveServiceFee: jest.fn((fee: number) => fee),
       } as unknown as AppSettingsService,
+      { createFromReceipt: jest.fn(), createFromPayment: jest.fn() } as unknown as CashBookService,
     );
   });
 

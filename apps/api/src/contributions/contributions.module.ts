@@ -5,10 +5,11 @@ import { PaymentReconciliationService } from './payment-reconciliation.service';
 import { MembersModule } from '../members/members.module';
 import { ReceiptsModule } from '../receipts/receipts.module';
 import { CommonModule } from '../common/common.module';
+import { CashBookModule } from '../cash-book/cash-book.module';
 import { BankAccountsModule } from '../bank-accounts/bank-accounts.module';
 
 @Module({
-  imports: [MembersModule, ReceiptsModule, CommonModule, BankAccountsModule],
+  imports: [MembersModule, ReceiptsModule, CommonModule, BankAccountsModule, CashBookModule],
   controllers: [ContributionsController],
   providers: [ContributionsService, PaymentReconciliationService],
   exports: [ContributionsService],

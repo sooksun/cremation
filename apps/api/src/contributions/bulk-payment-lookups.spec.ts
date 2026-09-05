@@ -7,9 +7,10 @@ import { BankAccountsService } from '../bank-accounts/bank-accounts.service';
 import { SchoolScopeService } from '../common/security/school-scope.service';
 import { AuditLogService } from '../common/services/audit-log.service';
 import { AppSettingsService } from '../common/services/app-settings.service';
+import { CashBookService } from '../cash-book/cash-book.service';
 
 /**
- * I4: settleContribution เคยหาผังบัญชี (4 findFirst) และบัญชีธนาคารเริ่มต้น (2 query)
+ * I4: settleContribution เคยหาผังบัญชีและบัญชีธนาคารเริ่มต้น (2 query)
  * ใหม่ทุกครั้งที่ออกใบเสร็จ พอถูกเรียกในลูปของการอัปโหลด/ลงชำระทีละหลายคน
  * ไฟล์ 620 แถวจึงยิงคำสั่งเดิมซ้ำ 620 รอบ (~3,700 query ต่อหนึ่ง request)
  *
@@ -17,7 +18,7 @@ import { AppSettingsService } from '../common/services/app-settings.service';
  * โดยที่ผลทางบัญชีและด่านตรวจ (ผังบัญชีไม่ครบต้อง throw ก่อนเขียนอะไร) ต้องเหมือนเดิมทุกอย่าง
  */
 
-const ACCOUNT_CODES = ['101', '102', '401', '402'];
+const ACCOUNT_CODES = ['101', '102', '401'];
 
 function contributionRow(id: string) {
   return {
@@ -72,7 +73,7 @@ function buildHarness() {
       create: jest.fn(async ({ data }: any) => ({ id: `receipt-${++seq}`, ...data })),
       findUnique: jest.fn().mockResolvedValue(null),
     },
-    ledgerEntry: { createMany: jest.fn().mockResolvedValue({ count: 3 }) },
+    ledgerEntry: { createMany: jest.fn().mockResolvedValue({ count: 3 }), deleteMany: jest.fn(), findMany: jest.fn().mockResolvedValue([]) },
     bankAccount: { findUnique: jest.fn().mockResolvedValue({ id: 'bank-1' }) },
     account: {
       findFirst: jest.fn(async ({ where }: any) => ({ id: `acc-${where.code}`, code: where.code })),
@@ -100,6 +101,7 @@ function buildHarness() {
       isServiceFeeEnabled: jest.fn().mockResolvedValue(true),
       effectiveServiceFee: jest.fn((fee: number) => fee),
     } as unknown as AppSettingsService,
+    { createFromReceipt: jest.fn(), createFromPayment: jest.fn() } as unknown as CashBookService,
   );
 
   return { service, prisma, findDefault };

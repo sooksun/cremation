@@ -5,12 +5,19 @@ import { MembershipRulesService } from '../members/membership-rules.service';
 import { CreatePeriodDto, UpdatePeriodDto } from './dto/period.dto';
 import { RecordPaymentDto } from './dto/payment.dto';
 import { Decimal } from '@prisma/client/runtime/library';
-import { AuditAction, MemberStatus, Prisma, ReceiptType } from '@prisma/client';
+import {
+  AuditAction,
+  MemberStatus,
+  MembershipClass,
+  Prisma,
+  ReceiptType,
+} from '@prisma/client';
 import { DocumentNumberService, DocumentType } from '../common/document-number.service';
 import { BankAccountsService } from '../bank-accounts/bank-accounts.service';
 import { SchoolScopeService, ScopedUser } from '../common/security/school-scope.service';
 import { AuditLogService } from '../common/services/audit-log.service';
 import { AppSettingsService } from '../common/services/app-settings.service';
+import { CashBookService } from '../cash-book/cash-book.service';
 
 // type alias ไม่ใช่ interface — จะได้ส่งลง metadata (Prisma InputJsonValue) ได้ตรง ๆ
 export type VoidedReceiptInfo = {
@@ -27,7 +34,6 @@ type ContributionLedgerAccounts = {
   cashAccount: { id: string } | null;
   bankAccount: { id: string } | null;
   welfareRevenue: { id: string } | null;
-  serviceRevenue: { id: string } | null;
 };
 
 /**
@@ -67,6 +73,7 @@ export class ContributionsService {
     private readonly schoolScope: SchoolScopeService,
     private readonly auditLog: AuditLogService,
     private readonly appSettings: AppSettingsService,
+    private readonly cashBook: CashBookService,
   ) {}
 
   async getSettings() {
@@ -98,13 +105,12 @@ export class ContributionsService {
   }
 
   private async getContributionLedgerAccounts() {
-    const [cashAccount, bankAccount, welfareRevenue, serviceRevenue] = await Promise.all([
+    const [cashAccount, bankAccount, welfareRevenue] = await Promise.all([
       this.prisma.account.findFirst({ where: { code: '101' } }),
       this.prisma.account.findFirst({ where: { code: '102' } }),
       this.prisma.account.findFirst({ where: { code: '401' } }),
-      this.prisma.account.findFirst({ where: { code: '402' } }),
     ]);
-    return { cashAccount, bankAccount, welfareRevenue, serviceRevenue };
+    return { cashAccount, bankAccount, welfareRevenue };
   }
 
   private async getDefaultBankAccountId(): Promise<string | undefined> {
@@ -131,24 +137,14 @@ export class ContributionsService {
   private buildContributionLedgerEntries(params: {
     debitAccountId: string;
     welfareRevenueId: string;
-    serviceRevenueId: string;
     paidDate: Date;
     amount: number;
-    welfareAmount: number;
-    serviceAmount: number;
     receiptId: string;
     memberLabel: string;
   }) {
-    // ยอดที่รับจริงอาจไม่เท่ากับยอดที่เรียกเก็บ (แก้ยอดย้อนหลัง หรือรับไม่ครบ)
-    // ด้านเครดิตต้องกระจายจากยอดที่รับจริงเสมอ ไม่ใช่ยอดที่เรียกเก็บ ไม่งั้นบัญชีคู่ไม่ดุล
-    // เก็บเงินสงเคราะห์ให้ครบก่อน ส่วนที่เกินจากนั้นจึงเป็นค่าบริการ (ไม่เกินค่าบริการที่เรียกเก็บ)
-    // รับเกินยอดเรียกเก็บ ส่วนเกินลงเป็นรายได้เงินสงเคราะห์
-    const serviceCredit = Math.min(
-      Math.max(params.amount - params.welfareAmount, 0),
-      params.serviceAmount,
-    );
-    const welfareCredit = params.amount - serviceCredit;
-
+    // เงินสงเคราะห์ที่รับมาลงบัญชี 401 "รายได้เงินสงเคราะห์" ทั้งก้อน — รวมส่วน 10% ที่หักเข้าสมาคม
+    // (เดิมแยกส่วน 10% ไปบัญชี 402 "รายได้ค่าบริการ" ซึ่งยกเลิกแล้ว)
+    // ยอดแยกเงินสงเคราะห์/ค่าบริการยังเก็บไว้ที่ MemberContribution สำหรับรายงาน
     const entries = [
       {
         accountId: params.debitAccountId,
@@ -163,21 +159,10 @@ export class ContributionsService {
         date: params.paidDate,
         description: `รายได้เงินสงเคราะห์ ${params.memberLabel}`,
         debit: 0,
-        credit: welfareCredit,
+        credit: params.amount,
         receiptId: params.receiptId,
       },
     ];
-
-    if (serviceCredit > 0) {
-      entries.push({
-        accountId: params.serviceRevenueId,
-        date: params.paidDate,
-        description: `รายได้ค่าบริการ ${params.memberLabel}`,
-        debit: 0,
-        credit: serviceCredit,
-        receiptId: params.receiptId,
-      });
-    }
 
     // Double-entry validation inside builder
     const totalDebit = entries.reduce((s, e) => s + Number(e.debit || 0), 0);
@@ -254,20 +239,50 @@ export class ContributionsService {
 
   /**
    * ใบเสร็จที่ยกเลิกต้องคงแถวไว้ เพื่อกันเลขที่ใบเสร็จถูกปล่อยว่างแล้วออกซ้ำให้เงินคนละก้อน
-   * แต่รายการบัญชีกับสมุดเงินสดของใบนั้นต้องหายไป เพราะเงินก้อนนั้นไม่ใช่เงินจริงแล้ว
+   *
+   * รายการบัญชีต้อง "ตั้งกลับ" ไม่ใช่ "ลบทิ้ง": บัญชีแยกประเภทเป็นสมุดที่ห้ามลบย้อนหลัง
+   * ถ้าลบแถวทิ้ง งบทดลองที่พิมพ์ก่อนกับหลังยกเลิกจะต่างกันโดยไม่มีร่องรอยว่าเกิดอะไรขึ้น
+   * และตรวจสอบย้อนหลังไม่ได้ว่าเคยรับเงินก้อนนี้แล้วยกเลิกไป
+   * ส่วนสมุดเงินสดมีคอลัมน์ deletedAt สำหรับ soft delete อยู่แล้ว (เก็บ 10 ปีตามระเบียบ)
+   * จึงใช้ soft delete แทน deleteMany
    */
   private async voidReceiptInTx(
     tx: Prisma.TransactionClient,
     receiptId: string,
     reason: string,
   ): Promise<VoidedReceiptInfo | null> {
-    await tx.ledgerEntry.deleteMany({ where: { receiptId } });
-    await tx.cashBook.deleteMany({ where: { receiptId } });
+    const voidedAt = new Date();
+
+    const originalEntries = await tx.ledgerEntry.findMany({
+      where: { receiptId },
+      select: { accountId: true, debit: true, credit: true, description: true },
+    });
+
     const voided = await tx.receipt.update({
       where: { id: receiptId },
-      data: { voidedAt: new Date(), voidReason: reason },
+      data: { voidedAt, voidReason: reason },
       select: { receiptNo: true, amount: true },
     });
+
+    if (originalEntries.length > 0) {
+      // สลับข้างเดบิต/เครดิตของทุกแถวเดิม ยอดรวมจึงยังดุลเท่าเดิม
+      await tx.ledgerEntry.createMany({
+        data: originalEntries.map((entry) => ({
+          accountId: entry.accountId,
+          date: voidedAt,
+          description: `ยกเลิกใบเสร็จ ${voided.receiptNo}: ${reason}`,
+          debit: entry.credit,
+          credit: entry.debit,
+          receiptId,
+        })),
+      });
+    }
+
+    await tx.cashBook.updateMany({
+      where: { receiptId, deletedAt: null },
+      data: { deletedAt: voidedAt },
+    });
+
     return { receiptNo: voided.receiptNo, amount: Number(voided.amount) };
   }
 
@@ -358,10 +373,17 @@ export class ContributionsService {
         },
       });
 
+      // ใบเสร็จที่ไม่ใช่ของงวดนี้ต้องถูกปฏิเสธ ไม่ใช่ปล่อยผ่าน
+      // เดิม needsReissue เป็น false ทั้งกรณี "ใบเสร็จเดิมยังใช้ได้" และกรณี
+      // "ไม่ใช่ใบเสร็จของ contribution นี้เลย" แล้วตกไป branch ที่แค่ update paidAmount
+      // ผลคือสมาชิกขึ้นว่าชำระแล้วโดยไม่มีใบเสร็จและไม่มี LedgerEntry สักแถว
+      if (!this.isOwnedContributionReceipt(existingReceipt, contribution.id)) {
+        throw new BadRequestException('เลขที่ใบเสร็จที่อ้างถึงไม่ใช่ใบเสร็จของรายการเรียกเก็บนี้');
+      }
+
       const needsReissue =
-        this.isOwnedContributionReceipt(existingReceipt, contribution.id) &&
-        (!!existingReceipt!.voidedAt ||
-          Math.abs(Number(existingReceipt!.amount) - amount) >= 0.005);
+        !!existingReceipt!.voidedAt ||
+        Math.abs(Number(existingReceipt!.amount) - amount) >= 0.005;
 
       if (!needsReissue) {
         const updated = await this.prisma.memberContribution.update({
@@ -380,13 +402,13 @@ export class ContributionsService {
     // เลขเอกสารสร้างนอก transaction (DocumentNumberService เปิด transaction ของตัวเองอยู่แล้ว)
     const receiptNo = await this.documentNumberService.generateNumber(DocumentType.RECEIPT);
     const { accounts, defaultBankAccountId } = context ?? (await this.resolveSettlementContext());
-    const { cashAccount, bankAccount, welfareRevenue, serviceRevenue } = accounts;
+    const { cashAccount, bankAccount, welfareRevenue } = accounts;
 
     // ผังบัญชีไม่ครบ = ออกใบเสร็จได้แต่ลงบัญชีคู่ไม่ได้ ต้องหยุดตั้งแต่ยังไม่เขียนอะไรลงฐานข้อมูล
     // ไม่ใช่เงียบ ๆ ข้ามการลงบัญชีจนเงินเข้าใบเสร็จแต่ไม่เข้าบัญชี
-    if (!cashAccount || !welfareRevenue || !serviceRevenue) {
+    if (!cashAccount || !welfareRevenue) {
       throw new BadRequestException(
-        'ยังไม่ได้ตั้งค่าผังบัญชีให้ครบ (ต้องมีรหัส 101 เงินสด, 401 รายได้เงินสงเคราะห์, 402 รายได้ค่าบริการ) จึงยังบันทึกการชำระไม่ได้',
+        'ยังไม่ได้ตั้งค่าผังบัญชีให้ครบ (ต้องมีรหัส 101 เงินสด, 401 รายได้เงินสงเคราะห์) จึงยังบันทึกการชำระไม่ได้',
       );
     }
 
@@ -417,19 +439,23 @@ export class ContributionsService {
         },
       });
 
+      // บัญชีเดบิตต้องตามใบเสร็จว่าเป็นเงินสดหรือเงินฝากจริง ๆ ไม่ใช่ตามว่ามีบัญชี 102
+      // อยู่ในผังบัญชีหรือไม่ ไม่งั้นใบเสร็จเงินสดจะไปลงเดบิตเงินฝากธนาคาร
       await tx.ledgerEntry.createMany({
         data: this.buildContributionLedgerEntries({
-          debitAccountId: bankAccount?.id || cashAccount.id,
+          debitAccountId: receipt.bankAccountId ? bankAccount?.id ?? cashAccount.id : cashAccount.id,
           welfareRevenueId: welfareRevenue.id,
-          serviceRevenueId: serviceRevenue.id,
           paidDate,
           amount,
-          welfareAmount: Number(contribution.welfareAmount),
-          serviceAmount: Number(contribution.serviceAmount),
           receiptId: receipt.id,
           memberLabel,
         }),
       });
+
+      // ใบเสร็จเงินสดต้องเข้าสมุดเงินสดเหมือนทางที่ออกใบเสร็จผ่าน ReceiptsService
+      // เดิมทางนี้ไม่เคยเขียน CashBook เลย (แต่ตอน void กลับสั่งลบ) สมุดเงินสดจึงว่างเปล่า
+      // ทั้งที่มีใบเสร็จเงินสดอยู่หลายพันใบ
+      await this.cashBook.createFromReceipt(receipt, tx);
 
       const updated = await tx.memberContribution.update({
         where: { id: contribution.id },
@@ -1003,11 +1029,18 @@ export class ContributionsService {
     }
 
     const scopedSchoolId = actor ? this.schoolScope.resolveSchoolId(actor) : undefined;
+    const unpaidWhere = {
+      periodId,
+      paidAmount: 0,
+      ...(scopedSchoolId ? { schoolId: scopedSchoolId } : {}),
+    };
+
+    // แจ้งชำระทีเดียวทั้งงวดทำได้เฉพาะสมาชิกสามัญ (หักจากเงินเดือน) เท่านั้น
+    // สมาชิกสมทบต้องนำเงินมาชำระเองเป็นราย ๆ จึงต้องบันทึกทีละคนให้ตรวจสอบย้อนหลังได้ว่าใครจ่ายจริง
     const unpaid = await this.prisma.memberContribution.findMany({
       where: {
-        periodId,
-        paidAmount: 0,
-        ...(scopedSchoolId ? { schoolId: scopedSchoolId } : {}),
+        ...unpaidWhere,
+        member: { membershipClass: MembershipClass.ORDINARY },
       },
       include: {
         school: { select: { id: true, name: true, code: true } },
@@ -1016,8 +1049,19 @@ export class ContributionsService {
       orderBy: [{ school: { name: 'asc' } }, { member: { memberNo: 'asc' } }],
     });
 
+    const skippedContributory = await this.prisma.memberContribution.count({
+      where: {
+        ...unpaidWhere,
+        member: { membershipClass: { not: MembershipClass.ORDINARY } },
+      },
+    });
+
     if (unpaid.length === 0) {
-      throw new BadRequestException('ไม่มีรายการที่ยังไม่ชำระในงวดนี้');
+      throw new BadRequestException(
+        skippedContributory > 0
+          ? `ไม่มีสมาชิกสามัญที่ค้างชำระในงวดนี้ (เหลือสมาชิกสมทบ ${skippedContributory} ราย ต้องบันทึกการชำระทีละคน)`
+          : 'ไม่มีรายการที่ยังไม่ชำระในงวดนี้',
+      );
     }
 
     const paidDate = new Date().toISOString();
@@ -1054,7 +1098,12 @@ export class ContributionsService {
     const periodSummaryBySchool = await this.getPeriodSummaryBySchool(periodId, scopedSchoolId);
 
     return {
-      message: `บันทึกการชำระ ${batchResult.success} รายการ`,
+      message:
+        `บันทึกการชำระสมาชิกสามัญ ${batchResult.success} รายการ` +
+        (skippedContributory > 0
+          ? ` (ข้ามสมาชิกสมทบ ${skippedContributory} ราย ต้องบันทึกการชำระทีละคน)`
+          : ''),
+      skippedContributory,
       batch: batchResult,
       newlyPaidBySchool: Object.values(paidBySchool).sort((a, b) =>
         a.schoolName.localeCompare(b.schoolName, 'th'),
@@ -1285,7 +1334,7 @@ export class ContributionsService {
   }
 
   // Get schools for filter
-  async getSchoolsWithContributions(year: number) {
+  async getSchoolsWithContributions(_year: number) {
     const schools = await this.prisma.school.findMany({
       where: { isActive: true },
       include: {
@@ -1546,7 +1595,7 @@ export class ContributionsService {
       });
 
       const defaultBankAccountId = await this.getDefaultBankAccountId();
-      const { cashAccount, bankAccount, welfareRevenue, serviceRevenue } = await this.getContributionLedgerAccounts();
+      const { cashAccount, bankAccount, welfareRevenue } = await this.getContributionLedgerAccounts();
 
       for (const contribution of paidContributions) {
         try {
@@ -1586,10 +1635,8 @@ export class ContributionsService {
             data: receiptData,
           });
 
-          if (cashAccount && welfareRevenue && serviceRevenue) {
+          if (cashAccount && welfareRevenue) {
             const debitAccountId = bankAccount?.id || cashAccount.id;
-            const welfareAmount = Number(contribution.welfareAmount);
-            const serviceAmount = Number(contribution.serviceAmount);
             const memberLabel = `${member.associationMember?.firstName ?? ''} ${member.associationMember?.lastName ?? ''}`.trim()
               || member.memberNo;
 
@@ -1597,11 +1644,8 @@ export class ContributionsService {
               data: this.buildContributionLedgerEntries({
                 debitAccountId,
                 welfareRevenueId: welfareRevenue.id,
-                serviceRevenueId: serviceRevenue.id,
                 paidDate,
                 amount,
-                welfareAmount,
-                serviceAmount,
                 receiptId: receipt.id,
                 memberLabel,
               }),

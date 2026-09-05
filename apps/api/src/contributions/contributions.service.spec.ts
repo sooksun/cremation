@@ -11,6 +11,7 @@ import { BankAccountsService } from '../bank-accounts/bank-accounts.service';
 import { SchoolScopeService } from '../common/security/school-scope.service';
 import { AuditLogService } from '../common/services/audit-log.service';
 import { AppSettingsService } from '../common/services/app-settings.service';
+import { CashBookService } from '../cash-book/cash-book.service';
 
 describe('ContributionsService', () => {
   let service: ContributionsService;
@@ -47,6 +48,7 @@ describe('ContributionsService', () => {
         isServiceFeeEnabled: jest.fn().mockResolvedValue(false),
         effectiveServiceFee: jest.fn((_fee: number, enabled: boolean) => (enabled ? _fee : 0)),
       } as unknown as AppSettingsService,
+      { createFromReceipt: jest.fn(), createFromPayment: jest.fn() } as unknown as CashBookService,
     );
   });
 
@@ -109,7 +111,7 @@ type UploadPrismaMock = {
   member: { findFirst: jest.Mock; findMany: jest.Mock };
   memberContribution: { update: jest.Mock; create: jest.Mock };
   receipt: { create: jest.Mock; update: jest.Mock; delete: jest.Mock };
-  ledgerEntry: { createMany: jest.Mock; deleteMany: jest.Mock };
+  ledgerEntry: { createMany: jest.Mock; deleteMany: jest.Mock; findMany: jest.Mock };
   account: { findFirst: jest.Mock };
 };
 
@@ -119,7 +121,7 @@ function buildService(resolveSchoolId = jest.fn().mockReturnValue(undefined)) {
     member: { findFirst: jest.fn(), findMany: jest.fn().mockResolvedValue([]) },
     memberContribution: { update: jest.fn(), create: jest.fn() },
     receipt: { create: jest.fn(), update: jest.fn(), delete: jest.fn() },
-    ledgerEntry: { createMany: jest.fn(), deleteMany: jest.fn() },
+    ledgerEntry: { createMany: jest.fn(), deleteMany: jest.fn(), findMany: jest.fn().mockResolvedValue([]) },
     account: { findFirst: jest.fn().mockResolvedValue(null) },
   };
 
@@ -139,6 +141,7 @@ function buildService(resolveSchoolId = jest.fn().mockReturnValue(undefined)) {
       isServiceFeeEnabled: jest.fn().mockResolvedValue(false),
       effectiveServiceFee: jest.fn((fee: number, enabled: boolean) => (enabled ? fee : 0)),
     } as unknown as AppSettingsService,
+    { createFromReceipt: jest.fn(), createFromPayment: jest.fn() } as unknown as CashBookService,
   );
 
   return { service, prisma, resolveSchoolId };
