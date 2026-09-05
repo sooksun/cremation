@@ -159,8 +159,20 @@ export class UsersService {
 
     const nextRole = dto.role ?? user.role;
 
+    // ผู้ดูแลโรงเรียนต้องจัดการผ่าน SchoolAdminsService เท่านั้น เพราะที่นั่นบังคับกฎ
+    // โรงเรียนละหนึ่งผู้ดูแล (assertSchoolHasNoAdmin) ทางนี้จึงห้ามแตะบทบาทและสังกัด
+    // ไม่ใช่แค่ตอนส่ง role มาด้วย มิฉะนั้น payload ที่มีแต่ schoolId จะย้ายผู้ดูแลไป
+    // ทับโรงเรียนที่มีผู้ดูแลอยู่แล้วได้ กลายเป็นสองคนต่อโรงเรียน
+    //
+    // ลายเซ็นยังต้องผ่านได้ เพราะ PATCH /users/:id/signature เรียกเมธอดเดียวกัน
+    // โดยส่งมาแค่ signature
+    const touchesRoleOrScope =
+      dto.role !== undefined ||
+      dto.schoolId !== undefined ||
+      dto.groupId !== undefined;
+
     if (
-      dto.role !== undefined &&
+      touchesRoleOrScope &&
       (dto.role === Role.SCHOOL_ADMIN || user.role === Role.SCHOOL_ADMIN)
     ) {
       throw new BadRequestException(

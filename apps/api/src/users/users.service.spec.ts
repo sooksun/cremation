@@ -81,3 +81,69 @@ describe('UsersService member accounts', () => {
     ).rejects.toThrow(ConflictException);
   });
 });
+
+describe('UsersService school admin guards', () => {
+  const prisma = {
+    user: {
+      findUnique: jest.fn(),
+      update: jest.fn(),
+    },
+    member: {
+      findUnique: jest.fn(),
+    },
+  };
+  const service = new UsersService(prisma as never, { log: jest.fn() } as never, {
+    canAccessAllSchools: () => true,
+    assertResourceSchoolAccess: jest.fn(),
+  } as never);
+
+  const schoolAdmin = {
+    id: 'user-admin-20',
+    username: 'admin20',
+    role: Role.SCHOOL_ADMIN,
+    schoolId: 'school-20',
+    memberId: null,
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    prisma.user.findUnique.mockResolvedValue(schoolAdmin);
+    prisma.user.update.mockImplementation(async ({ data }) => ({
+      ...schoolAdmin,
+      ...data,
+      passwordHash: 'x',
+    }));
+  });
+
+  // ย้ายผู้ดูแลข้ามโรงเรียนทางนี้ได้ = โรงเรียนปลายทางมีผู้ดูแลสองคน
+  // ซึ่งขัดกฎโรงเรียนละหนึ่งผู้ดูแลที่ SchoolAdminsService บังคับไว้
+  it('ไม่ให้ย้ายผู้ดูแลโรงเรียนไปสังกัดโรงเรียนอื่นผ่าน PATCH /users/:id', async () => {
+    await expect(service.update('user-admin-20', { schoolId: 'school-99' })).rejects.toThrow(
+      'ผู้ดูแลโรงเรียนให้จัดการผ่านเมนูผู้ดูแลโรงเรียน',
+    );
+    expect(prisma.user.update).not.toHaveBeenCalled();
+  });
+
+  it('ไม่ให้ย้ายกลุ่มของผู้ดูแลโรงเรียนผ่านเส้นทางเดียวกัน', async () => {
+    await expect(service.update('user-admin-20', { groupId: 'group-9' })).rejects.toThrow(
+      'ผู้ดูแลโรงเรียนให้จัดการผ่านเมนูผู้ดูแลโรงเรียน',
+    );
+    expect(prisma.user.update).not.toHaveBeenCalled();
+  });
+
+  // PATCH /users/:id/signature เรียกเมธอดเดียวกันโดยส่งแค่ signature
+  // ถ้ากันแบบเหมารวม ผู้ดูแลโรงเรียนจะบันทึกลายเซ็นตัวเองไม่ได้
+  it('ยังให้ผู้ดูแลโรงเรียนบันทึกลายเซ็นของตัวเองได้', async () => {
+    await expect(
+      service.update('user-admin-20', { signature: 'data:image/png;base64,AA' }),
+    ).resolves.toEqual(expect.objectContaining({ signature: 'data:image/png;base64,AA' }));
+    expect(prisma.user.update).toHaveBeenCalled();
+  });
+
+  it('ยังกันการตั้งบทบาทเป็นผู้ดูแลโรงเรียนจากผู้ใช้ทั่วไป', async () => {
+    prisma.user.findUnique.mockResolvedValue({ ...schoolAdmin, role: Role.FINANCE });
+    await expect(
+      service.update('user-admin-20', { role: Role.SCHOOL_ADMIN }),
+    ).rejects.toThrow('ผู้ดูแลโรงเรียนให้จัดการผ่านเมนูผู้ดูแลโรงเรียน');
+  });
+});
