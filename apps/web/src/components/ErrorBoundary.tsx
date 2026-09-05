@@ -1,21 +1,32 @@
 'use client';
 
 import { Component, type ReactNode } from 'react';
+import { usePathname } from 'next/navigation';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
 
 interface Props {
   children: ReactNode;
+  /** เปลี่ยนค่าเมื่อไหร่ boundary จะรีเซ็ตตัวเอง — ใช้ pathname เพื่อให้ย้ายหน้าแล้วหายพัง */
+  resetKey?: string;
 }
 
 interface State {
   hasError: boolean;
 }
 
-export default class ErrorBoundary extends Component<Props, State> {
+class ErrorBoundaryInner extends Component<Props, State> {
   state: State = { hasError: false };
 
   static getDerivedStateFromError(): State {
     return { hasError: true };
+  }
+
+  // เดิม boundary นี้ครอบทั้งแอปและล้างสถานะได้ทางเดียวคือ window.location.reload()
+  // ทำให้ error ครั้งเดียวค้างทั้ง SPA จนกว่าจะรีโหลด แม้ผู้ใช้จะกดไปหน้าอื่นแล้ว
+  componentDidUpdate(prevProps: Props) {
+    if (this.state.hasError && prevProps.resetKey !== this.props.resetKey) {
+      this.setState({ hasError: false });
+    }
   }
 
   handleRetry = () => {
@@ -46,4 +57,9 @@ export default class ErrorBoundary extends Component<Props, State> {
 
     return this.props.children;
   }
+}
+
+export default function ErrorBoundary({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
+  return <ErrorBoundaryInner resetKey={pathname}>{children}</ErrorBoundaryInner>;
 }

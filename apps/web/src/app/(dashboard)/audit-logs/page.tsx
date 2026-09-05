@@ -82,6 +82,8 @@ export default function AuditLogsPage() {
   queryParams.append('limit', limit.toString());
 
   const { data, isLoading, isError, refetch, isFetching } = useQuery<AuditLogsResponse>({
+    // หน้านี้มี error state ของตัวเองอยู่แล้ว จึงไม่ต้องโยนขึ้น error boundary
+    throwOnError: false,
     queryKey: ['audit-logs', selectedAction, fromDate, toDate, limit],
     queryFn: async () => {
       const response = await api.get(`/audit-logs?${queryParams.toString()}`);
