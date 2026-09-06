@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateAccountDto, UpdateAccountDto } from './dto/account.dto';
 import { AccountType } from '@prisma/client';
@@ -377,8 +382,23 @@ export class AccountsService {
       throw new Error('Missing closing accounts. Please ensure account codes 399 (Income Summary) and 310 (Retained Earnings) exist.');
     }
 
-    const entries: any[] = [];
     const closeDate = new Date(year, 11, 31);
+
+    // กันปิดซ้ำ: รายการปิดลง LedgerEntry จริง แก้ทีหลังยาก
+    // ตอนนี้ปิดซ้ำไม่ได้ทำให้ยอดผิด เพราะรายการปิดลงวันที่ 31 ธ.ค. ซึ่งอยู่ในงวด
+    // ที่เพิ่งปิด งบทดลองรอบสองจึงเห็นบัญชีรายได้/ค่าใช้จ่ายเป็นศูนย์ไปแล้ว
+    // แต่มันตอบว่า "สำเร็จ" โดยไม่สร้างอะไรเลย ผู้ทำบัญชีจึงแยกไม่ออกว่าปิดไปหรือยัง
+    // และความบังเอิญนี้จะพังทันทีถ้าช่วงของงบกำไรขาดทุนเปลี่ยนไปไม่ครอบวันที่ปิด
+    const alreadyClosed = await this.prisma.ledgerEntry.findFirst({
+      where: { accountId: incomeSummary.id, date: closeDate },
+    });
+    if (alreadyClosed) {
+      throw new BadRequestException(
+        `ปิดบัญชีประจำปี ${year} ไปแล้ว หากต้องแก้ไขให้กลับรายการปิดก่อน`,
+      );
+    }
+
+    const entries: any[] = [];
 
     // Close Income (revenues) - Debit Revenue, Credit Summary
     // ยอดติดลบ (เช่น กลับรายการมากกว่ารายได้ที่รับจริง) ต้องกลับข้างเดบิต/เครดิต

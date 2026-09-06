@@ -97,6 +97,14 @@ function buildPrisma(accounts: FakeAccount[], entries: FakeEntry[], assets: Fake
               : null,
           }));
       }),
+      findFirst: jest.fn(async ({ where }: any = {}) => {
+        const match = rows.find((r) => {
+          if (where.accountId !== undefined && r.accountId !== where.accountId) return false;
+          if (where.date instanceof Date && r.date.getTime() !== where.date.getTime()) return false;
+          return inRange(r, { ...where, date: where.date instanceof Date ? undefined : where.date });
+        });
+        return match ?? null;
+      }),
       createMany: jest.fn(async ({ data }: any) => {
         // รายการปิดบัญชีต้องกลับเข้ามาในงบทดลองรอบถัดไป ไม่งั้นทดสอบการปิดซ้ำไม่ได้จริง
         data.forEach((d: any, i: number) =>
@@ -751,18 +759,6 @@ describe('AccountsService.closeAccountingYear', () => {
     expect(debit).toBe(credit);
   });
 
-  it('ปิดปีเดิมซ้ำ ต้องไม่สร้างรายการปิดซ้ำ เพราะบัญชีถูกล้างไปแล้ว', async () => {
-    const prisma = buildPrisma(ACCOUNTS, PROFIT_YEAR);
-    const service = buildService(prisma);
-
-    await service.closeAccountingYear(2026);
-    const second = await service.closeAccountingYear(2026);
-
-    expect(second.closingEntriesCreated).toBe(0);
-    expect(second.netProfit).toBe(0);
-    expect(prisma.ledgerEntry.createMany).toHaveBeenCalledTimes(1);
-  });
-
   it('ไม่มีบัญชี 399 หรือ 310 ต้องปฏิเสธ ไม่ใช่ปิดครึ่งเดียวแล้วทิ้งรายการค้าง', async () => {
     const withoutSummary = ACCOUNTS.filter((a) => a.code !== '399');
     const prisma = buildPrisma(withoutSummary, PROFIT_YEAR);
@@ -803,5 +799,28 @@ describe('AccountsService.closeAccountingYear', () => {
 
     expect(movementOf(created, 'a-summary')).toBe(0);
     expect(movementOf(created, 'a-fee')).toBe(2000);
+  });
+
+  it('ปิดบัญชีปีเดิมซ้ำต้องไม่สร้างรายการปิดชุดที่สอง', async () => {
+    const prisma = buildPrisma(ACCOUNTS, [...PROFIT_YEAR]);
+    const service = buildService(prisma);
+
+    const first = await service.closeAccountingYear(2026);
+    expect(first.closingEntriesCreated).toBeGreaterThan(0);
+
+    await expect(service.closeAccountingYear(2026)).rejects.toThrow('ปิดบัญชีประจำปี 2026 ไปแล้ว');
+    expect(prisma.ledgerEntry.createMany).toHaveBeenCalledTimes(1);
+  });
+
+  it('ทุนสะสมหลังพยายามปิดซ้ำต้องยังเป็นกำไรก้อนเดียว ไม่ใช่สองเท่า', async () => {
+    const prisma = buildPrisma(ACCOUNTS, [...PROFIT_YEAR]);
+    const service = buildService(prisma);
+
+    await service.closeAccountingYear(2026);
+    await service.closeAccountingYear(2026).catch(() => undefined);
+
+    const tb = await service.getTrialBalance();
+    expect(tb.accounts.find((a) => a.code === '310')!.balance).toBe(6000);
+    expect(tb.accounts.find((a) => a.code === '399')!.balance).toBe(0);
   });
 });

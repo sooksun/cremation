@@ -40,6 +40,9 @@ jobs:
           JWT_SECRET: ci-test-jwt-secret-at-least-32-characters-long
         run: pnpm --filter @cremation/api run test
 
+      - name: Test Web
+        run: pnpm --filter @cremation/web run test
+
       - name: E2E API
         env:
           JWT_SECRET: ci-test-jwt-secret-at-least-32-characters-long
