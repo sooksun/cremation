@@ -1,7 +1,7 @@
 /**
  * สร้าง SCHOOL_ADMIN ให้ 31 โรงเรียนจริงของแม่ฟ้าหลวง (SCH_XXX)
  * - fullName = คนลำดับที่ 2 ของแต่ละโรงเรียน (จาก member_data.xlsx)
- * - username = admin01..admin31 (ตามลำดับใน schoolCode), password = school@2569 (mustChangePassword=true)
+ * - username = admin001..admin031 (ตามลำดับใน schoolCode), password = School@2569 (mustChangePassword=true)
  * - ผูก memberId ถ้าคนลำดับ 2 เป็นสมาชิกฌาปนกิจ (match ด้วยชื่อ), กัน memberId ซ้ำ
  * - Idempotent: มี admin อยู่แล้ว → update, ยังไม่มี → create
  *

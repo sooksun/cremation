@@ -15,7 +15,7 @@ import { ScopedUser } from '../common/security/school-scope.service';
 import { validateStrongPassword } from '../common/utils/password.util';
 
 /**
- * ชื่อผู้ใช้ของผู้ดูแลโรงเรียน = "admin" + ลำดับโรงเรียน 2 หลัก (admin01, admin02, ...)
+ * ชื่อผู้ใช้ของผู้ดูแลโรงเรียน = "admin" + ลำดับโรงเรียน 3 หลัก (admin001, admin002, ...)
  *
  * ลำดับอ่านจากตัวเลขใน School.code รูปแบบ `SCH_001_ชื่อโรงเรียน` เท่านั้น
  * รหัสที่ไม่มีตัวคั่นหลัง SCH (เช่น `SCH001` ของข้อมูลตัวอย่าง) หรือไม่มีตัวเลขเลย
@@ -24,7 +24,7 @@ import { validateStrongPassword } from '../common/utils/password.util';
 export function buildDefaultSchoolAdminUsername(schoolCode: string): string {
   const ordinal = /^SCH[_-](\d{1,3})(?:[_-]|$)/i.exec(schoolCode ?? '');
   if (ordinal) {
-    return `admin${String(Number(ordinal[1])).padStart(2, '0')}`;
+    return `admin${String(Number(ordinal[1])).padStart(3, '0')}`;
   }
   return `admin-${(schoolCode ?? '').toLowerCase()}`;
 }

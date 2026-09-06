@@ -273,7 +273,7 @@ export default function SchoolAdminsPage() {
                     id={fieldId('username')}
                     {...register('username', { required: 'กรุณากรอกชื่อผู้ใช้' })}
                     className="input"
-                    placeholder="admin01"
+                    placeholder="admin001"
                   />
                   {errors.username && (
                     <p className="text-sm text-red-500 mt-1">{errors.username.message}</p>

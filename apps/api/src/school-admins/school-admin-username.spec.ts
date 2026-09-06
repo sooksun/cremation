@@ -1,14 +1,14 @@
 import { buildDefaultSchoolAdminUsername } from './school-admins.service';
 
 describe('buildDefaultSchoolAdminUsername', () => {
-  it('แปลงรหัสโรงเรียนจริงเป็น admin + ลำดับ 2 หลัก', () => {
-    expect(buildDefaultSchoolAdminUsername('SCH_001_ชุมชนศึกษา_บ้านแม่สะ')).toBe('admin01');
-    expect(buildDefaultSchoolAdminUsername('SCH_009_บ้านห้วยผึ้ง_กลุ่มเค')).toBe('admin09');
-    expect(buildDefaultSchoolAdminUsername('SCH_031_บ้านขาแหย่งพัฒนา_กลุ')).toBe('admin31');
+  it('แปลงรหัสโรงเรียนจริงเป็น admin + ลำดับ 3 หลัก', () => {
+    expect(buildDefaultSchoolAdminUsername('SCH_001_ชุมชนศึกษา_บ้านแม่สะ')).toBe('admin001');
+    expect(buildDefaultSchoolAdminUsername('SCH_009_บ้านห้วยผึ้ง_กลุ่มเค')).toBe('admin009');
+    expect(buildDefaultSchoolAdminUsername('SCH_031_บ้านขาแหย่งพัฒนา_กลุ')).toBe('admin031');
   });
 
-  it('รองรับลำดับเกิน 2 หลักโดยไม่ตัดทิ้ง', () => {
-    expect(buildDefaultSchoolAdminUsername('SCH_032_โรงเรียนใหม่')).toBe('admin32');
+  it('รองรับลำดับเกิน 3 หลักโดยไม่ตัดทิ้ง', () => {
+    expect(buildDefaultSchoolAdminUsername('SCH_032_โรงเรียนใหม่')).toBe('admin032');
     expect(buildDefaultSchoolAdminUsername('SCH_100_โรงเรียนใหม่')).toBe('admin100');
   });
 

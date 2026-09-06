@@ -1,6 +1,6 @@
 /**
- * เปลี่ยนชื่อผู้ใช้ของผู้ดูแลโรงเรียนให้เป็นรูปแบบ admin + ลำดับโรงเรียน 2 หลัก
- * (admin01, admin02, ...) ตามกฎเดียวกับ buildDefaultSchoolAdminUsername
+ * เปลี่ยนชื่อผู้ใช้ของผู้ดูแลโรงเรียนให้เป็นรูปแบบ admin + ลำดับโรงเรียน 3 หลัก
+ * (admin001, admin002, ...) ตามกฎเดียวกับ buildDefaultSchoolAdminUsername
  *
  * ใช้:
  *   npx ts-node --project tsconfig.json scripts/rename-school-admin-usernames.ts        # ดูผลก่อน ไม่เขียนจริง
