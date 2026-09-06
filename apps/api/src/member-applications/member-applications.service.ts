@@ -66,6 +66,15 @@ export class MemberApplicationsService {
   }
 
   // Public: ค้นหาตำบล อำเภอ จังหวัด รหัสไปรษณีย์ จากฐานข้อมูล
+  /**
+   * ชื่อตารางต้องตรงตัวพิมพ์กับ schema.prisma เสมอ และห้ามใส่ backtick ครอบ
+   * เพราะ SQL ก้อนนี้อยู่ใน template literal ของ JS
+   *
+   * MySQL บนวินโดวส์ตั้ง lower_case_table_names=1 จึงไม่แยกตัวพิมพ์ แต่ MariaDB
+   * บน production ตั้ง 0 ซึ่งแยก การเขียน thaiaddress ตัวเล็กจึงผ่านตอนพัฒนา
+   * แต่พังบนเครื่องจริงด้วย error 1146 และหน้าเว็บกลืน error ไว้จนดูเหมือน
+   * แค่ค้นหาไม่เจอ
+   */
   async searchAddresses(query?: string, limit = 20) {
     const q = query?.trim() || '';
     if (!q) {
@@ -73,7 +82,7 @@ export class MemberApplicationsService {
         { id: number; subdistrict: string; district: string; province: string; zipCode: string }[]
       >(
         `SELECT id, subdistrict, district, province, zipCode
-         FROM thaiaddress
+         FROM ThaiAddress
          WHERE province = 'เชียงราย' AND district = 'แม่ฟ้าหลวง'
          ORDER BY id ASC
          LIMIT ?`,
@@ -86,7 +95,7 @@ export class MemberApplicationsService {
       { id: number; subdistrict: string; district: string; province: string; zipCode: string }[]
     >(
       `SELECT id, subdistrict, district, province, zipCode
-       FROM thaiaddress
+       FROM ThaiAddress
        WHERE subdistrict LIKE ? OR district LIKE ? OR province LIKE ? OR zipCode LIKE ?
        ORDER BY 
          CASE 
@@ -164,10 +173,11 @@ export class MemberApplicationsService {
         })
       : null;
 
-    const associationMember =
-      existingAm ??
-      (await this.prisma.associationMember.create({
-        data: {
+    const memberNo =
+      dto.memberNo?.trim() ||
+      (await this.documentNumberService.generateNumber(DocumentType.MEMBER));
+
+    const associationMemberData = {
           schoolId: school.id,
           memberTypeId: memberType.id,
           firstName,
@@ -193,19 +203,7 @@ export class MemberApplicationsService {
           contactProvince: con?.province,
           contactZip: con?.zip,
           associationJoinDate: joinDate,
-        },
-      }));
-
-    const existingMember = await this.prisma.member.findUnique({
-      where: { associationMemberId: associationMember.id },
-    });
-    if (existingMember) {
-      throw new BadRequestException('สมาชิกนี้มีในระบบแล้ว');
-    }
-
-    const memberNo =
-      dto.memberNo?.trim() ||
-      (await this.documentNumberService.generateNumber(DocumentType.MEMBER));
+    };
 
     const membershipFields = this.membershipRules.buildCreateMembershipFields({
       joinDate,
@@ -244,24 +242,43 @@ export class MemberApplicationsService {
         .map((r) => ({ name: r.name!.trim(), relationship: r.relationship ?? '' })),
     });
 
-    const member = await this.prisma.member.create({
-      data: {
-        associationMemberId: associationMember.id,
-        memberNo,
-        schoolId: school.id,
-        joinDate,
-        status: MemberStatus.SUSPENDED,
-        salaryDeduction: dto.type === 'ordinary',
-        ...membershipFields,
-        beneficiaries: beneficiaryRows.length
-          ? { create: beneficiaryRows }
-          : undefined,
-      },
-      include: {
-        school: true,
-        associationMember: { include: { memberType: true } },
-        beneficiaries: { orderBy: { priority: 'asc' } },
-      },
+    /**
+     * สร้าง AssociationMember กับ Member ในทรานแซกชันเดียวกัน
+     *
+     * เดิมสร้างแยกกัน ถ้าสร้าง Member ล้ม (เช่น memberNo ซ้ำ ซึ่งตอนนี้เป็น unique)
+     * จะเหลือ AssociationMember ที่ไม่มีสมาชิกผูกอยู่ค้างในฐานข้อมูล เป็นแถวขยะ
+     * ชนิดเดียวกับที่ต้องตามลบทีหลัง และทำให้จำนวนคนในสมาคมเพี้ยน
+     */
+    const member = await this.prisma.$transaction(async (tx) => {
+      const associationMember =
+        existingAm ?? (await tx.associationMember.create({ data: associationMemberData }));
+
+      const duplicateMember = await tx.member.findUnique({
+        where: { associationMemberId: associationMember.id },
+      });
+      if (duplicateMember) {
+        throw new BadRequestException('สมาชิกนี้มีในระบบแล้ว');
+      }
+
+      return tx.member.create({
+        data: {
+          associationMemberId: associationMember.id,
+          memberNo,
+          schoolId: school.id,
+          joinDate,
+          status: MemberStatus.SUSPENDED,
+          salaryDeduction: dto.type === 'ordinary',
+          ...membershipFields,
+          beneficiaries: beneficiaryRows.length
+            ? { create: beneficiaryRows }
+            : undefined,
+        },
+        include: {
+          school: true,
+          associationMember: { include: { memberType: true } },
+          beneficiaries: { orderBy: { priority: 'asc' } },
+        },
+      });
     });
 
     if (protectedInputs.length > 0) {

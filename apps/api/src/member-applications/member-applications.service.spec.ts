@@ -6,7 +6,10 @@ describe('MemberApplicationsService.submit', () => {
   const school = { id: 'school-1', name: 'โรงเรียนแม่ฟ้าหลวง', code: 'MFH' };
   const memberType = { id: 'type-1', code: 'REG' };
 
-  const prisma = {
+  const prisma: any = {
+    // submit สร้าง AssociationMember กับ Member ในทรานแซกชันเดียว
+    // mock ส่งตัวเองเป็น tx เพราะทดสอบพฤติกรรม ไม่ได้ทดสอบการ rollback จริง
+    $transaction: jest.fn(async (fn: (tx: unknown) => unknown) => fn(prisma)),
     school: { findMany: jest.fn(), findUnique: jest.fn() },
     memberType: { findUnique: jest.fn() },
     associationMember: { findFirst: jest.fn(), create: jest.fn() },
@@ -339,4 +342,22 @@ describe('MemberApplicationsService.submit', () => {
       expect(prisma.member.update).not.toHaveBeenCalled();
     });
   });
+
+  /**
+   * เดิมสร้าง AssociationMember แล้วค่อยสร้าง Member แยกกัน
+   * ถ้าขั้นที่สองล้ม จะเหลือ AssociationMember ที่ไม่มีสมาชิกผูกค้างไว้
+   * เป็นแถวขยะชนิดเดียวกับที่เคยต้องตามลบบน production
+   */
+  it('สร้างคนและสมาชิกในทรานแซกชันเดียว ไม่เหลือข้อมูลค้างเมื่อขั้นที่สองล้ม', async () => {
+    prisma.member.create.mockRejectedValueOnce(new Error('memberNo ซ้ำ'));
+
+    await expect(service.submit(baseDto as never)).rejects.toThrow('memberNo ซ้ำ');
+
+    // การสร้างทั้งสองต้องอยู่ในทรานแซกชันเดียวกัน ฐานข้อมูลจึงย้อนกลับให้เอง
+    expect(prisma.$transaction).toHaveBeenCalledTimes(1);
+    const txCallOrder = prisma.$transaction.mock.invocationCallOrder[0];
+    const amCallOrder = prisma.associationMember.create.mock.invocationCallOrder[0];
+    expect(amCallOrder).toBeGreaterThan(txCallOrder);
+  });
+
 });

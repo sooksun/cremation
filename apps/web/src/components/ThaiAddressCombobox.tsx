@@ -46,17 +46,27 @@ export function ThaiAddressCombobox({
   const [highlightIndex, setHighlightIndex] = useState(-1);
   const boxRef = useRef<HTMLDivElement>(null);
 
+  const [failed, setFailed] = useState(false);
+  // กันคำตอบเก่ามาถึงหลังคำตอบใหม่แล้วเขียนทับผลลัพธ์ที่ถูกต้อง
+  const requestSeq = useRef(0);
+
   const fetchAddresses = useCallback(async (q: string) => {
+    const seq = ++requestSeq.current;
     setLoading(true);
     try {
       const res = await api.get<ThaiAddressItem[]>('/member-applications/addresses', {
         params: { q: q.trim(), limit: 25 },
       });
+      if (seq !== requestSeq.current) return;
       setItems(res.data || []);
+      setFailed(false);
     } catch {
+      if (seq !== requestSeq.current) return;
       setItems([]);
+      // เดิมกลืน error ไว้เงียบ ๆ ผู้ใช้จึงเห็นแค่ "ไม่พบข้อมูล" ทั้งที่ระบบค้นหาล่ม
+      setFailed(true);
     } finally {
-      setLoading(false);
+      if (seq === requestSeq.current) setLoading(false);
     }
   }, []);
 
@@ -67,6 +77,11 @@ export function ThaiAddressCombobox({
     }, 200);
     return () => clearTimeout(timer);
   }, [query, open, fetchAddresses]);
+
+  // รายการเปลี่ยนแล้ว ตัวที่ไฮไลต์ไว้เดิมไม่ได้ชี้ของเดิมอีกต่อไป
+  useEffect(() => {
+    setHighlightIndex(-1);
+  }, [items]);
 
   useEffect(() => {
     const onDocClick = (e: MouseEvent) => {
@@ -162,8 +177,15 @@ export function ThaiAddressCombobox({
             เลือกตำบล (ระบบจะกรอก อำเภอ จังหวัด รหัสไปรษณีย์ ให้อัตโนมัติ)
           </div>
           {items.length === 0 ? (
-            <div className="px-3 py-3 text-center text-xs text-slate-500">
-              {loading ? 'กำลังค้นหาที่อยู่...' : 'ไม่พบข้อมูลที่ค้นหา (สามารถพิมพ์เองได้)'}
+            <div
+              className={`px-3 py-3 text-center text-xs ${failed ? 'text-red-600' : 'text-slate-500'}`}
+              role={failed ? 'alert' : undefined}
+            >
+              {loading
+                ? 'กำลังค้นหาที่อยู่...'
+                : failed
+                  ? 'ค้นหาที่อยู่ไม่สำเร็จ กรุณาลองใหม่ หรือพิมพ์ที่อยู่เอง'
+                  : 'ไม่พบข้อมูลที่ค้นหา (สามารถพิมพ์เองได้)'}
             </div>
           ) : (
             items.map((item, idx) => {
