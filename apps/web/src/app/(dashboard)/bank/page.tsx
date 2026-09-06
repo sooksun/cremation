@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import { Landmark, TrendingUp, TrendingDown, ArrowUpRight, ArrowDownRight, Calendar, CreditCard, Plus } from 'lucide-react';
 import { api } from '@/lib/api';
 import { showSuccess, showError } from '@/lib/toast';
+import { todayISODate } from '@/lib/date';
 
 interface BankAccount {
   id: string;
@@ -29,7 +30,7 @@ export default function BankPage() {
   const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [txnForm, setTxnForm] = useState({
-    date: new Date().toISOString().split('T')[0],
+    date: todayISODate(),
     type: 'DEPOSIT' as 'DEPOSIT' | 'WITHDRAWAL',
     amount: '',
     description: '',
@@ -56,7 +57,7 @@ export default function BankPage() {
       queryClient.invalidateQueries({ queryKey: ['bank-transactions', selectedAccountId] });
       showSuccess('บันทึกธุรกรรมสำเร็จ');
       setShowForm(false);
-      setTxnForm({ date: new Date().toISOString().split('T')[0], type: 'DEPOSIT', amount: '', description: '' });
+      setTxnForm({ date: todayISODate(), type: 'DEPOSIT', amount: '', description: '' });
     },
     onError: (e: any) => showError(e.response?.data?.message || 'บันทึกไม่สำเร็จ'),
   });

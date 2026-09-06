@@ -13,6 +13,7 @@ import { canSelectAllSchools, filterSchoolsForUser } from '@/lib/school-scope';
 import ThaiDatePicker from '@/components/ThaiDatePicker';
 import dayjs from 'dayjs';
 import { fieldId } from '@/lib/field-id';
+import { todayISODate } from '@/lib/date';
 
 interface MemberForm {
   schoolId: string;
@@ -48,7 +49,7 @@ export default function NewMemberPage() {
       memberTypeId: '',
       firstName: '',
       lastName: '',
-      joinDate: new Date().toISOString().split('T')[0],
+      joinDate: todayISODate(),
       salaryDeduction: false,
       beneficiaries: [],
     },

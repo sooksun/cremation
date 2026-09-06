@@ -13,6 +13,7 @@ import ThaiDatePicker from '@/components/ThaiDatePicker';
 import dayjs from 'dayjs';
 import Link from 'next/link';
 import { fieldId } from '@/lib/field-id';
+import { todayISODate } from '@/lib/date';
 
 interface ReceiptItem {
   id: string;
@@ -70,7 +71,7 @@ export default function ReceiptsPage() {
 
   const { register, handleSubmit, reset, control, formState: { errors } } = useForm<ReceiptForm>({
     defaultValues: {
-      date: new Date().toISOString().split('T')[0],
+      date: todayISODate(),
     },
   });
 
@@ -138,7 +139,7 @@ export default function ReceiptsPage() {
   const openModal = () => {
     reset({
       schoolId: selectedSchoolId || '',
-      date: new Date().toISOString().split('T')[0],
+      date: todayISODate(),
       type: 'MEMBER_CONTRIBUTION',
       amount: 0,
     });

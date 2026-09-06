@@ -76,19 +76,21 @@ describe('เส้นทางที่เมนูซ่อนแต่ยั�
     FINANCE: [],
     SCHOOL_ADMIN: ['/assets'],
     ACCOUNTING: ['/reports'],
+    // /school-admins, /assets และ /audit-logs หลุดออกจากรายการนี้แล้ว
+    // เพราะ API ไม่ให้สองบทบาทนี้อ่าน จึงถูกกันตั้งแต่ฝั่งเว็บ
     GROUP_LEADER: [
-      '/dashboard/finance', '/school-admins', '/assets', '/association-members',
+      '/dashboard/finance', '/association-members',
       '/bank', '/reports/finance', '/reports/financial-statements', '/reports/daily',
       '/reports/trial-balance', '/reports', '/reports/executive', '/reports/board-monthly',
       '/members', '/contributions/arrears', '/receipts', '/payments', '/death-claims',
-      '/settings/signature', '/audit-logs',
+      '/settings/signature',
     ],
     VIEWER: [
-      '/dashboard/finance', '/school-admins', '/assets', '/association-members',
+      '/dashboard/finance', '/association-members',
       '/bank', '/reports/finance', '/reports/financial-statements', '/reports/daily',
       '/reports/trial-balance', '/reports', '/reports/executive', '/reports/board-monthly',
       '/members', '/contributions/periods', '/contributions/matrix', '/contributions/arrears',
-      '/receipts', '/payments', '/death-claims', '/audit-logs',
+      '/receipts', '/payments', '/death-claims',
     ],
   };
 
@@ -103,5 +105,56 @@ describe('เส้นทางที่เมนูซ่อนแต่ยั�
     ].sort();
 
     expect(actual).toEqual([...KNOWN[role]].sort());
+  });
+});
+
+/**
+ * ตัวกันเส้นทางฝั่งเว็บต้องไม่ปล่อยกว้างกว่าสิทธิ์ "อ่าน" ของฝั่ง API
+ *
+ * controller ส่วนใหญ่ใส่ @Roles เฉพาะ endpoint ที่แก้ข้อมูล ส่วน GET เปิดให้ทุกบทบาท
+ * ที่ล็อกอิน จึงไม่ต้องอยู่ในตารางนี้ — มีเฉพาะโมดูลที่จำกัดสิทธิ์อ่านจริง
+ * ถ้าแก้ @Roles ของ GET ใน controller ต้องมาแก้ตารางนี้ด้วย
+ *
+ * ปล่อยให้เข้าหน้าที่ API ไม่ให้อ่าน = ผู้ใช้เจอหน้าเปล่าที่โหลดข้อมูลไม่ขึ้น
+ * แทนที่จะถูกกันตั้งแต่ต้นพร้อมเหตุผล
+ */
+describe('ตัวกันเส้นทางต้องไม่ปล่อยกว้างกว่าสิทธิ์อ่านของ API', () => {
+  const SERVER_READ_ROLES: Record<string, readonly string[]> = {
+    '/assets': ['ADMIN', 'SCHOOL_ADMIN', 'ACCOUNTING'],
+    '/audit-logs': ['ADMIN', 'SCHOOL_ADMIN', 'FINANCE', 'ACCOUNTING'],
+    '/school-admins': ['ADMIN'],
+    '/users': ['ADMIN'],
+  };
+
+  it('ไม่มีบทบาทใดเข้าหน้าที่ API ปฏิเสธการอ่านได้', () => {
+    const problems: string[] = [];
+
+    for (const [path, allowed] of Object.entries(SERVER_READ_ROLES)) {
+      for (const role of ROLES) {
+        if (allowed.includes(role)) continue;
+        if (isPathAllowedForRole(path, role)) {
+          problems.push(`${role} เข้า ${path} ได้ ทั้งที่ API ไม่ให้อ่าน`);
+        }
+      }
+    }
+
+    expect(problems).toEqual([]);
+  });
+
+  it('บทบาทที่ API ให้อ่านและเมนูแสดงให้ ต้องไม่ถูกกัน', () => {
+    const problems: string[] = [];
+
+    for (const [path, allowed] of Object.entries(SERVER_READ_ROLES)) {
+      const entry = entries.find((e) => e.href === path);
+      if (!entry) continue;
+      for (const role of allowed) {
+        const menuShows = (entry.roles ?? [...ROLES]).includes(role);
+        if (menuShows && !isPathAllowedForRole(path, role)) {
+          problems.push(`${role} เห็นเมนู ${path} และ API ให้อ่าน แต่ถูกกัน`);
+        }
+      }
+    }
+
+    expect(problems).toEqual([]);
   });
 });

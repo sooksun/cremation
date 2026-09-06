@@ -11,6 +11,7 @@ import { useAuthStore } from '@/store/auth';
 import ThaiDatePicker from '@/components/ThaiDatePicker';
 import dayjs from 'dayjs';
 import { fieldId } from '@/lib/field-id';
+import { todayISODate } from '@/lib/date';
 
 interface PaymentItem {
   id: string;
@@ -46,7 +47,7 @@ export default function PaymentsPage() {
 
   const { register, handleSubmit, reset, control, formState: { errors } } = useForm<PaymentForm>({
     defaultValues: {
-      date: new Date().toISOString().split('T')[0],
+      date: todayISODate(),
     },
   });
 
@@ -108,7 +109,7 @@ export default function PaymentsPage() {
     reset({
       // ค่าเริ่มต้นคือ "สมาคม" — ไม่ผูกกับโรงเรียนที่เลือกอยู่บนแถบด้านบน
       schoolId: '',
-      date: new Date().toISOString().split('T')[0],
+      date: todayISODate(),
       type: 'DEATH_BENEFIT',
       amount: 0,
     });

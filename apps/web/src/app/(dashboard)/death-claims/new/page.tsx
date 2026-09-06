@@ -13,6 +13,7 @@ import { useAuthStore } from '@/store/auth';
 import { canSelectAllSchools, filterSchoolsForUser } from '@/lib/school-scope';
 import ThaiDatePicker from '@/components/ThaiDatePicker';
 import { fieldId } from '@/lib/field-id';
+import { todayISODate } from '@/lib/date';
 
 type DeathClaimType = 'MEMBER_DEATH' | 'PROTECTED_DEATH';
 
@@ -67,8 +68,8 @@ export default function NewDeathClaimPage() {
   const { register, handleSubmit, setValue, watch, control, formState: { errors } } = useForm<DeathClaimForm>({
     defaultValues: {
       schoolId: defaultSchoolId,
-      reportedDate: new Date().toISOString().split('T')[0],
-      deathDate: new Date().toISOString().split('T')[0],
+      reportedDate: todayISODate(),
+      deathDate: todayISODate(),
       deceasedType: DeceasedType.MEMBER,
       otherDeductions: 0,
     },

@@ -30,6 +30,7 @@ import {
 import { formatThaiDate } from '@/components/ThaiDatePicker';
 import { DeathClaimPrint } from '@/components/DeathClaimPrint';
 import { isDeadlineOverdue, statusBadgeClass } from '@/lib/death-claim-workflow';
+import { todayISODate } from '@/lib/date';
 
 export default function DeathClaimDetailPage() {
   const params = useParams();
@@ -88,7 +89,7 @@ export default function DeathClaimDetailPage() {
   const payMutation = useMutation({
     mutationFn: () =>
       api.post(`/death-claims/${claimId}/payment`, {
-        payDate: new Date().toISOString().split('T')[0],
+        payDate: todayISODate(),
         method: 'cash',
         amount: claim?.netToPay,
       }),

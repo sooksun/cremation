@@ -20,6 +20,10 @@ const VIEWER_BLOCKED_PREFIXES = [
   '/reports/disbursement-ledger',
   '/reports/member-registry',
   '/reports/period-close-summary',
+  // เซิร์ฟเวอร์ปฏิเสธการอ่านสามหน้านี้อยู่แล้ว เปิดให้เข้าได้จึงเจอแค่หน้าที่โหลดข้อมูลไม่ขึ้น
+  '/assets',
+  '/audit-logs',
+  '/school-admins',
 ];
 
 const SCHOOL_ADMIN_BLOCKED_PREFIXES = [
@@ -34,7 +38,7 @@ const SCHOOL_ADMIN_BLOCKED_PREFIXES = [
   '/reports/executive',
 ];
 
-// Derived from the sidebar menu `roles` arrays in app/(dashboard)/layout.tsx:
+// อ้างอิงจาก `roles` ของเมนูใน lib/menu.ts (route-access.menu.spec.ts ตรึงให้ตรงกัน):
 // any path whose menu entry's `roles` list omits FINANCE is blocked here.
 // FINANCE has access to money/member-facing modules (groups, bank-accounts,
 // cash-book, association-members, bank, members, contributions, receipts,
@@ -54,7 +58,7 @@ const FINANCE_BLOCKED_PREFIXES = [
   '/reports/executive',
 ];
 
-// Derived from the sidebar menu `roles` arrays in app/(dashboard)/layout.tsx:
+// อ้างอิงจาก `roles` ของเมนูใน lib/menu.ts (route-access.menu.spec.ts ตรึงให้ตรงกัน):
 // any path whose menu entry's `roles` list omits ACCOUNTING is blocked here.
 // ACCOUNTING only has access to accounts, assets, audit-logs, and the
 // shared finance/accounting reports (finance, financial-statements, daily,
@@ -104,6 +108,10 @@ const ROLE_BLOCKED_PREFIXES: Record<string, string[]> = {
     '/reports/disbursement-ledger',
     '/reports/member-registry',
     '/reports/period-close-summary',
+    // เซิร์ฟเวอร์ปฏิเสธการอ่านสามหน้านี้อยู่แล้ว
+    '/assets',
+    '/audit-logs',
+    '/school-admins',
   ],
 };
 

@@ -1,3 +1,4 @@
+import { todayISODate } from './date';
 export type MembershipType = 'ordinary' | 'contributory';
 
 export interface AddressFields {
@@ -154,7 +155,7 @@ export function createDefaultForm(type: MembershipType = 'ordinary'): Membership
     memberSince: '',
     governmentAgency: '',
     schoolId: '',
-    applicationDate: new Date().toISOString().split('T')[0],
+    applicationDate: todayISODate(),
     fullName: '',
     birthDate: '',
     age: '',
@@ -166,7 +167,7 @@ export function createDefaultForm(type: MembershipType = 'ordinary'): Membership
     bloodRelatives: Array.from({ length: 7 }, () => ({ name: '', relationship: '' })),
     beneficiaries: Array.from({ length: 3 }, () => emptyBeneficiary()),
     applicantSignatureName: '',
-    applicantSignatureDate: new Date().toISOString().split('T')[0],
+    applicantSignatureDate: todayISODate(),
   };
 }
 
