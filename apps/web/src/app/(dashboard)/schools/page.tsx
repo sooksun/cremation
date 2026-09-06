@@ -29,6 +29,7 @@ import {
   associationMemberStatusLabels,
   ASSOCIATION_END_REASONS,
 } from '@/lib/api';
+import { fieldId } from '@/lib/field-id';
 
 interface ClusterForm {
   code: string;
@@ -849,10 +850,11 @@ export default function SchoolsPage() {
       <div className="card p-4">
         <div className="flex flex-col md:flex-row gap-4">
           <div className="w-full md:w-64">
-            <label className="block text-sm font-medium text-slate-700 mb-1">กลุ่ม</label>
+            <label htmlFor="schools-852" className="block text-sm font-medium text-slate-700 mb-1">กลุ่ม</label>
             <div className="flex items-center gap-2">
               <FolderTree size={18} className="text-slate-400 shrink-0" />
               <select
+                id="schools-852"
                 value={clusterFilter}
                 onChange={(e) => handleClusterFilterChange(e.target.value)}
                 className="input"
@@ -867,10 +869,11 @@ export default function SchoolsPage() {
             </div>
           </div>
           <div className="flex-1">
-            <label className="block text-sm font-medium text-slate-700 mb-1">โรงเรียน</label>
+            <label htmlFor="schools-870" className="block text-sm font-medium text-slate-700 mb-1">โรงเรียน</label>
             <div className="flex items-center gap-2">
               <Building2 size={18} className="text-slate-400 shrink-0" />
               <select
+                id="schools-870"
                 value={schoolFilter}
                 onChange={(e) => setSchoolFilter(e.target.value)}
                 className="input"
@@ -937,10 +940,11 @@ export default function SchoolsPage() {
 
       {manageTab === 'members' && (
         <div className="w-full md:w-64">
-          <label className="block text-sm font-medium text-slate-700 mb-1">
+          <label htmlFor="schools-940" className="block text-sm font-medium text-slate-700 mb-1">
             สถานะสมาชิกสมาคม
           </label>
           <select
+            id="schools-940"
             value={memberStatusFilter}
             onChange={(e) => setMemberStatusFilter(e.target.value)}
             className="input"
@@ -991,8 +995,9 @@ export default function SchoolsPage() {
               </div>
               <form onSubmit={clusterForm.handleSubmit(onClusterSubmit)} className="space-y-4">
                 <div>
-                  <label className="label">รหัสกลุ่ม</label>
+                  <label htmlFor={fieldId('code')} className="label">รหัสกลุ่ม</label>
                   <input
+                    id={fieldId('code')}
                     {...clusterForm.register('code', { required: 'กรุณากรอกรหัสกลุ่ม' })}
                     className="input"
                     placeholder="เช่น CL01"
@@ -1005,8 +1010,9 @@ export default function SchoolsPage() {
                   )}
                 </div>
                 <div>
-                  <label className="label">ชื่อกลุ่ม</label>
+                  <label htmlFor={fieldId('name')} className="label">ชื่อกลุ่ม</label>
                   <input
+                    id={fieldId('name')}
                     {...clusterForm.register('name', { required: 'กรุณากรอกชื่อกลุ่ม' })}
                     className="input"
                     placeholder="ชื่อกลุ่มโรงเรียน"
@@ -1061,8 +1067,9 @@ export default function SchoolsPage() {
               </div>
               <form onSubmit={schoolForm.handleSubmit(onSchoolSubmit)} className="space-y-4">
                 <div>
-                  <label className="label">กลุ่ม *</label>
+                  <label htmlFor={fieldId('clusterId')} className="label">กลุ่ม *</label>
                   <select
+                    id={fieldId('clusterId')}
                     {...schoolForm.register('clusterId', { required: 'กรุณาเลือกกลุ่ม' })}
                     className="input"
                   >
@@ -1080,8 +1087,9 @@ export default function SchoolsPage() {
                   )}
                 </div>
                 <div>
-                  <label className="label">รหัสโรงเรียน</label>
+                  <label htmlFor={fieldId('code')} className="label">รหัสโรงเรียน</label>
                   <input
+                    id={fieldId('code')}
                     {...schoolForm.register('code', { required: 'กรุณากรอกรหัสโรงเรียน' })}
                     className="input"
                     placeholder="เช่น SCH001"
@@ -1089,8 +1097,9 @@ export default function SchoolsPage() {
                   />
                 </div>
                 <div>
-                  <label className="label">ชื่อโรงเรียน</label>
+                  <label htmlFor={fieldId('name')} className="label">ชื่อโรงเรียน</label>
                   <input
+                    id={fieldId('name')}
                     {...schoolForm.register('name', { required: 'กรุณากรอกชื่อโรงเรียน' })}
                     className="input"
                     placeholder="ชื่อโรงเรียน"
@@ -1098,12 +1107,12 @@ export default function SchoolsPage() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="label">อำเภอ</label>
-                    <input {...schoolForm.register('district')} className="input" />
+                    <label htmlFor={fieldId('district')} className="label">อำเภอ</label>
+                    <input id={fieldId('district')} {...schoolForm.register('district')} className="input" />
                   </div>
                   <div>
-                    <label className="label">จังหวัด</label>
-                    <input {...schoolForm.register('province')} className="input" />
+                    <label htmlFor={fieldId('province')} className="label">จังหวัด</label>
+                    <input id={fieldId('province')} {...schoolForm.register('province')} className="input" />
                   </div>
                 </div>
                 <div className="flex gap-3 pt-4">
@@ -1150,8 +1159,9 @@ export default function SchoolsPage() {
               </div>
               <form onSubmit={memberForm.handleSubmit(onMemberSubmit)} className="space-y-4">
                 <div>
-                  <label className="label">โรงเรียน *</label>
+                  <label htmlFor={fieldId('schoolId')} className="label">โรงเรียน *</label>
                   <select
+                    id={fieldId('schoolId')}
                     {...memberForm.register('schoolId', { required: 'กรุณาเลือกโรงเรียน' })}
                     className="input"
                     disabled={!!editingMember}
@@ -1170,8 +1180,9 @@ export default function SchoolsPage() {
                   )}
                 </div>
                 <div>
-                  <label className="label">ประเภทสมาชิก *</label>
+                  <label htmlFor={fieldId('memberTypeId')} className="label">ประเภทสมาชิก *</label>
                   <select
+                    id={fieldId('memberTypeId')}
                     {...memberForm.register('memberTypeId', { required: 'กรุณาเลือกประเภทสมาชิก' })}
                     className="input"
                   >
@@ -1190,8 +1201,9 @@ export default function SchoolsPage() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="label">ชื่อ *</label>
+                    <label htmlFor={fieldId('firstName')} className="label">ชื่อ *</label>
                     <input
+                      id={fieldId('firstName')}
                       {...memberForm.register('firstName', { required: 'กรุณากรอกชื่อ' })}
                       className="input"
                     />
@@ -1202,8 +1214,9 @@ export default function SchoolsPage() {
                     )}
                   </div>
                   <div>
-                    <label className="label">นามสกุล *</label>
+                    <label htmlFor={fieldId('lastName')} className="label">นามสกุล *</label>
                     <input
+                      id={fieldId('lastName')}
                       {...memberForm.register('lastName', { required: 'กรุณากรอกนามสกุล' })}
                       className="input"
                     />
@@ -1215,37 +1228,38 @@ export default function SchoolsPage() {
                   </div>
                 </div>
                 <div>
-                  <label className="label">เลขบัตรประชาชน</label>
-                  <input {...memberForm.register('idCardNo')} className="input" maxLength={13} />
+                  <label htmlFor={fieldId('idCardNo')} className="label">เลขบัตรประชาชน</label>
+                  <input id={fieldId('idCardNo')} {...memberForm.register('idCardNo')} className="input" maxLength={13} />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="label">เบอร์โทร</label>
-                    <input {...memberForm.register('phone')} className="input" />
+                    <label htmlFor={fieldId('phone')} className="label">เบอร์โทร</label>
+                    <input id={fieldId('phone')} {...memberForm.register('phone')} className="input" />
                   </div>
                   <div>
-                    <label className="label">เลขสมาชิกสมาคม</label>
-                    <input {...memberForm.register('associationMemberNo')} className="input" />
+                    <label htmlFor={fieldId('associationMemberNo')} className="label">เลขสมาชิกสมาคม</label>
+                    <input id={fieldId('associationMemberNo')} {...memberForm.register('associationMemberNo')} className="input" />
                   </div>
                 </div>
                 <div>
-                  <label className="label">ตำแหน่ง</label>
+                  <label htmlFor={fieldId('position')} className="label">ตำแหน่ง</label>
                   <input
+                    id={fieldId('position')}
                     {...memberForm.register('position')}
                     className="input"
                     placeholder="เช่น ผู้อำนวยการ, ครู"
                   />
                 </div>
                 <div>
-                  <label className="label">หมายเหตุ</label>
-                  <textarea {...memberForm.register('notes')} className="input min-h-[60px]" />
+                  <label htmlFor={fieldId('notes')} className="label">หมายเหตุ</label>
+                  <textarea id={fieldId('notes')} {...memberForm.register('notes')} className="input min-h-[60px]" />
                 </div>
 
                 {editingMember && (
                   <div className="pt-4 border-t border-slate-100 space-y-4">
                     <div>
-                      <label className="label">สถานะสมาชิกสมาคม</label>
-                      <select {...memberForm.register('status')} className="input">
+                      <label htmlFor={fieldId('status')} className="label">สถานะสมาชิกสมาคม</label>
+                      <select id={fieldId('status')} {...memberForm.register('status')} className="input">
                         <option value="ACTIVE">
                           {associationMemberStatusLabels.ACTIVE}
                         </option>
@@ -1261,8 +1275,9 @@ export default function SchoolsPage() {
                     {watchMemberStatus === 'ENDED' && (
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <label className="label">เหตุหมดสมาชิกภาพ</label>
+                          <label htmlFor={fieldId('membershipEndReason')} className="label">เหตุหมดสมาชิกภาพ</label>
                           <select
+                            id={fieldId('membershipEndReason')}
                             {...memberForm.register('membershipEndReason')}
                             className="input"
                           >
@@ -1274,8 +1289,9 @@ export default function SchoolsPage() {
                           </select>
                         </div>
                         <div>
-                          <label className="label">วันที่</label>
+                          <label htmlFor={fieldId('membershipEndDate')} className="label">วันที่</label>
                           <input
+                            id={fieldId('membershipEndDate')}
                             type="date"
                             {...memberForm.register('membershipEndDate')}
                             className="input"

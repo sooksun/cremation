@@ -29,6 +29,7 @@ import {
   type MembershipType,
 } from '@/lib/membership-register';
 import dayjs from 'dayjs';
+import { fieldId } from '@/lib/field-id';
 
 function AddressFieldsSection({
   prefix,
@@ -57,8 +58,9 @@ function AddressFieldsSection({
       </div>
 
       <div>
-        <label className="label">บ้านเลขที่</label>
+        <label htmlFor={fieldId(`${prefix}.houseNo`)} className="label">บ้านเลขที่</label>
         <input
+          id={fieldId(`${prefix}.houseNo`)}
           className={`input ${disabled ? 'bg-slate-100 text-slate-500 cursor-not-allowed' : ''}`}
           autoComplete="off"
           disabled={disabled}
@@ -67,8 +69,9 @@ function AddressFieldsSection({
       </div>
 
       <div>
-        <label className="label">หมู่ที่</label>
+        <label htmlFor={fieldId(`${prefix}.moo`)} className="label">หมู่ที่</label>
         <input
+          id={fieldId(`${prefix}.moo`)}
           className={`input ${disabled ? 'bg-slate-100 text-slate-500 cursor-not-allowed' : ''}`}
           autoComplete="off"
           disabled={disabled}
@@ -77,8 +80,9 @@ function AddressFieldsSection({
       </div>
 
       <div>
-        <label className="label">ถนน</label>
+        <label htmlFor={fieldId(`${prefix}.road`)} className="label">ถนน</label>
         <input
+          id={fieldId(`${prefix}.road`)}
           className={`input ${disabled ? 'bg-slate-100 text-slate-500 cursor-not-allowed' : ''}`}
           autoComplete="off"
           disabled={disabled}
@@ -87,8 +91,9 @@ function AddressFieldsSection({
       </div>
 
       <div>
-        <label className="label">ซอย</label>
+        <label htmlFor={fieldId(`${prefix}.soi`)} className="label">ซอย</label>
         <input
+          id={fieldId(`${prefix}.soi`)}
           className={`input ${disabled ? 'bg-slate-100 text-slate-500 cursor-not-allowed' : ''}`}
           autoComplete="off"
           disabled={disabled}
@@ -97,8 +102,9 @@ function AddressFieldsSection({
       </div>
 
       <div>
-        <label className="label">ตำบล (พิมพ์เพื่อค้นหา)</label>
+        <label htmlFor={fieldId(`${prefix}.subdistrict`)} className="label">ตำบล (พิมพ์เพื่อค้นหา)</label>
         <ThaiAddressCombobox
+          id={fieldId(`${prefix}.subdistrict`)}
           disabled={disabled}
           value={currentSubdistrict}
           placeholder="พิมพ์ชื่อตำบล..."
@@ -115,8 +121,9 @@ function AddressFieldsSection({
       </div>
 
       <div>
-        <label className="label">อำเภอ</label>
+        <label htmlFor={fieldId(`${prefix}.district`)} className="label">อำเภอ</label>
         <input
+          id={fieldId(`${prefix}.district`)}
           className={`input ${disabled ? 'bg-slate-100 text-slate-500 cursor-not-allowed' : ''}`}
           autoComplete="off"
           disabled={disabled}
@@ -125,8 +132,9 @@ function AddressFieldsSection({
       </div>
 
       <div>
-        <label className="label">จังหวัด</label>
+        <label htmlFor={fieldId(`${prefix}.province`)} className="label">จังหวัด</label>
         <input
+          id={fieldId(`${prefix}.province`)}
           className={`input ${disabled ? 'bg-slate-100 text-slate-500 cursor-not-allowed' : ''}`}
           autoComplete="off"
           disabled={disabled}
@@ -135,8 +143,9 @@ function AddressFieldsSection({
       </div>
 
       <div>
-        <label className="label">รหัสไปรษณีย์</label>
+        <label htmlFor={fieldId(`${prefix}.zip`)} className="label">รหัสไปรษณีย์</label>
         <input
+          id={fieldId(`${prefix}.zip`)}
           className={`input ${disabled ? 'bg-slate-100 text-slate-500 cursor-not-allowed' : ''}`}
           autoComplete="off"
           disabled={disabled}
@@ -145,8 +154,9 @@ function AddressFieldsSection({
       </div>
 
       <div className="md:col-span-2">
-        <label className="label">เบอร์โทร</label>
+        <label htmlFor={fieldId(`${prefix}.phone`)} className="label">เบอร์โทร</label>
         <input
+          id={fieldId(`${prefix}.phone`)}
           className={`input ${disabled ? 'bg-slate-100 text-slate-500 cursor-not-allowed' : ''}`}
           autoComplete="off"
           disabled={disabled}
@@ -165,11 +175,14 @@ interface SchoolOption {
 
 // dropdown ค้นหาได้ (พิมพ์กรองชื่อ/รหัส) — บังคับเลือกจากรายการในระบบเท่านั้น
 function SchoolCombobox({
+  id,
   schools,
   selectedId,
   selectedName,
   onSelect,
 }: {
+  /** ผูกกับ <label htmlFor> ของฟอร์ม */
+  id?: string;
   schools: SchoolOption[];
   selectedId: string;
   selectedName: string;
@@ -178,6 +191,8 @@ function SchoolCombobox({
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const boxRef = useRef<HTMLDivElement>(null);
+  // aria-controls ต้องชี้ไปยัง element จริงเสมอ แม้ตอนรายการยังไม่เปิด
+  const listId = `${id ?? 'school'}-list`;
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -204,6 +219,11 @@ function SchoolCombobox({
   return (
     <div className="relative" ref={boxRef}>
       <input
+        id={id}
+        role="combobox"
+        aria-expanded={open}
+        aria-controls={listId}
+        aria-autocomplete="list"
         className="input"
         autoComplete="off"
         value={open ? query : selectedName}
@@ -219,7 +239,12 @@ function SchoolCombobox({
         }}
       />
       {open && (
-        <div className="absolute z-20 mt-1 w-full max-h-64 overflow-auto rounded-lg border border-slate-200 bg-white shadow-lg">
+        <div
+          id={listId}
+          role="listbox"
+          aria-label="รายชื่อโรงเรียน"
+          className="absolute z-20 mt-1 w-full max-h-64 overflow-auto rounded-lg border border-slate-200 bg-white shadow-lg"
+        >
           {filtered.length === 0 ? (
             <div className="px-3 py-2 text-sm text-slate-500">ไม่พบโรงเรียนที่ค้นหา</div>
           ) : (
@@ -503,7 +528,7 @@ function RegisterForm() {
                 onClick={() => switchType(t)}
                 className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all border ${
                   active
-                    ? 'bg-primary-600 text-white border-primary-600 shadow-md'
+                    ? 'bg-primary-700 text-white border-primary-600 shadow-md'
                     : 'bg-white text-slate-700 border-slate-200 hover:border-primary-300'
                 }`}
               >
@@ -542,8 +567,9 @@ function RegisterForm() {
             <h2 className="font-semibold text-slate-900">ข้อมูลการสมัคร</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="md:col-span-2">
-                <label className="label">ส่วนราชการ / โรงเรียน *</label>
+                <label htmlFor="register-field-560" className="label">ส่วนราชการ / โรงเรียน *</label>
                 <SchoolCombobox
+                  id="register-field-560"
                   schools={schools}
                   selectedId={selectedSchoolId}
                   selectedName={selectedSchoolName}
@@ -557,18 +583,18 @@ function RegisterForm() {
                 </p>
               </div>
               <div>
-                <label className="label">วันที่สมัคร</label>
+                <label htmlFor={fieldId('applicationDate')} className="label">วันที่สมัคร</label>
                 <Controller
                   name="applicationDate"
                   control={control}
                   render={({ field }) => (
-                    <ThaiDatePicker value={field.value} onChange={(d) => field.onChange(d?.format('YYYY-MM-DD') ?? '')} />
+                    <ThaiDatePicker id={fieldId('applicationDate')} value={field.value} onChange={(d) => field.onChange(d?.format('YYYY-MM-DD') ?? '')} />
                   )}
                 />
               </div>
               <div>
-                <label className="label">เลขทะเบียนสมาชิก (ถ้ามี)</label>
-                <input className="input" {...register('memberNo')} placeholder="สำหรับเจ้าหน้าที่กรอก" />
+                <label htmlFor={fieldId('memberNo')} className="label">เลขทะเบียนสมาชิก (ถ้ามี)</label>
+                <input id={fieldId('memberNo')} className="input" {...register('memberNo')} placeholder="สำหรับเจ้าหน้าที่กรอก" />
               </div>
             </div>
           </section>
@@ -577,16 +603,17 @@ function RegisterForm() {
             <h2 className="font-semibold text-slate-900">ข้อมูลส่วนตัว</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <div className="md:col-span-2 lg:col-span-3">
-                <label className="label">ชื่อ-นามสกุล *</label>
-                <input className="input" {...register('fullName', { required: true })} />
+                <label htmlFor={fieldId('fullName')} className="label">ชื่อ-นามสกุล *</label>
+                <input id={fieldId('fullName')} className="input" {...register('fullName', { required: true })} />
               </div>
               <div>
-                <label className="label">วันเกิด</label>
+                <label htmlFor="register-birthdate" className="label">วันเกิด</label>
                 <Controller
                   name="birthDate"
                   control={control}
                   render={({ field }) => (
                     <ThaiDatePicker
+                      id="register-birthdate"
                       value={field.value}
                       onChange={(d) => {
                         const iso = d?.format('YYYY-MM-DD') ?? '';
@@ -598,17 +625,18 @@ function RegisterForm() {
                 />
               </div>
               <div>
-                <label className="label">อายุ (ปี)</label>
-                <input className="input" type="number" min={1} max={120} {...register('age')} />
+                <label htmlFor={fieldId('age')} className="label">อายุ (ปี)</label>
+                <input id={fieldId('age')} className="input" type="number" min={1} max={120} {...register('age')} />
               </div>
               <div>
                 <div className="flex items-center justify-between">
-                  <label className="label">เลขประจำตัวประชาชน</label>
+                  <label htmlFor={fieldId('nationalId')} className="label">เลขประจำตัวประชาชน</label>
                   {isCheckingNationalId && (
                     <span className="text-xs text-slate-400 animate-pulse">กำลังตรวจสอบ...</span>
                   )}
                 </div>
                 <input
+                  id={fieldId('nationalId')}
                   className={`input ${
                     nationalIdError ? 'border-red-500 ring-1 ring-red-500 focus:border-red-500 focus:ring-red-500' : ''
                   }`}
@@ -639,8 +667,8 @@ function RegisterForm() {
               </div>
               {watch('maritalStatus') === 'married' && (
                 <div className="md:col-span-2">
-                  <label className="label">ชื่อคู่สมรส</label>
-                  <input className="input" {...register('spouseName')} />
+                  <label htmlFor={fieldId('spouseName')} className="label">ชื่อคู่สมรส</label>
+                  <input id={fieldId('spouseName')} className="input" {...register('spouseName')} />
                 </div>
               )}
             </div>
@@ -695,12 +723,18 @@ function RegisterForm() {
             {bloodRelativesArray.fields.map((field, i) => (
               <div key={field.id} className="grid grid-cols-1 md:grid-cols-2 gap-3 p-3 bg-slate-50 rounded-xl">
                 <div>
-                  <label className="label">ลำดับ {i + 1} — ชื่อ-สกุล</label>
-                  <input className="input" {...register(`bloodRelatives.${i}.name`)} />
+                  <label htmlFor={fieldId(`bloodRelatives.${i}.name`)} className="label">
+                    ลำดับ {i + 1} — ชื่อ-สกุล
+                  </label>
+                  <input
+                    id={fieldId(`bloodRelatives.${i}.name`)}
+                    className="input"
+                    {...register(`bloodRelatives.${i}.name`)}
+                  />
                 </div>
                 <div>
-                  <label className="label">เกี่ยวข้องเป็น</label>
-                  <input className="input" {...register(`bloodRelatives.${i}.relationship`)} placeholder="เช่น บิดา, มารดา" />
+                  <label htmlFor={fieldId(`bloodRelatives.${i}.relationship`)} className="label">เกี่ยวข้องเป็น</label>
+                  <input id={fieldId(`bloodRelatives.${i}.relationship`)} className="input" {...register(`bloodRelatives.${i}.relationship`)} placeholder="เช่น บิดา, มารดา" />
                 </div>
               </div>
             ))}
@@ -713,36 +747,37 @@ function RegisterForm() {
                 <p className="font-medium text-sm text-primary-800">ลำดับ {i + 1}</p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <div>
-                    <label className="label">ชื่อ-สกุล</label>
-                    <input className="input" autoComplete="off" {...register(`beneficiaries.${i}.name`)} />
+                    <label htmlFor={fieldId(`beneficiaries.${i}.name`)} className="label">ชื่อ-สกุล</label>
+                    <input id={fieldId(`beneficiaries.${i}.name`)} className="input" autoComplete="off" {...register(`beneficiaries.${i}.name`)} />
                   </div>
                   <div>
-                    <label className="label">เกี่ยวข้องเป็น</label>
-                    <input className="input" {...register(`beneficiaries.${i}.relationship`)} />
+                    <label htmlFor={fieldId(`beneficiaries.${i}.relationship`)} className="label">เกี่ยวข้องเป็น</label>
+                    <input id={fieldId(`beneficiaries.${i}.relationship`)} className="input" {...register(`beneficiaries.${i}.relationship`)} />
                   </div>
                   <div className="md:col-span-2">
-                    <label className="label">เลขประจำตัวประชาชน</label>
-                    <input className="input" maxLength={13} {...register(`beneficiaries.${i}.nationalId`)} />
+                    <label htmlFor={fieldId(`beneficiaries.${i}.nationalId`)} className="label">เลขประจำตัวประชาชน</label>
+                    <input id={fieldId(`beneficiaries.${i}.nationalId`)} className="input" maxLength={13} {...register(`beneficiaries.${i}.nationalId`)} />
                   </div>
                   <div>
-                    <label className="label">บ้านเลขที่</label>
-                    <input className="input" {...register(`beneficiaries.${i}.houseNo`)} />
+                    <label htmlFor={fieldId(`beneficiaries.${i}.houseNo`)} className="label">บ้านเลขที่</label>
+                    <input id={fieldId(`beneficiaries.${i}.houseNo`)} className="input" {...register(`beneficiaries.${i}.houseNo`)} />
                   </div>
                   <div>
-                    <label className="label">หมู่ที่</label>
-                    <input className="input" {...register(`beneficiaries.${i}.moo`)} />
+                    <label htmlFor={fieldId(`beneficiaries.${i}.moo`)} className="label">หมู่ที่</label>
+                    <input id={fieldId(`beneficiaries.${i}.moo`)} className="input" {...register(`beneficiaries.${i}.moo`)} />
                   </div>
                   <div>
-                    <label className="label">ถนน</label>
-                    <input className="input" {...register(`beneficiaries.${i}.road`)} />
+                    <label htmlFor={fieldId(`beneficiaries.${i}.road`)} className="label">ถนน</label>
+                    <input id={fieldId(`beneficiaries.${i}.road`)} className="input" {...register(`beneficiaries.${i}.road`)} />
                   </div>
                   <div>
-                    <label className="label">ซอย</label>
-                    <input className="input" {...register(`beneficiaries.${i}.soi`)} />
+                    <label htmlFor={fieldId(`beneficiaries.${i}.soi`)} className="label">ซอย</label>
+                    <input id={fieldId(`beneficiaries.${i}.soi`)} className="input" {...register(`beneficiaries.${i}.soi`)} />
                   </div>
                   <div>
-                    <label className="label">ตำบล (พิมพ์เพื่อค้นหา)</label>
+                    <label htmlFor={fieldId(`beneficiaries.${i}.subdistrict`)} className="label">ตำบล (พิมพ์เพื่อค้นหา)</label>
                     <ThaiAddressCombobox
+                      id={fieldId(`beneficiaries.${i}.subdistrict`)}
                       value={watch(`beneficiaries.${i}.subdistrict`)}
                       placeholder="พิมพ์ชื่อตำบล..."
                       onChangeValue={(val) => {
@@ -757,28 +792,28 @@ function RegisterForm() {
                     />
                   </div>
                   <div>
-                    <label className="label">อำเภอ</label>
-                    <input className="input" autoComplete="off" {...register(`beneficiaries.${i}.district`)} />
+                    <label htmlFor={fieldId(`beneficiaries.${i}.district`)} className="label">อำเภอ</label>
+                    <input id={fieldId(`beneficiaries.${i}.district`)} className="input" autoComplete="off" {...register(`beneficiaries.${i}.district`)} />
                   </div>
                   <div>
-                    <label className="label">จังหวัด</label>
-                    <input className="input" autoComplete="off" {...register(`beneficiaries.${i}.province`)} />
+                    <label htmlFor={fieldId(`beneficiaries.${i}.province`)} className="label">จังหวัด</label>
+                    <input id={fieldId(`beneficiaries.${i}.province`)} className="input" autoComplete="off" {...register(`beneficiaries.${i}.province`)} />
                   </div>
                   <div>
-                    <label className="label">รหัสไปรษณีย์</label>
-                    <input className="input" {...register(`beneficiaries.${i}.zip`)} />
+                    <label htmlFor={fieldId(`beneficiaries.${i}.zip`)} className="label">รหัสไปรษณีย์</label>
+                    <input id={fieldId(`beneficiaries.${i}.zip`)} className="input" {...register(`beneficiaries.${i}.zip`)} />
                   </div>
                   <div>
-                    <label className="label">เบอร์โทร</label>
-                    <input className="input" {...register(`beneficiaries.${i}.phone`)} />
+                    <label htmlFor={fieldId(`beneficiaries.${i}.phone`)} className="label">เบอร์โทร</label>
+                    <input id={fieldId(`beneficiaries.${i}.phone`)} className="input" {...register(`beneficiaries.${i}.phone`)} />
                   </div>
                   <div>
-                    <label className="label">ชื่อบุคคลที่ติดต่อได้</label>
-                    <input className="input" {...register(`beneficiaries.${i}.contactPerson`)} />
+                    <label htmlFor={fieldId(`beneficiaries.${i}.contactPerson`)} className="label">ชื่อบุคคลที่ติดต่อได้</label>
+                    <input id={fieldId(`beneficiaries.${i}.contactPerson`)} className="input" {...register(`beneficiaries.${i}.contactPerson`)} />
                   </div>
                   <div>
-                    <label className="label">เบอร์โทรผู้ติดต่อ</label>
-                    <input className="input" {...register(`beneficiaries.${i}.contactPhone`)} />
+                    <label htmlFor={fieldId(`beneficiaries.${i}.contactPhone`)} className="label">เบอร์โทรผู้ติดต่อ</label>
+                    <input id={fieldId(`beneficiaries.${i}.contactPhone`)} className="input" {...register(`beneficiaries.${i}.contactPhone`)} />
                   </div>
                 </div>
               </div>
@@ -789,16 +824,16 @@ function RegisterForm() {
             <h2 className="font-semibold text-slate-900">ลายมือชื่อผู้สมัคร</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="label">ชื่อสำหรับลงนาม (พิมพ์ชื่อ)</label>
-                <input className="input" {...register('applicantSignatureName')} />
+                <label htmlFor={fieldId('applicantSignatureName')} className="label">ชื่อสำหรับลงนาม (พิมพ์ชื่อ)</label>
+                <input id={fieldId('applicantSignatureName')} className="input" {...register('applicantSignatureName')} />
               </div>
               <div>
-                <label className="label">วันที่ลงนาม</label>
+                <label htmlFor="register-applicantsignaturedate" className="label">วันที่ลงนาม</label>
                 <Controller
                   name="applicantSignatureDate"
                   control={control}
                   render={({ field }) => (
-                    <ThaiDatePicker value={field.value} onChange={(d) => field.onChange(d?.format('YYYY-MM-DD') ?? '')} />
+                    <ThaiDatePicker id="register-applicantsignaturedate" value={field.value} onChange={(d) => field.onChange(d?.format('YYYY-MM-DD') ?? '')} />
                   )}
                 />
               </div>

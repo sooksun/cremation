@@ -42,6 +42,8 @@ const customThaiLocale: Locale = {
 };
 
 interface ThaiDatePickerProps {
+  /** ผูกกับ <label htmlFor> ของฟอร์ม — antd ส่งต่อให้ input ข้างในเอง */
+  id?: string;
   value?: string | Dayjs | null; // ISO date string (ค.ศ.) or Dayjs object
   onChange?: (date: Dayjs | null, dateString?: string) => void;
   placeholder?: string;
@@ -53,6 +55,7 @@ interface ThaiDatePickerProps {
 }
 
 export default function ThaiDatePicker({
+  id,
   value,
   onChange,
   placeholder = 'เลือกวันที่',
@@ -248,6 +251,7 @@ export default function ThaiDatePicker({
   return (
     <ConfigProvider locale={customThaiLocale}>
       <DatePicker
+        id={id}
         value={dayjsValue}
         onChange={handleChange}
         placeholder={placeholder}

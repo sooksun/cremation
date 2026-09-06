@@ -7,6 +7,7 @@ import { Plus, Tags, Edit, Trash2, X, Users } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { showSuccess, showError, showConfirm } from '@/lib/toast';
 import { api, type MemberType } from '@/lib/api';
+import { fieldId } from '@/lib/field-id';
 
 interface MemberTypeWithCount extends MemberType {
   _count?: { members: number };
@@ -204,8 +205,9 @@ export default function MemberTypesPage() {
 
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                 <div>
-                  <label className="label">รหัสประเภท</label>
+                  <label htmlFor={fieldId('code')} className="label">รหัสประเภท</label>
                   <input
+                    id={fieldId('code')}
                     {...register('code', { required: 'กรุณากรอกรหัสประเภท' })}
                     className="input"
                     placeholder="เช่น REG, RET"
@@ -217,8 +219,9 @@ export default function MemberTypesPage() {
                 </div>
 
                 <div>
-                  <label className="label">ชื่อประเภท</label>
+                  <label htmlFor={fieldId('name')} className="label">ชื่อประเภท</label>
                   <input
+                    id={fieldId('name')}
                     {...register('name', { required: 'กรุณากรอกชื่อประเภท' })}
                     className="input"
                     placeholder="เช่น ครูประจำการ"
@@ -229,8 +232,9 @@ export default function MemberTypesPage() {
                 </div>
 
                 <div>
-                  <label className="label">คำอธิบาย</label>
+                  <label htmlFor={fieldId('description')} className="label">คำอธิบาย</label>
                   <textarea
+                    id={fieldId('description')}
                     {...register('description')}
                     className="input"
                     rows={3}

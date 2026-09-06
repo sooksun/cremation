@@ -7,6 +7,7 @@ import { Plus, Landmark, Edit, Trash2, X, Star, CreditCard, Wallet } from 'lucid
 import { useForm } from 'react-hook-form';
 import { showSuccess, showError, showConfirm } from '@/lib/toast';
 import { api } from '@/lib/api';
+import { fieldId } from '@/lib/field-id';
 
 interface BankAccount {
   id: string;
@@ -314,8 +315,9 @@ export default function BankAccountsPage() {
 
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                 <div>
-                  <label className="label">ชื่อธนาคาร *</label>
+                  <label htmlFor={fieldId('bankName')} className="label">ชื่อธนาคาร *</label>
                   <input
+                    id={fieldId('bankName')}
                     {...register('bankName', { required: 'กรุณากรอกชื่อธนาคาร' })}
                     className="input"
                     placeholder="เช่น ธนาคารกรุงไทย"
@@ -326,8 +328,9 @@ export default function BankAccountsPage() {
                 </div>
 
                 <div>
-                  <label className="label">เลขบัญชี *</label>
+                  <label htmlFor={fieldId('accountNo')} className="label">เลขบัญชี *</label>
                   <input
+                    id={fieldId('accountNo')}
                     {...register('accountNo', { required: 'กรุณากรอกเลขบัญชี' })}
                     className="input"
                     placeholder="xxx-x-xxxxx-x"
@@ -338,8 +341,9 @@ export default function BankAccountsPage() {
                 </div>
 
                 <div>
-                  <label className="label">ชื่อบัญชี *</label>
+                  <label htmlFor={fieldId('accountName')} className="label">ชื่อบัญชี *</label>
                   <input
+                    id={fieldId('accountName')}
                     {...register('accountName', { required: 'กรุณากรอกชื่อบัญชี' })}
                     className="input"
                     placeholder="กองทุนฌาปนกิจฯ"
@@ -350,8 +354,9 @@ export default function BankAccountsPage() {
                 </div>
 
                 <div>
-                  <label className="label">คำอธิบาย</label>
+                  <label htmlFor={fieldId('description')} className="label">คำอธิบาย</label>
                   <input
+                    id={fieldId('description')}
                     {...register('description')}
                     className="input"
                     placeholder="เช่น บัญชีหลัก, บัญชีสำรอง"

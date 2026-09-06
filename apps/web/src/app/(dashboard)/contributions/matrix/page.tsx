@@ -405,54 +405,70 @@ export default function ContributionMatrixPage() {
       toggleStatus(memberId, month, periodId, contributionId, data.status, amount);
     };
 
+    // เซลล์เหล่านี้เป็นตัวบันทึกการชำระเงิน ไม่ใช่แค่ไอคอนบอกสถานะ
+    // เดิมเป็น div ที่มี onClick คนใช้คีย์บอร์ดจึงบันทึกการชำระไม่ได้เลย (WCAG 2.1.1)
+    // และ title ไม่ถูกอ่านอย่างน่าเชื่อถือ จึงต้องมี aria-label กำกับ (4.1.2)
+    const cellClass =
+      'w-full flex items-center justify-center cursor-pointer rounded p-1 transition-colors ' +
+      'focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1 ' +
+      (isChanged ? 'ring-2 ring-primary-500 ' : '');
+
     // Status: none (ไม่มีรายการ)
     if (data.status === 'none') {
       return (
-        <div 
-          className={`flex items-center justify-center text-slate-300 cursor-pointer hover:bg-slate-50 rounded p-1 transition-colors ${isChanged ? 'ring-2 ring-primary-500' : ''}`}
+        <button
+          type="button"
+          className={`${cellClass} text-slate-300 hover:bg-slate-50`}
+          aria-label={`เดือนที่ ${month} ไม่มีรายการ — เลือกเพื่อบันทึกการชำระ`}
           title={`ไม่มีรายการ (คลิกเพื่อเช็ค)`}
           onClick={handleClick}
         >
           <Minus size={16} />
-        </div>
+        </button>
       );
     }
 
     // Status: paid (ชำระแล้ว)
     if (displayStatus === 'paid') {
       return (
-        <div 
-          className={`flex items-center justify-center text-emerald-600 cursor-pointer hover:bg-emerald-50 rounded p-1 transition-colors ${isChanged ? 'ring-2 ring-primary-500' : ''}`}
+        <button
+          type="button"
+          className={`${cellClass} text-emerald-600 hover:bg-emerald-50`}
+          aria-label={`เดือนที่ ${month} ชำระแล้ว ${formatCurrency(amount)} บาท — เลือกเพื่อยกเลิกการชำระ`}
           title={`ชำระแล้ว ${formatCurrency(amount)} บาท (คลิกเพื่อยกเลิก)`}
           onClick={handleClick}
         >
           <CheckCircle size={18} />
-        </div>
+        </button>
       );
     }
 
     // Status: arrears (ค้างชำระ)
     if (displayStatus === 'arrears') {
       return (
-        <div 
-          className={`flex items-center justify-center text-red-600 cursor-pointer hover:bg-red-50 rounded p-1 transition-colors ${isChanged ? 'ring-2 ring-primary-500' : ''}`}
+        <button
+          type="button"
+          className={`${cellClass} text-red-600 hover:bg-red-50`}
+          aria-label={`เดือนที่ ${month} ค้างชำระ ${formatCurrency(amount)} บาท — เลือกเพื่อบันทึกการชำระ`}
           title={`ค้างชำระ ${formatCurrency(amount)} บาท (คลิกเพื่อชำระ)`}
           onClick={handleClick}
         >
           <XCircle size={18} />
-        </div>
+        </button>
       );
     }
 
     // Status: unpaid (ยังไม่ชำระ)
     return (
-      <div 
-        className={`flex items-center justify-center text-amber-500 cursor-pointer hover:bg-amber-50 rounded p-1 transition-colors ${isChanged ? 'ring-2 ring-primary-500' : ''}`}
+      <button
+        type="button"
+        className={`${cellClass} text-amber-500 hover:bg-amber-50`}
+        aria-label={`เดือนที่ ${month} ยังไม่ชำระ ${formatCurrency(amount)} บาท — เลือกเพื่อบันทึกการชำระ`}
         title={`ยังไม่ชำระ ${formatCurrency(amount)} บาท (คลิกเพื่อชำระ)`}
         onClick={handleClick}
       >
         <AlertTriangle size={18} />
-      </div>
+      </button>
     );
   };
 
@@ -645,10 +661,11 @@ export default function ContributionMatrixPage() {
         <div className="flex flex-col md:flex-row gap-4">
           {/* Month selector for Template/Upload */}
           <div className="w-full md:w-48">
-            <label className="block text-sm font-medium text-slate-700 mb-1">
+            <label htmlFor="matrix-664" className="block text-sm font-medium text-slate-700 mb-1">
               เดือน (สำหรับ Template/Upload)
             </label>
             <select
+              id="matrix-664"
               value={selectedMonth}
               onChange={(e) => setSelectedMonth(Number(e.target.value))}
               className="input"

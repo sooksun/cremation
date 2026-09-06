@@ -7,6 +7,7 @@ import { Plus, UserCog, Edit, Trash2, X, Shield, Building2 } from 'lucide-react'
 import { useForm } from 'react-hook-form';
 import { showSuccess, showError, showConfirm } from '@/lib/toast';
 import { api, type Member, type School } from '@/lib/api';
+import { fieldId } from '@/lib/field-id';
 
 interface User {
   id: string;
@@ -300,8 +301,9 @@ export default function UsersPage() {
 
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                 <div>
-                  <label className="label">ชื่อผู้ใช้</label>
+                  <label htmlFor={fieldId('username')} className="label">ชื่อผู้ใช้</label>
                   <input
+                    id={fieldId('username')}
                     {...register('username', { required: 'กรุณากรอกชื่อผู้ใช้' })}
                     className="input"
                     placeholder="username"
@@ -331,8 +333,9 @@ export default function UsersPage() {
                 </div>
 
                 <div>
-                  <label className="label">ชื่อ-นามสกุล</label>
+                  <label htmlFor={fieldId('fullName')} className="label">ชื่อ-นามสกุล</label>
                   <input
+                    id={fieldId('fullName')}
                     {...register('fullName', { required: 'กรุณากรอกชื่อ-นามสกุล' })}
                     className="input"
                     placeholder="ชื่อ นามสกุล"
@@ -343,8 +346,8 @@ export default function UsersPage() {
                 </div>
 
                 <div>
-                  <label className="label">บทบาท</label>
-                  <select {...register('role')} className="input">
+                  <label htmlFor={fieldId('role')} className="label">บทบาท</label>
+                  <select id={fieldId('role')} {...register('role')} className="input">
                     <option value="MEMBER">สมาชิก</option>
                     <option value="ADMIN">ผู้ดูแลระบบ</option>
                     <option value="FINANCE">เจ้าหน้าที่การเงิน</option>

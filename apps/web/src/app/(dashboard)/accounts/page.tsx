@@ -7,6 +7,7 @@ import { Plus, BookOpen, Edit, Trash2, X, TrendingUp, TrendingDown, Wallet, Buil
 import { useForm } from 'react-hook-form';
 import { showSuccess, showError, showConfirm } from '@/lib/toast';
 import { api } from '@/lib/api';
+import { fieldId } from '@/lib/field-id';
 
 interface Account {
   id: string;
@@ -312,8 +313,9 @@ export default function AccountsPage() {
 
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                 <div>
-                  <label className="label">รหัสบัญชี</label>
+                  <label htmlFor={fieldId('code')} className="label">รหัสบัญชี</label>
                   <input
+                    id={fieldId('code')}
                     {...register('code', { required: 'กรุณากรอกรหัสบัญชี' })}
                     className="input"
                     placeholder="เช่น 101"
@@ -325,8 +327,9 @@ export default function AccountsPage() {
                 </div>
 
                 <div>
-                  <label className="label">ชื่อบัญชี</label>
+                  <label htmlFor={fieldId('name')} className="label">ชื่อบัญชี</label>
                   <input
+                    id={fieldId('name')}
                     {...register('name', { required: 'กรุณากรอกชื่อบัญชี' })}
                     className="input"
                     placeholder="ชื่อบัญชี"
@@ -337,8 +340,8 @@ export default function AccountsPage() {
                 </div>
 
                 <div>
-                  <label className="label">ประเภทบัญชี</label>
-                  <select {...register('type')} className="input" disabled={!!editingAccount}>
+                  <label htmlFor={fieldId('type')} className="label">ประเภทบัญชี</label>
+                  <select id={fieldId('type')} {...register('type')} className="input" disabled={!!editingAccount}>
                     {Object.entries(typeLabels).map(([type, label]) => (
                       <option key={type} value={type}>{label}</option>
                     ))}

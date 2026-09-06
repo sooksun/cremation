@@ -322,8 +322,9 @@ export default function DeathClaimDetailPage() {
                   {claim.status !== 'REPORTED' && (
                     <div className="flex gap-2 items-end">
                       <div className="flex-1">
-                        <label className="text-sm text-slate-500">บันทึกยอดเก็บเงิน (บาท)</label>
+                        <label htmlFor="id-325" className="text-sm text-slate-500">บันทึกยอดเก็บเงิน (บาท)</label>
                         <input
+                          id="id-325"
                           type="number"
                           className="input mt-1"
                           placeholder={String(collectedAmount || targetAmount)}

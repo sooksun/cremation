@@ -172,8 +172,9 @@ export default function AuditLogsPage() {
       {/* Filters */}
       <div className="bg-white p-4 rounded-xl shadow mb-6 flex flex-wrap gap-4 items-end">
         <div>
-          <label className="block text-sm font-medium mb-1">ประเภทการกระทำ</label>
+          <label htmlFor="audit-logs-175" className="block text-sm font-medium mb-1">ประเภทการกระทำ</label>
           <select
+            id="audit-logs-175"
             value={selectedAction}
             onChange={(e) => setSelectedAction(e.target.value)}
             className="border rounded-lg px-3 py-2 text-sm"
@@ -187,8 +188,9 @@ export default function AuditLogsPage() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">จากวันที่</label>
+          <label htmlFor="audit-logs-190" className="block text-sm font-medium mb-1">จากวันที่</label>
           <input
+            id="audit-logs-190"
             type="date"
             value={fromDate}
             onChange={(e) => setFromDate(e.target.value)}
@@ -197,8 +199,9 @@ export default function AuditLogsPage() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">ถึงวันที่</label>
+          <label htmlFor="audit-logs-200" className="block text-sm font-medium mb-1">ถึงวันที่</label>
           <input
+            id="audit-logs-200"
             type="date"
             value={toDate}
             onChange={(e) => setToDate(e.target.value)}
@@ -207,8 +210,9 @@ export default function AuditLogsPage() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">แสดงผล</label>
+          <label htmlFor="audit-logs-210" className="block text-sm font-medium mb-1">แสดงผล</label>
           <select
+            id="audit-logs-210"
             value={limit}
             onChange={(e) => setLimit(Number(e.target.value))}
             className="border rounded-lg px-3 py-2 text-sm w-24"

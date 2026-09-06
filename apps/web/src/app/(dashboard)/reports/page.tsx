@@ -125,7 +125,7 @@ export default function ReportsPage() {
           onClick={() => setReportType('members')}
           className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium transition-colors ${
             reportType === 'members'
-              ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/25'
+              ? 'bg-primary-700 text-white shadow-lg shadow-primary-500/25'
               : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'
           }`}
         >
@@ -136,7 +136,7 @@ export default function ReportsPage() {
           onClick={() => setReportType('financial')}
           className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium transition-colors ${
             reportType === 'financial'
-              ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/25'
+              ? 'bg-primary-700 text-white shadow-lg shadow-primary-500/25'
               : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'
           }`}
         >
@@ -148,7 +148,7 @@ export default function ReportsPage() {
             onClick={() => setReportType('death-benefits')}
             className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium transition-colors ${
               reportType === 'death-benefits'
-                ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/25'
+                ? 'bg-primary-700 text-white shadow-lg shadow-primary-500/25'
                 : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'
             }`}
           >
@@ -316,7 +316,7 @@ export default function ReportsPage() {
                 onClick={() => setDeathBenefitFilterMode('year')}
                 className={`px-3 py-1.5 rounded-lg text-sm font-medium ${
                   deathBenefitFilterMode === 'year'
-                    ? 'bg-primary-500 text-white'
+                    ? 'bg-primary-700 text-white'
                     : 'bg-slate-100 text-slate-600'
                 }`}
               >
@@ -326,7 +326,7 @@ export default function ReportsPage() {
                 onClick={() => setDeathBenefitFilterMode('range')}
                 className={`px-3 py-1.5 rounded-lg text-sm font-medium ${
                   deathBenefitFilterMode === 'range'
-                    ? 'bg-primary-500 text-white'
+                    ? 'bg-primary-700 text-white'
                     : 'bg-slate-100 text-slate-600'
                 }`}
               >

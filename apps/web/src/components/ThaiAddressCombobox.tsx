@@ -13,6 +13,8 @@ export interface ThaiAddressItem {
 }
 
 interface ThaiAddressComboboxProps {
+  /** ผูกกับ <label htmlFor> ของฟอร์ม */
+  id?: string;
   value?: string;
   onChangeValue?: (val: string) => void;
   onSelectAddress: (addr: {
@@ -27,6 +29,7 @@ interface ThaiAddressComboboxProps {
 }
 
 export function ThaiAddressCombobox({
+  id,
   value = '',
   onChangeValue,
   onSelectAddress,
@@ -37,6 +40,8 @@ export function ThaiAddressCombobox({
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [items, setItems] = useState<ThaiAddressItem[]>([]);
+  // aria-controls ต้องชี้ไปยัง element จริงเสมอ แม้ตอนรายการยังไม่เปิด
+  const listId = `${id ?? 'thai-address'}-list`;
   const [loading, setLoading] = useState(false);
   const [highlightIndex, setHighlightIndex] = useState(-1);
   const boxRef = useRef<HTMLDivElement>(null);
@@ -110,6 +115,13 @@ export function ThaiAddressCombobox({
     <div className={`relative ${className}`} ref={boxRef}>
       <div className="relative">
         <input
+          id={id}
+          // ประกาศบทบาทให้โปรแกรมอ่านหน้าจอรู้ว่าเป็นช่องค้นหาที่มีรายการให้เลือก
+          // ไม่ใช่ช่องกรอกธรรมดา และบอกว่ารายการเปิดอยู่หรือไม่ (WCAG 4.1.2)
+          role="combobox"
+          aria-expanded={open}
+          aria-controls={listId}
+          aria-autocomplete="list"
           className={`input pr-8 ${disabled ? 'bg-slate-100 text-slate-500 cursor-not-allowed' : ''}`}
           autoComplete="off"
           disabled={disabled}
@@ -139,7 +151,12 @@ export function ThaiAddressCombobox({
       </div>
 
       {open && !disabled && (
-        <div className="absolute z-30 mt-1 w-full min-w-[280px] max-h-64 overflow-auto rounded-xl border border-slate-200 bg-white shadow-xl py-1 text-sm">
+        <div
+          id={listId}
+          role="listbox"
+          aria-label="รายชื่อตำบล"
+          className="absolute z-30 mt-1 w-full min-w-[280px] max-h-64 overflow-auto rounded-xl border border-slate-200 bg-white shadow-xl py-1 text-sm"
+        >
           <div className="px-3 py-1.5 text-[11px] font-semibold text-slate-400 uppercase tracking-wider bg-slate-50 border-b border-slate-100 flex items-center gap-1">
             <MapPin size={12} className="text-emerald-600" />
             เลือกตำบล (ระบบจะกรอก อำเภอ จังหวัด รหัสไปรษณีย์ ให้อัตโนมัติ)

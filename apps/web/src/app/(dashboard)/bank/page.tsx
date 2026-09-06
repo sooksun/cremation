@@ -133,7 +133,7 @@ export default function BankPage() {
             >
               <div className="flex items-center gap-3">
                 <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                  selectedAccountId === account.id ? 'bg-primary-500 text-white' : 'bg-sky-100 text-sky-600'
+                  selectedAccountId === account.id ? 'bg-primary-700 text-white' : 'bg-sky-100 text-sky-600'
                 }`}>
                   <Landmark className="w-5 h-5" />
                 </div>

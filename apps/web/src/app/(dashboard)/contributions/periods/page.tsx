@@ -9,6 +9,7 @@ import { showSuccess, showError, showConfirm } from '@/lib/toast';
 import Link from 'next/link';
 import { api, type ContributionPeriod, type ContributionSettings, periodTotalPerPerson } from '@/lib/api';
 import { useAuthStore } from '@/store/auth';
+import { fieldId } from '@/lib/field-id';
 
 interface PeriodForm {
   year: number;
@@ -310,16 +311,17 @@ export default function ContributionPeriodsPage() {
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="label">ปี (ค.ศ.)</label>
+                    <label htmlFor={fieldId('year')} className="label">ปี (ค.ศ.)</label>
                     <input
+                      id={fieldId('year')}
                       {...register('year', { required: true, valueAsNumber: true })}
                       type="number"
                       className="input"
                     />
                   </div>
                   <div>
-                    <label className="label">เดือน</label>
-                    <select {...register('month', { valueAsNumber: true })} className="input">
+                    <label htmlFor={fieldId('month')} className="label">เดือน</label>
+                    <select id={fieldId('month')} {...register('month', { valueAsNumber: true })} className="input">
                       {monthNames.map((name, index) => (
                         <option key={index} value={index + 1}>{name}</option>
                       ))}
@@ -328,8 +330,9 @@ export default function ContributionPeriodsPage() {
                 </div>
 
                 <div>
-                  <label className="label">อัตราเงินสงเคราะห์ (บาท/คน)</label>
+                  <label htmlFor={fieldId('welfareRate')} className="label">อัตราเงินสงเคราะห์ (บาท/คน)</label>
                   <input
+                    id={fieldId('welfareRate')}
                     {...register('welfareRate', { required: true, valueAsNumber: true, min: 0 })}
                     type="number"
                     className="input"
@@ -339,8 +342,9 @@ export default function ContributionPeriodsPage() {
 
                 {serviceFeeEnabled && (
                   <div>
-                    <label className="label">ค่าบริการ (บาท/คน)</label>
+                    <label htmlFor={fieldId('serviceFee')} className="label">ค่าบริการ (บาท/คน)</label>
                     <input
+                      id={fieldId('serviceFee')}
                       {...register('serviceFee', { required: true, valueAsNumber: true, min: 0 })}
                       type="number"
                       className="input"

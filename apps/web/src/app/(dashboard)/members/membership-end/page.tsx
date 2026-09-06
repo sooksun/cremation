@@ -359,10 +359,16 @@ export default function MembershipEndPage() {
             </div>
 
             <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
+              {/* บล็อกนี้สลับระหว่างการ์ดสมาชิกที่เลือกแล้วกับช่องค้นหา
+                  จึงไม่ใช่ป้ายของช่องกรอกช่องเดียว ต้องประกาศเป็นกลุ่มที่มีชื่อ
+                  ไม่งั้นโปรแกรมอ่านหน้าจอจะอ่านป้ายลอย ๆ โดยไม่รู้ว่ากำกับอะไร */}
+              <div role="group" aria-labelledby="membership-end-member-label">
+                <span
+                  id="membership-end-member-label"
+                  className="block text-sm font-medium text-slate-700 mb-1"
+                >
                   เลือกสมาชิก *
-                </label>
+                </span>
                 {selectedMember ? (
                   <div className="flex items-center justify-between gap-3 p-3 rounded-lg border border-primary-200 bg-primary-50">
                     <div>
@@ -390,6 +396,7 @@ export default function MembershipEndPage() {
                       />
                       <input
                         type="text"
+                        aria-label="ค้นหาสมาชิกด้วยชื่อหรือเลขสมาชิก"
                         className="input pl-10"
                         placeholder="ค้นหาชื่อหรือเลขสมาชิก..."
                         value={pickerSearch}
@@ -426,10 +433,11 @@ export default function MembershipEndPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
+                <label htmlFor="membership-end-429" className="block text-sm font-medium text-slate-700 mb-1">
                   เหตุสิ้นสุดสมาชิกภาพ *
                 </label>
                 <select
+                  id="membership-end-429"
                   className="input w-full"
                   value={endReason}
                   onChange={(e) => setEndReason(e.target.value as MembershipEndReason)}
@@ -446,10 +454,11 @@ export default function MembershipEndPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
+                <label htmlFor="membership-end-field-450" className="block text-sm font-medium text-slate-700 mb-1">
                   วันที่สิ้นสุดสมาชิกภาพ *
                 </label>
                 <ThaiDatePicker
+                  id="membership-end-field-450"
                   value={endDate}
                   onChange={(v) => setEndDate((v as unknown as string) || '')}
                   placeholder="เลือกวันที่สิ้นสุดสมาชิกภาพ"

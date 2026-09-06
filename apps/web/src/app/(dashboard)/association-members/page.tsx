@@ -30,6 +30,7 @@ import {
 import { useAuthStore } from '@/store/auth';
 import { toast } from 'react-toastify';
 import { showConfirm } from '@/lib/toast';
+import { fieldId } from '@/lib/field-id';
 
 const statusConfig = {
   ACTIVE: { label: 'ปกติ', class: 'badge-success' },
@@ -461,10 +462,11 @@ export default function AssociationMembersPage() {
             </p>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
+                <label htmlFor="association-members-464" className="block text-sm font-medium text-slate-700 mb-1">
                   เลขสมาชิกสมาคม
                 </label>
                 <input
+                  id="association-members-464"
                   type="text"
                   className="input w-full"
                   value={editForm.associationMemberNo}
@@ -475,10 +477,11 @@ export default function AssociationMembersPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
+                <label htmlFor="association-members-478" className="block text-sm font-medium text-slate-700 mb-1">
                   ตำแหน่งในสมาคม
                 </label>
                 <input
+                  id="association-members-478"
                   type="text"
                   className="input w-full"
                   value={editForm.position}
@@ -487,10 +490,11 @@ export default function AssociationMembersPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
+                <label htmlFor="association-members-490" className="block text-sm font-medium text-slate-700 mb-1">
                   วันที่เป็นสมาชิกสมาคม
                 </label>
                 <input
+                  id="association-members-490"
                   type="date"
                   className="input w-full"
                   value={editForm.associationJoinDate}
@@ -500,10 +504,11 @@ export default function AssociationMembersPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
+                <label htmlFor="association-members-503" className="block text-sm font-medium text-slate-700 mb-1">
                   หมายเหตุ
                 </label>
                 <textarea
+                  id="association-members-503"
                   className="input w-full min-h-[80px]"
                   value={editForm.notes}
                   onChange={(e) => setEditForm((f) => ({ ...f, notes: e.target.value }))}
@@ -552,10 +557,11 @@ export default function AssociationMembersPage() {
               className="space-y-4"
             >
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
+                <label htmlFor={fieldId('schoolId')} className="block text-sm font-medium text-slate-700 mb-1">
                   โรงเรียน *
                 </label>
                 <select
+                  id={fieldId('schoolId')}
                   className="input w-full"
                   {...createForm.register('schoolId', { required: 'กรุณาเลือกโรงเรียน' })}
                 >
@@ -573,10 +579,11 @@ export default function AssociationMembersPage() {
                 )}
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
+                <label htmlFor={fieldId('memberTypeId')} className="block text-sm font-medium text-slate-700 mb-1">
                   ประเภทสมาชิก *
                 </label>
                 <select
+                  id={fieldId('memberTypeId')}
                   className="input w-full"
                   {...createForm.register('memberTypeId', { required: 'กรุณาเลือกประเภทสมาชิก' })}
                 >
@@ -595,8 +602,9 @@ export default function AssociationMembersPage() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">ชื่อ *</label>
+                  <label htmlFor={fieldId('firstName')} className="block text-sm font-medium text-slate-700 mb-1">ชื่อ *</label>
                   <input
+                    id={fieldId('firstName')}
                     className="input w-full"
                     {...createForm.register('firstName', { required: 'กรุณากรอกชื่อ' })}
                   />
@@ -607,10 +615,11 @@ export default function AssociationMembersPage() {
                   )}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                  <label htmlFor={fieldId('lastName')} className="block text-sm font-medium text-slate-700 mb-1">
                     นามสกุล *
                   </label>
                   <input
+                    id={fieldId('lastName')}
                     className="input w-full"
                     {...createForm.register('lastName', { required: 'กรุณากรอกนามสกุล' })}
                   />
@@ -622,34 +631,36 @@ export default function AssociationMembersPage() {
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
+                <label htmlFor={fieldId('idCardNo')} className="block text-sm font-medium text-slate-700 mb-1">
                   เลขบัตรประชาชน
                 </label>
-                <input className="input w-full" maxLength={13} {...createForm.register('idCardNo')} />
+                <input id={fieldId('idCardNo')} className="input w-full" maxLength={13} {...createForm.register('idCardNo')} />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">เบอร์โทร</label>
-                  <input className="input w-full" {...createForm.register('phone')} />
+                  <label htmlFor={fieldId('phone')} className="block text-sm font-medium text-slate-700 mb-1">เบอร์โทร</label>
+                  <input id={fieldId('phone')} className="input w-full" {...createForm.register('phone')} />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                  <label htmlFor={fieldId('associationMemberNo')} className="block text-sm font-medium text-slate-700 mb-1">
                     เลขสมาชิกสมาคม
                   </label>
-                  <input className="input w-full" {...createForm.register('associationMemberNo')} />
+                  <input id={fieldId('associationMemberNo')} className="input w-full" {...createForm.register('associationMemberNo')} />
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">ตำแหน่ง</label>
+                <label htmlFor={fieldId('position')} className="block text-sm font-medium text-slate-700 mb-1">ตำแหน่ง</label>
                 <input
+                  id={fieldId('position')}
                   className="input w-full"
                   placeholder="เช่น ผู้อำนวยการ, ครู"
                   {...createForm.register('position')}
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">หมายเหตุ</label>
+                <label htmlFor={fieldId('notes')} className="block text-sm font-medium text-slate-700 mb-1">หมายเหตุ</label>
                 <textarea
+                  id={fieldId('notes')}
                   className="input w-full min-h-[60px]"
                   {...createForm.register('notes')}
                 />

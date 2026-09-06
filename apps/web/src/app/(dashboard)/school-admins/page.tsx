@@ -8,6 +8,7 @@ import { useForm } from 'react-hook-form';
 import { showSuccess, showError, showConfirm } from '@/lib/toast';
 import { api } from '@/lib/api';
 import { buildDefaultSchoolAdminUsername } from '@/lib/school-admin';
+import { fieldId } from '@/lib/field-id';
 
 interface SchoolInfo {
   id: string;
@@ -267,8 +268,9 @@ export default function SchoolAdminsPage() {
 
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                 <div>
-                  <label className="label">ชื่อผู้ใช้</label>
+                  <label htmlFor={fieldId('username')} className="label">ชื่อผู้ใช้</label>
                   <input
+                    id={fieldId('username')}
                     {...register('username', { required: 'กรุณากรอกชื่อผู้ใช้' })}
                     className="input"
                     placeholder="admin01"
@@ -300,8 +302,9 @@ export default function SchoolAdminsPage() {
                 </div>
 
                 <div>
-                  <label className="label">ชื่อ-นามสกุล</label>
+                  <label htmlFor={fieldId('fullName')} className="label">ชื่อ-นามสกุล</label>
                   <input
+                    id={fieldId('fullName')}
                     {...register('fullName', { required: 'กรุณากรอกชื่อ-นามสกุล' })}
                     className="input"
                     placeholder="ชื่อ นามสกุล"

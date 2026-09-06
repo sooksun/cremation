@@ -12,6 +12,7 @@ import { api, type School, type Member } from '@/lib/api';
 import { useAuthStore } from '@/store/auth';
 import { canSelectAllSchools, filterSchoolsForUser } from '@/lib/school-scope';
 import ThaiDatePicker from '@/components/ThaiDatePicker';
+import { fieldId } from '@/lib/field-id';
 
 type DeathClaimType = 'MEMBER_DEATH' | 'PROTECTED_DEATH';
 
@@ -233,8 +234,9 @@ export default function NewDeathClaimPage() {
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
-              <label className="label">โรงเรียน *</label>
+              <label htmlFor={fieldId('schoolId')} className="label">โรงเรียน *</label>
               <select
+                id={fieldId('schoolId')}
                 {...register('schoolId', { required: 'กรุณาเลือกโรงเรียน' })}
                 className="input"
                 disabled={!canSelectAllSchools(user?.role)}
@@ -257,10 +259,11 @@ export default function NewDeathClaimPage() {
             </div>
 
             <div>
-              <label className="label">ค้นหาสมาชิก</label>
+              <label htmlFor="new-260" className="label">ค้นหาสมาชิก</label>
               <div className="relative">
                 <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
+                  id="new-260"
                   type="text"
                   className="input pl-10"
                   placeholder="ค้นหาชื่อ, เลขสมาชิก..."
@@ -329,7 +332,7 @@ export default function NewDeathClaimPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* ประเภทผู้เสียชีวิต */}
             <div className="md:col-span-2">
-              <label className="label">ประเภทผู้เสียชีวิต *</label>
+              <label htmlFor={fieldId('deceasedType')} className="label">ประเภทผู้เสียชีวิต *</label>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
                 {Object.entries(deceasedTypeLabels).map(([value, label]) => (
                   <label
@@ -341,6 +344,7 @@ export default function NewDeathClaimPage() {
                     }`}
                   >
                     <input
+                      id={fieldId('deceasedType')}
                       {...register('deceasedType', { required: 'กรุณาเลือกประเภทผู้เสียชีวิต' })}
                       type="radio"
                       value={value}
@@ -362,8 +366,9 @@ export default function NewDeathClaimPage() {
               <>
                 {matchingProtectedPersons.length > 0 ? (
                   <div className="md:col-span-2">
-                    <label className="label">เลือกผู้เสียชีวิตจากทะเบียนคุ้มครอง *</label>
+                    <label htmlFor={fieldId('protectedPersonId')} className="label">เลือกผู้เสียชีวิตจากทะเบียนคุ้มครอง *</label>
                     <select
+                      id={fieldId('protectedPersonId')}
                       className="input"
                       {...register('protectedPersonId', {
                         required: 'กรุณาเลือกผู้เสียชีวิตจากทะเบียนคุ้มครอง',
@@ -406,8 +411,9 @@ export default function NewDeathClaimPage() {
                 )}
 
                 <div>
-                  <label className="label">รายละเอียดความสัมพันธ์</label>
+                  <label htmlFor={fieldId('relationshipNote')} className="label">รายละเอียดความสัมพันธ์</label>
                   <input
+                    id={fieldId('relationshipNote')}
                     {...register('relationshipNote')}
                     className="input"
                     placeholder="เช่น บิดาของสมาชิก, มารดาของสมาชิก"
@@ -417,13 +423,14 @@ export default function NewDeathClaimPage() {
             )}
 
             <div>
-              <label className="label">วันที่รายงาน *</label>
+              <label htmlFor="new-reporteddate" className="label">วันที่รายงาน *</label>
               <Controller
                 name="reportedDate"
                 control={control}
                 rules={{ required: 'กรุณากรอกวันที่รายงาน' }}
                 render={({ field }) => (
                   <ThaiDatePicker
+                    id="new-reporteddate"
                     value={field.value}
                     onChange={field.onChange}
                     placeholder="เลือกวันที่รายงาน"
@@ -437,13 +444,14 @@ export default function NewDeathClaimPage() {
             </div>
 
             <div>
-              <label className="label">วันที่เสียชีวิต *</label>
+              <label htmlFor="new-deathdate" className="label">วันที่เสียชีวิต *</label>
               <Controller
                 name="deathDate"
                 control={control}
                 rules={{ required: 'กรุณากรอกวันที่เสียชีวิต' }}
                 render={({ field }) => (
                   <ThaiDatePicker
+                    id="new-deathdate"
                     value={field.value}
                     onChange={field.onChange}
                     placeholder="เลือกวันที่เสียชีวิต"
@@ -457,8 +465,9 @@ export default function NewDeathClaimPage() {
             </div>
 
             <div className="md:col-span-2">
-              <label className="label">สาเหตุการเสียชีวิต</label>
+              <label htmlFor={fieldId('causeOfDeath')} className="label">สาเหตุการเสียชีวิต</label>
               <input
+                id={fieldId('causeOfDeath')}
                 {...register('causeOfDeath')}
                 className="input"
                 placeholder="เช่น โรคประจำตัว, อุบัติเหตุ"
@@ -541,8 +550,9 @@ export default function NewDeathClaimPage() {
           )}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="label">ชื่อผู้รับผลประโยชน์หลัก *</label>
+              <label htmlFor={fieldId('mainBeneficiary')} className="label">ชื่อผู้รับผลประโยชน์หลัก *</label>
               <input
+                id={fieldId('mainBeneficiary')}
                 {...register('mainBeneficiary', { required: 'กรุณากรอกชื่อผู้รับผลประโยชน์' })}
                 className="input"
                 placeholder="ชื่อ-นามสกุล"
@@ -553,8 +563,9 @@ export default function NewDeathClaimPage() {
             </div>
 
             <div>
-              <label className="label">เบอร์โทรศัพท์ผู้รับผลประโยชน์</label>
+              <label htmlFor={fieldId('beneficiaryPhone')} className="label">เบอร์โทรศัพท์ผู้รับผลประโยชน์</label>
               <input
+                id={fieldId('beneficiaryPhone')}
                 {...register('beneficiaryPhone')}
                 className="input"
                 placeholder="08x-xxx-xxxx"
@@ -568,8 +579,9 @@ export default function NewDeathClaimPage() {
           <h3 className="font-semibold text-slate-900 mb-4">รายการหักเงิน</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="label">รายการหักอื่นๆ (บาท)</label>
+              <label htmlFor={fieldId('otherDeductions')} className="label">รายการหักอื่นๆ (บาท)</label>
               <input
+                id={fieldId('otherDeductions')}
                 {...register('otherDeductions', { valueAsNumber: true })}
                 type="number"
                 className="input"

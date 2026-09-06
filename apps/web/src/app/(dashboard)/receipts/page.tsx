@@ -12,6 +12,7 @@ import { canSelectAllSchools, filterSchoolsForUser } from '@/lib/school-scope';
 import ThaiDatePicker from '@/components/ThaiDatePicker';
 import dayjs from 'dayjs';
 import Link from 'next/link';
+import { fieldId } from '@/lib/field-id';
 
 interface ReceiptItem {
   id: string;
@@ -196,11 +197,12 @@ export default function ReceiptsPage() {
       {/* Filters — พิมพ์ใบเสร็จต้องเลือกได้ทั้งรายโรงเรียนและรายเดือน */}
       <div className="card p-4 flex flex-col md:flex-row gap-4">
         <div className="flex-1">
-          <label className="label flex items-center gap-2">
+          <label htmlFor="receipts-199" className="label flex items-center gap-2">
             <Building2 size={16} className="text-slate-400" />
             โรงเรียน
           </label>
           <select
+            id="receipts-199"
             className="input"
             value={selectedSchoolId || ''}
             onChange={(e) => setSelectedSchool(e.target.value || null)}
@@ -215,11 +217,12 @@ export default function ReceiptsPage() {
           </select>
         </div>
         <div className="flex-1">
-          <label className="label flex items-center gap-2">
+          <label htmlFor="receipts-218" className="label flex items-center gap-2">
             <Calendar size={16} className="text-slate-400" />
             เดือน
           </label>
           <select
+            id="receipts-218"
             className="input"
             value={selectedMonth}
             onChange={(e) => setSelectedMonth(Number(e.target.value))}
@@ -359,8 +362,8 @@ export default function ReceiptsPage() {
 
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                 <div>
-                  <label className="label">โรงเรียน</label>
-                  <select {...register('schoolId', { required: true })} className="input">
+                  <label htmlFor={fieldId('schoolId')} className="label">โรงเรียน</label>
+                  <select id={fieldId('schoolId')} {...register('schoolId', { required: true })} className="input">
                     <option value="">เลือกโรงเรียน</option>
                     {schools?.map((school) => (
                       <option key={school.id} value={school.id}>{school.name}</option>
@@ -369,13 +372,14 @@ export default function ReceiptsPage() {
                 </div>
 
                 <div>
-                  <label className="label">วันที่</label>
+                  <label htmlFor="receipts-date" className="label">วันที่</label>
                   <Controller
                     name="date"
                     control={control}
                     rules={{ required: true }}
                     render={({ field }) => (
                       <ThaiDatePicker
+                        id="receipts-date"
                         value={field.value ? dayjs(field.value) : dayjs()}
                         onChange={(date) => field.onChange(date ? date.format('YYYY-MM-DD') : '')}
                         placeholder="เลือกวันที่"
@@ -386,8 +390,8 @@ export default function ReceiptsPage() {
                 </div>
 
                 <div>
-                  <label className="label">ประเภท</label>
-                  <select {...register('type')} className="input">
+                  <label htmlFor={fieldId('type')} className="label">ประเภท</label>
+                  <select id={fieldId('type')} {...register('type')} className="input">
                     {Object.entries(typeLabels).map(([value, label]) => (
                       <option key={value} value={value}>{label}</option>
                     ))}
@@ -395,13 +399,14 @@ export default function ReceiptsPage() {
                 </div>
 
                 <div>
-                  <label className="label">รายละเอียด</label>
-                  <input {...register('description')} className="input" placeholder="รายละเอียด (ไม่บังคับ)" />
+                  <label htmlFor={fieldId('description')} className="label">รายละเอียด</label>
+                  <input id={fieldId('description')} {...register('description')} className="input" placeholder="รายละเอียด (ไม่บังคับ)" />
                 </div>
 
                 <div>
-                  <label className="label">จำนวนเงิน (บาท)</label>
+                  <label htmlFor={fieldId('amount')} className="label">จำนวนเงิน (บาท)</label>
                   <input
+                    id={fieldId('amount')}
                     {...register('amount', { required: true, valueAsNumber: true, min: 0 })}
                     type="number"
                     className="input"
@@ -410,8 +415,8 @@ export default function ReceiptsPage() {
                 </div>
 
                 <div>
-                  <label className="label">บัญชีธนาคาร (ไม่บังคับ)</label>
-                  <select {...register('bankAccountId')} className="input">
+                  <label htmlFor={fieldId('bankAccountId')} className="label">บัญชีธนาคาร (ไม่บังคับ)</label>
+                  <select id={fieldId('bankAccountId')} {...register('bankAccountId')} className="input">
                     <option value="">เงินสด</option>
                     {bankAccounts?.map((acc: any) => (
                       <option key={acc.id} value={acc.id}>

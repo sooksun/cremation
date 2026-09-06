@@ -276,7 +276,7 @@ export default function LandingPage() {
                   className="card p-6 sm:p-8 ring-2 ring-primary-100"
                 >
                   <div className="flex items-start gap-4 mb-4">
-                    <div className="p-3 rounded-xl bg-primary-600 text-white">
+                    <div className="p-3 rounded-xl bg-primary-700 text-white">
                       <UserPlus size={24} />
                     </div>
                     <div>

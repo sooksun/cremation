@@ -103,7 +103,7 @@ export function UploadPaymentModal({
         <button
           onClick={submit}
           disabled={busy || !file}
-          className="mt-5 w-full bg-primary-600 text-white rounded-xl py-2 text-sm font-medium disabled:opacity-40 flex items-center justify-center gap-2"
+          className="mt-5 w-full bg-primary-700 text-white rounded-xl py-2 text-sm font-medium disabled:opacity-40 flex items-center justify-center gap-2"
         >
           <Upload size={16} />
           {busy ? 'กำลังตรวจสอบ…' : 'ตรวจสอบและบันทึก'}

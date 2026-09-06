@@ -8,6 +8,7 @@ import { useForm } from 'react-hook-form';
 import { api, type ContributionSettings, periodTotalPerPerson } from '@/lib/api';
 import { showSuccess, showError, showConfirm } from '@/lib/toast';
 import { useAuthStore } from '@/store/auth';
+import { fieldId } from '@/lib/field-id';
 
 interface ContributionPeriod {
   id: string;
@@ -400,8 +401,9 @@ export default function WelfareRateSettingsPage() {
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div>
-                <label className="label">อัตราเงินสงเคราะห์ (บาท/คน)</label>
+                <label htmlFor={fieldId('welfareRate')} className="label">อัตราเงินสงเคราะห์ (บาท/คน)</label>
                 <input
+                  id={fieldId('welfareRate')}
                   {...register('welfareRate', { 
                     required: 'กรุณากรอกอัตราเงินสงเคราะห์',
                     valueAsNumber: true,
@@ -419,8 +421,9 @@ export default function WelfareRateSettingsPage() {
 
               {serviceFeeEnabled && (
                 <div>
-                  <label className="label">ค่าบริการ (บาท/คน)</label>
+                  <label htmlFor={fieldId('serviceFee')} className="label">ค่าบริการ (บาท/คน)</label>
                   <input
+                    id={fieldId('serviceFee')}
                     {...register('serviceFee', { 
                       required: 'กรุณากรอกค่าบริการ',
                       valueAsNumber: true,
@@ -481,8 +484,9 @@ export default function WelfareRateSettingsPage() {
 
               <div className="space-y-4">
                 <div>
-                  <label className="label">ยอดจ่ายต่อ 1 ราย (บาท)</label>
+                  <label htmlFor="welfare-rate-1-484" className="label">ยอดจ่ายต่อ 1 ราย (บาท)</label>
                   <input
+                    id="welfare-rate-1-484"
                     type="number"
                     className="input"
                     value={fixedForm.welfareAmountPerCase}
@@ -492,8 +496,9 @@ export default function WelfareRateSettingsPage() {
                   />
                 </div>
                 <div>
-                  <label className="label">หมายเหตุ / มติ (ไม่บังคับ)</label>
+                  <label htmlFor="welfare-rate-495" className="label">หมายเหตุ / มติ (ไม่บังคับ)</label>
                   <input
+                    id="welfare-rate-495"
                     className="input"
                     value={fixedForm.description}
                     onChange={(e) => setFixedForm({ ...fixedForm, description: e.target.value })}

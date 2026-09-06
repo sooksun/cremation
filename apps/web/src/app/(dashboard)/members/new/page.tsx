@@ -12,6 +12,7 @@ import { useAuthStore } from '@/store/auth';
 import { canSelectAllSchools, filterSchoolsForUser } from '@/lib/school-scope';
 import ThaiDatePicker from '@/components/ThaiDatePicker';
 import dayjs from 'dayjs';
+import { fieldId } from '@/lib/field-id';
 
 interface MemberForm {
   schoolId: string;
@@ -143,8 +144,9 @@ export default function NewMemberPage() {
           <h3 className="font-semibold text-slate-900 mb-4">ข้อมูลสมาชิกสมาคม</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <div>
-              <label className="label">โรงเรียน *</label>
+              <label htmlFor={fieldId('schoolId')} className="label">โรงเรียน *</label>
               <select
+                id={fieldId('schoolId')}
                 {...register('schoolId', { required: 'กรุณาเลือกโรงเรียน' })}
                 className="input"
                 disabled={!canSelectAllSchools(user?.role)}
@@ -162,8 +164,9 @@ export default function NewMemberPage() {
             </div>
 
             <div>
-              <label className="label">ประเภทสมาชิก *</label>
+              <label htmlFor={fieldId('memberTypeId')} className="label">ประเภทสมาชิก *</label>
               <select
+                id={fieldId('memberTypeId')}
                 {...register('memberTypeId', { required: 'กรุณาเลือกประเภทสมาชิก' })}
                 className="input"
               >
@@ -180,8 +183,9 @@ export default function NewMemberPage() {
             </div>
 
             <div>
-              <label className="label">เลขสมาชิกสมาคม</label>
+              <label htmlFor={fieldId('associationMemberNo')} className="label">เลขสมาชิกสมาคม</label>
               <input
+                id={fieldId('associationMemberNo')}
                 {...register('associationMemberNo')}
                 className="input"
                 placeholder="เว้นว่างได้"
@@ -189,8 +193,9 @@ export default function NewMemberPage() {
             </div>
 
             <div>
-              <label className="label">ชื่อ *</label>
+              <label htmlFor={fieldId('firstName')} className="label">ชื่อ *</label>
               <input
+                id={fieldId('firstName')}
                 {...register('firstName', { required: 'กรุณากรอกชื่อ' })}
                 className="input"
                 placeholder="ชื่อ"
@@ -201,8 +206,9 @@ export default function NewMemberPage() {
             </div>
 
             <div>
-              <label className="label">นามสกุล *</label>
+              <label htmlFor={fieldId('lastName')} className="label">นามสกุล *</label>
               <input
+                id={fieldId('lastName')}
                 {...register('lastName', { required: 'กรุณากรอกนามสกุล' })}
                 className="input"
                 placeholder="นามสกุล"
@@ -213,8 +219,9 @@ export default function NewMemberPage() {
             </div>
 
             <div>
-              <label className="label">เลขบัตรประชาชน</label>
+              <label htmlFor={fieldId('idCardNo')} className="label">เลขบัตรประชาชน</label>
               <input
+                id={fieldId('idCardNo')}
                 {...register('idCardNo')}
                 className="input"
                 placeholder="13 หลัก"
@@ -223,12 +230,13 @@ export default function NewMemberPage() {
             </div>
 
             <div>
-              <label className="label">วันเกิด</label>
+              <label htmlFor="new-birthdate" className="label">วันเกิด</label>
               <Controller
                 name="birthDate"
                 control={control}
                 render={({ field }) => (
                   <ThaiDatePicker
+                    id="new-birthdate"
                     value={field.value ? dayjs(field.value) : null}
                     onChange={(date) => field.onChange(date ? date.format('YYYY-MM-DD') : '')}
                     placeholder="เลือกวันเกิด"
@@ -239,8 +247,9 @@ export default function NewMemberPage() {
             </div>
 
             <div>
-              <label className="label">เบอร์โทรศัพท์</label>
+              <label htmlFor={fieldId('phone')} className="label">เบอร์โทรศัพท์</label>
               <input
+                id={fieldId('phone')}
                 {...register('phone')}
                 className="input"
                 placeholder="08x-xxx-xxxx"
@@ -248,8 +257,9 @@ export default function NewMemberPage() {
             </div>
 
             <div className="md:col-span-2 lg:col-span-3">
-              <label className="label">ที่อยู่</label>
+              <label htmlFor={fieldId('address')} className="label">ที่อยู่</label>
               <textarea
+                id={fieldId('address')}
                 {...register('address')}
                 className="input min-h-[80px]"
                 placeholder="ที่อยู่ตามทะเบียนบ้าน"
@@ -262,8 +272,9 @@ export default function NewMemberPage() {
           <h3 className="font-semibold text-slate-900 mb-4">ข้อมูลการเข้าร่วมฌาปนกิจ</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <div>
-              <label className="label">เลขทะเบียนสมาชิกฌาปนกิจ</label>
+              <label htmlFor={fieldId('memberNo')} className="label">เลขทะเบียนสมาชิกฌาปนกิจ</label>
               <input
+                id={fieldId('memberNo')}
                 {...register('memberNo')}
                 className="input"
                 placeholder="เว้นว่างให้ระบบสร้างอัตโนมัติ"
@@ -271,8 +282,8 @@ export default function NewMemberPage() {
             </div>
 
             <div>
-              <label className="label">กลุ่ม</label>
-              <select {...register('groupId')} className="input" disabled={!watchSchoolId}>
+              <label htmlFor={fieldId('groupId')} className="label">กลุ่ม</label>
+              <select id={fieldId('groupId')} {...register('groupId')} className="input" disabled={!watchSchoolId}>
                 <option value="">ไม่ระบุกลุ่ม</option>
                 {groups?.map((group) => (
                   <option key={group.id} value={group.id}>
@@ -283,13 +294,14 @@ export default function NewMemberPage() {
             </div>
 
             <div>
-              <label className="label">วันที่สมัครเข้าร่วมฌาปนกิจ *</label>
+              <label htmlFor="new-joindate" className="label">วันที่สมัครเข้าร่วมฌาปนกิจ *</label>
               <Controller
                 name="joinDate"
                 control={control}
                 rules={{ required: 'กรุณาเลือกวันที่สมัคร' }}
                 render={({ field }) => (
                   <ThaiDatePicker
+                    id="new-joindate"
                     value={field.value ? dayjs(field.value) : null}
                     onChange={(date) => field.onChange(date ? date.format('YYYY-MM-DD') : '')}
                     placeholder="เลือกวันที่สมัคร"
@@ -344,24 +356,27 @@ export default function NewMemberPage() {
                   </div>
                   <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
-                      <label className="label">ชื่อ-นามสกุล *</label>
+                      <label htmlFor={fieldId(`beneficiaries.${index}.fullName`)} className="label">ชื่อ-นามสกุล *</label>
                       <input
+                        id={fieldId(`beneficiaries.${index}.fullName`)}
                         {...register(`beneficiaries.${index}.fullName`, { required: true })}
                         className="input"
                         placeholder="ชื่อ-นามสกุล"
                       />
                     </div>
                     <div>
-                      <label className="label">ความสัมพันธ์ *</label>
+                      <label htmlFor={fieldId(`beneficiaries.${index}.relationship`)} className="label">ความสัมพันธ์ *</label>
                       <input
+                        id={fieldId(`beneficiaries.${index}.relationship`)}
                         {...register(`beneficiaries.${index}.relationship`, { required: true })}
                         className="input"
                         placeholder="เช่น คู่สมรส, บุตร"
                       />
                     </div>
                     <div>
-                      <label className="label">เบอร์โทรศัพท์</label>
+                      <label htmlFor={fieldId(`beneficiaries.${index}.phone`)} className="label">เบอร์โทรศัพท์</label>
                       <input
+                        id={fieldId(`beneficiaries.${index}.phone`)}
                         {...register(`beneficiaries.${index}.phone`)}
                         className="input"
                         placeholder="08x-xxx-xxxx"

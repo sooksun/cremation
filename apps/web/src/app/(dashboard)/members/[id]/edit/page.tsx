@@ -11,6 +11,7 @@ import Link from 'next/link';
 import { api, type School, type MemberType, type Group, type Member } from '@/lib/api';
 import ThaiDatePicker from '@/components/ThaiDatePicker';
 import dayjs from 'dayjs';
+import { fieldId } from '@/lib/field-id';
 
 interface MemberForm {
   memberNo: string;
@@ -210,8 +211,9 @@ export default function EditMemberPage() {
           <h3 className="font-semibold text-slate-900 mb-4">ข้อมูลสมาชิกสมาคม</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <div>
-              <label className="label">โรงเรียน</label>
+              <label htmlFor="edit-213" className="label">โรงเรียน</label>
               <input
+                id="edit-213"
                 value={member.school.name}
                 className="input bg-slate-50"
                 disabled
@@ -221,8 +223,8 @@ export default function EditMemberPage() {
             </div>
 
             <div>
-              <label className="label">ประเภทสมาชิก *</label>
-              <select {...register('memberTypeId', { required: 'กรุณาเลือกประเภท' })} className="input">
+              <label htmlFor={fieldId('memberTypeId')} className="label">ประเภทสมาชิก *</label>
+              <select id={fieldId('memberTypeId')} {...register('memberTypeId', { required: 'กรุณาเลือกประเภท' })} className="input">
                 <option value="">เลือกประเภท</option>
                 {memberTypes?.map((type) => (
                   <option key={type.id} value={type.id}>{type.name}</option>
@@ -234,8 +236,9 @@ export default function EditMemberPage() {
             </div>
 
             <div>
-              <label className="label">ชื่อ *</label>
+              <label htmlFor={fieldId('firstName')} className="label">ชื่อ *</label>
               <input
+                id={fieldId('firstName')}
                 {...register('firstName', { required: 'กรุณากรอกชื่อ' })}
                 className="input"
                 placeholder="ชื่อ"
@@ -246,8 +249,9 @@ export default function EditMemberPage() {
             </div>
 
             <div>
-              <label className="label">นามสกุล *</label>
+              <label htmlFor={fieldId('lastName')} className="label">นามสกุล *</label>
               <input
+                id={fieldId('lastName')}
                 {...register('lastName', { required: 'กรุณากรอกนามสกุล' })}
                 className="input"
                 placeholder="นามสกุล"
@@ -258,8 +262,9 @@ export default function EditMemberPage() {
             </div>
 
             <div>
-              <label className="label">เลขบัตรประชาชน</label>
+              <label htmlFor={fieldId('idCardNo')} className="label">เลขบัตรประชาชน</label>
               <input
+                id={fieldId('idCardNo')}
                 {...register('idCardNo')}
                 className="input"
                 placeholder="x-xxxx-xxxxx-xx-x"
@@ -267,12 +272,13 @@ export default function EditMemberPage() {
             </div>
 
             <div>
-              <label className="label">วันเกิด</label>
+              <label htmlFor="edit-birthdate" className="label">วันเกิด</label>
               <Controller
                 name="birthDate"
                 control={control}
                 render={({ field }) => (
                   <ThaiDatePicker
+                    id="edit-birthdate"
                     value={field.value ? dayjs(field.value) : null}
                     onChange={(date) => field.onChange(date ? date.format('YYYY-MM-DD') : '')}
                     placeholder="เลือกวันเกิด"
@@ -283,8 +289,9 @@ export default function EditMemberPage() {
             </div>
 
             <div>
-              <label className="label">เบอร์โทรศัพท์</label>
+              <label htmlFor={fieldId('phone')} className="label">เบอร์โทรศัพท์</label>
               <input
+                id={fieldId('phone')}
                 {...register('phone')}
                 className="input"
                 placeholder="08x-xxx-xxxx"
@@ -292,8 +299,9 @@ export default function EditMemberPage() {
             </div>
 
             <div className="md:col-span-2 lg:col-span-3">
-              <label className="label">ที่อยู่</label>
+              <label htmlFor={fieldId('address')} className="label">ที่อยู่</label>
               <textarea
+                id={fieldId('address')}
                 {...register('address')}
                 className="input"
                 rows={2}
@@ -307,8 +315,9 @@ export default function EditMemberPage() {
           <h3 className="font-semibold text-slate-900 mb-4">ข้อมูลการเข้าร่วมฌาปนกิจ</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <div>
-              <label className="label">เลขทะเบียนสมาชิกฌาปนกิจ</label>
+              <label htmlFor={fieldId('memberNo')} className="label">เลขทะเบียนสมาชิกฌาปนกิจ</label>
               <input
+                id={fieldId('memberNo')}
                 {...register('memberNo')}
                 className="input bg-slate-50"
                 disabled
@@ -318,8 +327,8 @@ export default function EditMemberPage() {
             </div>
 
             <div>
-              <label className="label">กลุ่ม</label>
-              <select {...register('groupId')} className="input">
+              <label htmlFor={fieldId('groupId')} className="label">กลุ่ม</label>
+              <select id={fieldId('groupId')} {...register('groupId')} className="input">
                 <option value="">ไม่ระบุกลุ่ม</option>
                 {groups?.filter(g => g.school.id === member.school.id).map((group) => (
                   <option key={group.id} value={group.id}>{group.name}</option>
@@ -328,12 +337,13 @@ export default function EditMemberPage() {
             </div>
 
             <div>
-              <label className="label">วันที่สมัครเข้าร่วมฌาปนกิจ</label>
+              <label htmlFor="edit-joindate" className="label">วันที่สมัครเข้าร่วมฌาปนกิจ</label>
               <Controller
                 name="joinDate"
                 control={control}
                 render={({ field }) => (
                   <ThaiDatePicker
+                    id="edit-joindate"
                     value={field.value ? dayjs(field.value) : null}
                     onChange={(date) => field.onChange(date ? date.format('YYYY-MM-DD') : '')}
                     placeholder="เลือกวันที่สมัคร"
@@ -344,8 +354,8 @@ export default function EditMemberPage() {
             </div>
 
             <div>
-              <label className="label">สถานะ</label>
-              <select {...register('status')} className="input">
+              <label htmlFor={fieldId('status')} className="label">สถานะ</label>
+              <select id={fieldId('status')} {...register('status')} className="input">
                 <option value="ACTIVE">ปกติ</option>
                 <option value="ARREARS">ค้างชำระ</option>
                 <option value="RESIGNED">ลาออก</option>
@@ -399,24 +409,27 @@ export default function EditMemberPage() {
                   </div>
                   <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
-                      <label className="label">ชื่อ-นามสกุล *</label>
+                      <label htmlFor={fieldId(`beneficiaries.${index}.fullName`)} className="label">ชื่อ-นามสกุล *</label>
                       <input
+                        id={fieldId(`beneficiaries.${index}.fullName`)}
                         {...register(`beneficiaries.${index}.fullName`, { required: true })}
                         className="input"
                         placeholder="ชื่อ-นามสกุล"
                       />
                     </div>
                     <div>
-                      <label className="label">ความสัมพันธ์ *</label>
+                      <label htmlFor={fieldId(`beneficiaries.${index}.relationship`)} className="label">ความสัมพันธ์ *</label>
                       <input
+                        id={fieldId(`beneficiaries.${index}.relationship`)}
                         {...register(`beneficiaries.${index}.relationship`, { required: true })}
                         className="input"
                         placeholder="เช่น คู่สมรส, บุตร"
                       />
                     </div>
                     <div>
-                      <label className="label">เบอร์โทรศัพท์</label>
+                      <label htmlFor={fieldId(`beneficiaries.${index}.phone`)} className="label">เบอร์โทรศัพท์</label>
                       <input
+                        id={fieldId(`beneficiaries.${index}.phone`)}
                         {...register(`beneficiaries.${index}.phone`)}
                         className="input"
                         placeholder="08x-xxx-xxxx"

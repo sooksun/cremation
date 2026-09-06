@@ -57,15 +57,17 @@ export default function TrialBalancePage() {
 
       <div className="flex flex-wrap gap-3 items-end">
         <div>
-          <label className="block text-sm mb-1">จากวันที่</label>
+          <label htmlFor="trial-balance-field-60" className="block text-sm mb-1">จากวันที่</label>
           <ThaiDatePicker
+            id="trial-balance-field-60"
             value={dateRange.startDate}
             onChange={(d) => d && setDateRange((p) => ({ ...p, startDate: d.format('YYYY-MM-DD') }))}
           />
         </div>
         <div>
-          <label className="block text-sm mb-1">ถึงวันที่</label>
+          <label htmlFor="trial-balance-field-67" className="block text-sm mb-1">ถึงวันที่</label>
           <ThaiDatePicker
+            id="trial-balance-field-67"
             value={dateRange.endDate}
             onChange={(d) => d && setDateRange((p) => ({ ...p, endDate: d.format('YYYY-MM-DD') }))}
           />

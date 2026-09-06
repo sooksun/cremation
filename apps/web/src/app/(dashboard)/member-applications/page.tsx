@@ -9,6 +9,7 @@ import { useAuthStore } from '@/store/auth';
 import { showSuccess, showError } from '@/lib/toast';
 import dayjs from 'dayjs';
 import buddhistEra from 'dayjs/plugin/buddhistEra';
+import { Modal } from '@/components/ui/Modal';
 
 dayjs.extend(buddhistEra);
 
@@ -193,12 +194,13 @@ export default function MemberApplicationsPage() {
 
       {/* รายละเอียดใบสมัคร */}
       {selected && (
-        <div
-          className="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
-          onClick={() => setSelected(null)}
+        <Modal
+          open={!!selected}
+          onClose={() => setSelected(null)}
+          title={`รายละเอียดใบสมัคร ${selected.memberNo}`}
+          size="max-w-2xl"
         >
-          <div className="bg-white rounded-2xl w-full max-w-2xl p-6" onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-xl font-semibold mb-4">รายละเอียดใบสมัคร {selected.memberNo}</h3>
+          <div>
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div><strong>ชื่อ-สกุล:</strong> {selected.associationMember?.firstName} {selected.associationMember?.lastName}</div>
               <div><strong>บัตรประชาชน:</strong> {selected.associationMember?.idCardNo || '-'}</div>
@@ -222,24 +224,26 @@ export default function MemberApplicationsPage() {
               )}
             </div>
           </div>
-        </div>
+        </Modal>
       )}
 
       {/* อนุมัติ + คำรับรอง ผอ./กรรมการ */}
       {approveTarget && (
-        <div
-          className="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
-          onClick={() => setApproveTarget(null)}
+        <Modal
+          open={!!approveTarget}
+          onClose={() => setApproveTarget(null)}
+          title={`อนุมัติใบสมัคร ${approveTarget.memberNo}`}
+          description="บันทึกคำรับรองก่อนเปิดใช้งานสมาชิก (ระเบียบ ข้อ 15)"
+          size="max-w-md"
         >
-          <div className="bg-white rounded-2xl w-full max-w-md p-6" onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-lg font-semibold mb-1">อนุมัติใบสมัคร {approveTarget.memberNo}</h3>
-            <p className="text-sm text-slate-500 mb-4">
-              บันทึกคำรับรองก่อนเปิดใช้งานสมาชิก (ระเบียบ ข้อ 15)
-            </p>
+          <div>
             <div className="space-y-3 text-sm">
               <div>
-                <label className="block text-slate-600 mb-1">คำรับรอง ผอ. (ถ้ามี)</label>
+                <label htmlFor="approve-director" className="block text-slate-600 mb-1">
+                  คำรับรอง ผอ. (ถ้ามี)
+                </label>
                 <input
+                  id="approve-director"
                   value={directorName}
                   onChange={(e) => setDirectorName(e.target.value)}
                   className="input w-full"
@@ -247,8 +251,11 @@ export default function MemberApplicationsPage() {
                 />
               </div>
               <div>
-                <label className="block text-slate-600 mb-1">กรรมการรับสมัคร (ถ้ามี)</label>
+                <label htmlFor="approve-committee" className="block text-slate-600 mb-1">
+                  กรรมการรับสมัคร (ถ้ามี)
+                </label>
                 <input
+                  id="approve-committee"
                   value={committeeName}
                   onChange={(e) => setCommitteeName(e.target.value)}
                   className="input w-full"
@@ -265,19 +272,24 @@ export default function MemberApplicationsPage() {
               </button>
             </div>
           </div>
-        </div>
+        </Modal>
       )}
 
       {/* ปฏิเสธ + เหตุผล */}
       {rejectTarget && (
-        <div
-          className="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
-          onClick={() => setRejectTarget(null)}
+        <Modal
+          open={!!rejectTarget}
+          onClose={() => setRejectTarget(null)}
+          title={`ปฏิเสธใบสมัคร ${rejectTarget.memberNo}`}
+          description="ระบุเหตุผลการปฏิเสธ"
+          size="max-w-md"
         >
-          <div className="bg-white rounded-2xl w-full max-w-md p-6" onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-lg font-semibold mb-1">ปฏิเสธใบสมัคร {rejectTarget.memberNo}</h3>
-            <p className="text-sm text-slate-500 mb-4">ระบุเหตุผลการปฏิเสธ</p>
+          <div>
+            <label htmlFor="reject-reason" className="sr-only">
+              เหตุผลการปฏิเสธ
+            </label>
             <textarea
+              id="reject-reason"
               value={rejectReason}
               onChange={(e) => setRejectReason(e.target.value)}
               className="input w-full h-24"
@@ -296,7 +308,7 @@ export default function MemberApplicationsPage() {
               </button>
             </div>
           </div>
-        </div>
+        </Modal>
       )}
     </motion.div>
   );

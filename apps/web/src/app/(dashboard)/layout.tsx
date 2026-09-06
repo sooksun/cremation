@@ -156,12 +156,35 @@ export default function DashboardLayout({
     router.push('/login');
   };
 
+  // ปิดเมนูบนจอเล็กด้วย Escape ให้เทียบเท่าการแตะฉากหลัง (WCAG 2.1.1)
+  useEffect(() => {
+    if (!sidebarOpen) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setSidebarOpen(false);
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [sidebarOpen]);
+
   if (!sessionChecked || !user) return null;
 
   const years = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i);
 
   return (
     <div className="min-h-screen bg-slate-50">
+      {/*
+        ทางลัดข้ามเมนู (WCAG 2.4.1) — เมนูข้างมีลิงก์กว่า 30 รายการ
+        ถ้าไม่มีทางลัดนี้ คนที่ใช้คีย์บอร์ดหรือโปรแกรมอ่านหน้าจอต้องกด Tab
+        ผ่านเมนูทั้งหมดใหม่ทุกครั้งที่เปลี่ยนหน้า กว่าจะถึงเนื้อหา
+        ซ่อนไว้จนกว่าจะถูกโฟกัส จึงไม่กระทบผู้ใช้เมาส์
+      */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[60] focus:rounded-lg focus:bg-primary-700 focus:px-4 focus:py-2 focus:text-white focus:shadow-lg"
+      >
+        ข้ามไปยังเนื้อหาหลัก
+      </a>
+
       {/* Sidebar */}
       <aside
         className={`fixed inset-y-0 left-0 z-50 w-72 bg-white border-r border-slate-200 transform transition-transform duration-300 lg:translate-x-0 flex flex-col ${
@@ -185,7 +208,7 @@ export default function DashboardLayout({
         </div>
 
         {/* Menu */}
-        <nav className="flex-1 overflow-y-auto py-4 px-3 min-h-0 scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-slate-100">
+        <nav aria-label="เมนูหลัก" className="flex-1 overflow-y-auto py-4 px-3 min-h-0 scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-slate-100">
           {user.role === 'MEMBER' && user.memberId ? (
             <Link
               href={`/members/${user.memberId}/profile`}
@@ -300,10 +323,16 @@ export default function DashboardLayout({
         </div>
       </aside>
 
-      {/* Mobile overlay */}
+      {/* ฉากหลังตอนเปิดเมนูบนจอเล็ก — เป็นทางลัดของเมาส์ล้วน
+          คีย์บอร์ดปิดเมนูด้วย Escape ซึ่งจัดการไว้ด้านล่าง
+          ทำเป็น button เพื่อไม่ให้เป็น div ที่กดได้แต่ไม่มีบทบาท และซ่อนจาก
+          โปรแกรมอ่านหน้าจอเพราะไม่ได้ให้ข้อมูลอะไรเพิ่ม */}
       {sidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+        <button
+          type="button"
+          aria-hidden="true"
+          tabIndex={-1}
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden cursor-default"
           onClick={() => setSidebarOpen(false)}
         />
       )}
@@ -363,7 +392,11 @@ export default function DashboardLayout({
         </header>
 
         {/* Page content */}
-        <main className="p-4 lg:p-6">{children}</main>
+        {/* tabIndex={-1} ให้ทางลัดข้ามเมนูย้ายโฟกัสมาที่นี่ได้จริง
+            ไม่ใช่แค่เลื่อนหน้าจอ ซึ่งจะทำให้ Tab ถัดไปย้อนกลับไปที่เมนูอีก */}
+        <main id="main-content" tabIndex={-1} className="p-4 lg:p-6 focus:outline-none">
+          {children}
+        </main>
       </div>
 
       <AssistantWidget />

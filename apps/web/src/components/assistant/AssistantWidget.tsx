@@ -35,7 +35,7 @@ export function AssistantWidget() {
       <button
         onClick={() => setOpen((v) => !v)}
         aria-label="ผู้ช่วยตอบคำถามระเบียบ"
-        className="fixed bottom-5 right-5 z-50 w-14 h-14 rounded-full bg-primary-600 text-white shadow-lg flex items-center justify-center hover:bg-primary-700 transition"
+        className="fixed bottom-5 right-5 z-50 w-14 h-14 rounded-full bg-primary-700 text-white shadow-lg flex items-center justify-center hover:bg-primary-700 transition"
       >
         {open ? <X size={24} /> : <MessageCircle size={24} />}
       </button>
@@ -92,7 +92,7 @@ export function AssistantWidget() {
               <button
                 onClick={submit}
                 disabled={isStreaming || !input.trim()}
-                className="w-10 h-10 rounded-xl bg-primary-600 text-white flex items-center justify-center disabled:opacity-40"
+                className="w-10 h-10 rounded-xl bg-primary-700 text-white flex items-center justify-center disabled:opacity-40"
               >
                 <Send size={18} />
               </button>

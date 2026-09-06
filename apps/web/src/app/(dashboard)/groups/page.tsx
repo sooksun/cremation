@@ -8,6 +8,7 @@ import { useForm } from 'react-hook-form';
 import { showSuccess, showError, showConfirm } from '@/lib/toast';
 import { api, type School, type Group } from '@/lib/api';
 import { useAuthStore } from '@/store/auth';
+import { fieldId } from '@/lib/field-id';
 
 interface GroupWithCount extends Group {
   _count?: { members: number };
@@ -342,8 +343,9 @@ export default function GroupsPage() {
 
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                 <div>
-                  <label className="label">โรงเรียน</label>
+                  <label htmlFor={fieldId('schoolId')} className="label">โรงเรียน</label>
                   <select
+                    id={fieldId('schoolId')}
                     {...register('schoolId', { required: 'กรุณาเลือกโรงเรียน' })}
                     className="input"
                     disabled={!!editingGroup}
@@ -361,8 +363,9 @@ export default function GroupsPage() {
                 </div>
 
                 <div>
-                  <label className="label">รหัสกลุ่ม</label>
+                  <label htmlFor={fieldId('code')} className="label">รหัสกลุ่ม</label>
                   <input
+                    id={fieldId('code')}
                     {...register('code', { required: 'กรุณากรอกรหัสกลุ่ม' })}
                     className="input"
                     placeholder="เช่น G01"
@@ -373,8 +376,9 @@ export default function GroupsPage() {
                 </div>
 
                 <div>
-                  <label className="label">ชื่อกลุ่ม</label>
+                  <label htmlFor={fieldId('name')} className="label">ชื่อกลุ่ม</label>
                   <input
+                    id={fieldId('name')}
                     {...register('name', { required: 'กรุณากรอกชื่อกลุ่ม' })}
                     className="input"
                     placeholder="ชื่อกลุ่ม"
