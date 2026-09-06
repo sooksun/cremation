@@ -6,7 +6,7 @@ import { AuthController } from './auth.controller';
 import { JwtStrategy } from './jwt.strategy';
 import { UsersModule } from '../users/users.module';
 import { PrismaModule } from '../prisma/prisma.module';
-import { getJwtSecret } from '../config/env.validation';
+import { getJwtExpiresIn, getJwtSecret } from '../config/env.validation';
 
 @Module({
   imports: [
@@ -16,7 +16,7 @@ import { getJwtSecret } from '../config/env.validation';
     JwtModule.register({
       secret: getJwtSecret(),
       signOptions: {
-        expiresIn: process.env.JWT_EXPIRES_IN || '7d',
+        expiresIn: getJwtExpiresIn(),
       },
     }),
   ],

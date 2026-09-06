@@ -31,3 +31,24 @@ export function getJwtSecret(): string {
   }
   return secret;
 }
+/**
+ * อายุของ JWT ในรูปแบบที่ไลบรารี ms เข้าใจ เช่น 7d, 12h, 30m หรือวินาทีเป็นตัวเลข
+ *
+ * ตั้งแต่ @nestjs/jwt 11 ชนิดของ expiresIn รัดเป็น template literal ของ ms
+ * ถ้าส่งค่าที่ผิดรูปเข้าไป ms จะโยน error ตอนสร้าง token คือผู้ใช้ล็อกอินไม่ได้
+ * ทั้งระบบ และจะรู้ตอนมีคนใช้จริงเท่านั้น จึงตรวจตั้งแต่ตอนบูตแทน
+ */
+export function getJwtExpiresIn(): `${number}${'s' | 'm' | 'h' | 'd'}` | number {
+  const raw = process.env.JWT_EXPIRES_IN?.trim();
+  if (!raw) return '7d';
+
+  if (/^\d+$/.test(raw)) return Number(raw);
+
+  const match = /^(\d+)(s|m|h|d)$/.exec(raw);
+  if (!match) {
+    throw new Error(
+      `JWT_EXPIRES_IN ต้องเป็นตัวเลขวินาที หรือตัวเลขตามด้วย s/m/h/d เช่น 7d — ได้รับ "${raw}"`,
+    );
+  }
+  return raw as `${number}${'s' | 'm' | 'h' | 'd'}`;
+}
