@@ -82,6 +82,21 @@ describe('AssetsService.recordDepreciation', () => {
     expect(created.map((e) => Number(e.debit) + Number(e.credit))).toEqual([5000, 5000]);
   });
 
+  /**
+   * เดิมถ้าไม่พบบัญชี 503/152 จะข้ามการลงบัญชีแต่ยังอัปเดตยอดสะสม แล้วตอบว่าสำเร็จ
+   * ยอดบนสินทรัพย์จึงไม่ตรงกับสมุดบัญชี และตัวกันบันทึกซ้ำที่ตรวจจากรายการบัญชี
+   * ก็ใช้ไม่ได้ กดซ้ำกี่ครั้งยอดก็บวกเพิ่มเรื่อย ๆ
+   */
+  it('ไม่มีบัญชีค่าเสื่อมในผังบัญชี ต้องปฏิเสธ ไม่ใช่อัปเดตยอดเงียบ ๆ', async () => {
+    const { service, prisma } = build();
+    prisma.account.findFirst = jest.fn(async () => null);
+
+    await expect(service.recordDepreciation('asset-1', { year: 2026 } as never)).rejects.toThrow(
+      /ยังไม่มีบัญชี/,
+    );
+    expect(prisma.asset.update).not.toHaveBeenCalled();
+  });
+
   it('มูลค่าตามบัญชีหลังตัดครบต้องเท่ากับราคาซาก ไม่ใช่ศูนย์', async () => {
     const { service } = build({ accumulatedDep: 80000 });
 

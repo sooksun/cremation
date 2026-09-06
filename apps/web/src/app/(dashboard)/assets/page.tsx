@@ -8,6 +8,8 @@ import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/auth';
 import { showSuccess, showError } from '@/lib/toast';
 import ThaiDatePicker from '@/components/ThaiDatePicker';
+import { Modal } from '@/components/ui/Modal';
+import { DepreciationPanel, bookValueOf } from './DepreciationPanel';
 import dayjs from 'dayjs';
 import buddhistEra from 'dayjs/plugin/buddhistEra';
 
@@ -33,6 +35,7 @@ export default function AssetsPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Asset | null>(null);
   const [form, setForm] = useState<any>({});
+  const [depreciating, setDepreciating] = useState<Asset | null>(null);
 
   const { data: assets = [], isLoading } = useQuery<Asset[]>({
     queryKey: ['assets', selectedSchoolId],
@@ -59,14 +62,6 @@ export default function AssetsPage() {
       queryClient.invalidateQueries({ queryKey: ['assets'] });
       showSuccess('อัปเดตสำเร็จ');
       closeModal();
-    },
-  });
-
-  const recordDepMutation = useMutation({
-    mutationFn: (id: string) => api.post(`/assets/${id}/depreciation`, {}),
-    onSuccess: (res) => {
-      queryClient.invalidateQueries({ queryKey: ['assets'] });
-      showSuccess(res.data?.message || 'บันทึกค่าเสื่อมราคาสำเร็จ');
     },
   });
 
@@ -110,7 +105,8 @@ export default function AssetsPage() {
   const fmt = (n: number) =>
     new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB' }).format(n);
 
-  const bookValue = (a: Asset) => Math.max(0, Number(a.originalCost) - Number(a.accumulatedDep || 0));
+  // ใช้ตัวเดียวกับแผงค่าเสื่อม พื้นเป็นราคาซาก ไม่ใช่ศูนย์ ให้ตรงกับที่ API คำนวณ
+  const bookValue = bookValueOf;
 
   return (
     <div className="p-6">
@@ -145,10 +141,20 @@ export default function AssetsPage() {
                   <td className="p-3 text-right font-semibold">{fmt(bookValue(a))}</td>
                   <td className="p-3 text-center">{a.usefulLifeYears} ปี</td>
                   <td className="p-3 flex gap-2 justify-end">
-                    <button onClick={() => recordDepMutation.mutate(a.id)} className="text-blue-600 hover:underline flex items-center gap-1 text-xs">
-                      <Calculator size={14} /> บันทึกเสื่อม
+                    <button
+                      onClick={() => setDepreciating(a)}
+                      aria-label={`ค่าเสื่อมราคาของ ${a.name}`}
+                      className="text-blue-600 hover:underline flex items-center gap-1 text-xs"
+                    >
+                      <Calculator size={14} aria-hidden="true" /> ค่าเสื่อมราคา
                     </button>
-                    <button onClick={() => openEdit(a)} className="text-gray-500"><Edit size={16} /></button>
+                    <button
+                      onClick={() => openEdit(a)}
+                      aria-label={`แก้ไข ${a.name}`}
+                      className="text-gray-500"
+                    >
+                      <Edit size={16} aria-hidden="true" />
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -158,29 +164,51 @@ export default function AssetsPage() {
         </div>
       )}
 
-      {/* Modal */}
-      {modalOpen && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl w-full max-w-md p-6">
-            <h2 className="text-xl font-semibold mb-4">{editing ? 'แก้ไข' : 'เพิ่ม'} สินทรัพย์ถาวร</h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <input className="input w-full" placeholder="ชื่อสินทรัพย์" value={form.name || ''} onChange={e => setForm({ ...form, name: e.target.value })} required />
-              <input className="input w-full" placeholder="รหัส (ถ้ามี)" value={form.code || ''} onChange={e => setForm({ ...form, code: e.target.value })} />
-              <ThaiDatePicker value={form.purchaseDate} onChange={d => d && setForm({ ...form, purchaseDate: d.format('YYYY-MM-DD') })} />
-              <div className="grid grid-cols-2 gap-3">
-                <input type="number" className="input" placeholder="ต้นทุนเดิม" value={form.originalCost || ''} onChange={e => setForm({ ...form, originalCost: parseFloat(e.target.value) })} required />
-                <input type="number" className="input" placeholder="มูลค่าซาก" value={form.salvageValue || 0} onChange={e => setForm({ ...form, salvageValue: parseFloat(e.target.value) })} />
-              </div>
-              <input type="number" className="input" placeholder="อายุการใช้งาน (ปี)" value={form.usefulLifeYears || ''} onChange={e => setForm({ ...form, usefulLifeYears: parseInt(e.target.value) })} required />
-              <input className="input w-full" placeholder="หมวดหมู่" value={form.category || ''} onChange={e => setForm({ ...form, category: e.target.value })} />
-              <div className="flex justify-end gap-3 pt-2">
-                <button type="button" onClick={closeModal} className="btn-secondary">ยกเลิก</button>
-                <button type="submit" className="btn-primary">บันทึก</button>
-              </div>
-            </form>
+      <Modal
+        open={modalOpen}
+        onClose={closeModal}
+        title={`${editing ? 'แก้ไข' : 'เพิ่ม'}สินทรัพย์ถาวร`}
+        size="max-w-md"
+      >
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label htmlFor="asset-name" className="label">ชื่อสินทรัพย์</label>
+            <input id="asset-name" className="input w-full" value={form.name || ''} onChange={e => setForm({ ...form, name: e.target.value })} required />
           </div>
-        </div>
-      )}
+          <div>
+            <label htmlFor="asset-code" className="label">รหัส (ถ้ามี)</label>
+            <input id="asset-code" className="input w-full" value={form.code || ''} onChange={e => setForm({ ...form, code: e.target.value })} />
+          </div>
+          <div>
+            <label htmlFor="asset-purchase-date" className="label">วันที่ซื้อ</label>
+            <ThaiDatePicker id="asset-purchase-date" value={form.purchaseDate} onChange={d => d && setForm({ ...form, purchaseDate: d.format('YYYY-MM-DD') })} />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label htmlFor="asset-cost" className="label">ต้นทุนเดิม</label>
+              <input id="asset-cost" type="number" className="input" value={form.originalCost || ''} onChange={e => setForm({ ...form, originalCost: parseFloat(e.target.value) })} required />
+            </div>
+            <div>
+              <label htmlFor="asset-salvage" className="label">ราคาซาก</label>
+              <input id="asset-salvage" type="number" className="input" value={form.salvageValue || 0} onChange={e => setForm({ ...form, salvageValue: parseFloat(e.target.value) })} />
+            </div>
+          </div>
+          <div>
+            <label htmlFor="asset-life" className="label">อายุการใช้งาน (ปี)</label>
+            <input id="asset-life" type="number" className="input w-full" value={form.usefulLifeYears || ''} onChange={e => setForm({ ...form, usefulLifeYears: parseInt(e.target.value) })} required />
+          </div>
+          <div>
+            <label htmlFor="asset-category" className="label">หมวดหมู่</label>
+            <input id="asset-category" className="input w-full" value={form.category || ''} onChange={e => setForm({ ...form, category: e.target.value })} />
+          </div>
+          <div className="flex justify-end gap-3 pt-2">
+            <button type="button" onClick={closeModal} className="btn-secondary">ยกเลิก</button>
+            <button type="submit" className="btn-primary">บันทึก</button>
+          </div>
+        </form>
+      </Modal>
+
+      <DepreciationPanel asset={depreciating} onClose={() => setDepreciating(null)} />
     </div>
   );
 }

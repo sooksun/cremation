@@ -184,6 +184,23 @@ export class AssetsService {
     const depExpense = await this.prisma.account.findFirst({ where: { code: '503' } }); // Depreciation Expense
     const accumDepContra = await this.prisma.account.findFirst({ where: { code: '152' } }); // Accumulated Depreciation
 
+    /**
+     * ค่าเสื่อมราคาต้องลงบัญชีแยกประเภทเสมอ
+     *
+     * เดิมถ้าไม่พบบัญชี 503/152 จะข้ามการลงบัญชีแต่ยังอัปเดต accumulatedDep
+     * แล้วตอบว่าบันทึกสำเร็จ ผลคือยอดค่าเสื่อมบนสินทรัพย์ไม่ตรงกับสมุดบัญชี
+     * และตัวกันบันทึกซ้ำซึ่งตรวจจากรายการบัญชีก็ใช้ไม่ได้ กดซ้ำกี่ครั้งยอดก็บวกเพิ่ม
+     * ทดสอบแล้วบนฐานข้อมูลที่ไม่มีสองบัญชีนี้ กดสองครั้งได้ยอดสะสมสองเท่า
+     */
+    if (!depExpense || !accumDepContra) {
+      const missing = [!depExpense && '503 (ค่าเสื่อมราคา)', !accumDepContra && '152 (ค่าเสื่อมราคาสะสม)']
+        .filter(Boolean)
+        .join(', ');
+      throw new BadRequestException(
+        `ยังไม่มีบัญชี ${missing} ในผังบัญชี จึงบันทึกค่าเสื่อมราคาไม่ได้`,
+      );
+    }
+
     let ledgerCreated = false;
     if (depExpense && accumDepContra) {
       await this.prisma.ledgerEntry.createMany({
@@ -205,13 +222,6 @@ export class AssetsService {
         ],
       });
       ledgerCreated = true;
-    } else {
-      const missing = [!depExpense && '503 (ค่าเสื่อมราคา)', !accumDepContra && '152 (ค่าเสื่อมราคาสะสม)']
-        .filter(Boolean)
-        .join(', ');
-      this.logger.warn(
-        `recordDepreciation: ไม่พบบัญชี ${missing} — ข้ามการบันทึกบัญชีสำหรับสินทรัพย์ ${asset.name} ปี ${year} (ยังคงอัปเดตยอดสะสมค่าเสื่อมราคาบน Asset)`,
-      );
     }
 
     const updated = await this.prisma.asset.update({
