@@ -302,109 +302,157 @@ function formatFullThaiDate(iso: string | undefined): string {
 }
 
 /**
- * ปรับแต่งสระและวรรณยุกต์ภาษาไทย (Thai Glyph Shaping / PUA Mapping)
- * เพื่อแก้ปัญหาสระลอย วรรณยุกต์ลอย หรือตัวอักษรกระโดดแยกช่องว่างใน PDF
+ * จัดวางสระและวรรณยุกต์ไทยสำหรับ pdf-lib (Thai PUA shaping)
+ *
+ * ฟอนต์ TH Sarabun New ไม่มีฟีเจอร์ mark/mkmk (มีแค่ ccmp frac liga rlig kern)
+ * การจัดตำแหน่งจึงต้องทำด้วยการสลับไปใช้ glyph สำเร็จรูปในโซน Private Use Area
+ * เบราว์เซอร์ทำให้เองผ่าน HarfBuzz แต่ fontkit ที่ pdf-lib ใช้ไม่ทำ ถ้าส่งยูนิโคดดิบ
+ * เข้าไปตรง ๆ วรรณยุกต์จะลอยสูงเหนือพยัญชนะปกติ
+ *
+ * ตารางด้านล่างได้จากการวัดจริง ไม่ได้อ้างตำรา — เรนเดอร์คำทดสอบด้วยฟอนต์เดียวกัน
+ * บนเบราว์เซอร์ (ซึ่ง shape ถูกต้อง) แล้วเทียบระดับพิกเซลกับ glyph PUA ทุกตัว
+ * เลือกตัวที่ตรงกัน 100% ดูสคริปต์ตรวจสอบได้ที่ shapeThai ใน spec ไฟล์นี้
+ *
+ * พยัญชนะหางสูงคือ ป ฝ ฟ เท่านั้น (ความสูง 1751 หน่วย) — ผ และ ฬ สูง 1253 และ 1350
+ * เท่ากับพยัญชนะทั่วไป จึงไม่นับเป็นหางสูง
  */
+const TALL_CONSONANTS = new Set(['ป', 'ฝ', 'ฟ']);
+const LOWER_CUT_TARGETS = new Set(['ฎ', 'ฏ']);
+const UPPER_VOWELS = new Set(['ั', 'ิ', 'ี', 'ึ', 'ื', '็', 'ํ']);
+const LOWER_VOWELS = new Set(['ุ', 'ู', 'ฺ']);
+
+/** สระล่างใต้ ฎ ฏ ต้องลดระดับลงหลบหางของพยัญชนะ */
+const LOWER_VOWEL_UNDER_TAIL: Record<string, string> = {
+  'ุ': '',
+  'ู': '',
+  'ฺ': '',
+};
+
+/** สระบนเหนือพยัญชนะหางสูง ต้องเลื่อนซ้ายหลบหาง */
+const UPPER_VOWEL_OVER_TALL: Record<string, string> = {
+  'ิ': '',
+  'ี': '',
+  'ึ': '',
+  'ื': '',
+  'ั': '',
+  '็': '',
+};
+
+/** วรรณยุกต์เหนือพยัญชนะทั่วไปที่ไม่มีสระบน ต้องลดระดับลงมาชิดพยัญชนะ */
+const TONE_LOWERED: Record<string, string> = {
+  '่': '',
+  '้': '',
+  '๊': '',
+  '๋': '',
+  '์': '',
+};
+
+/** วรรณยุกต์ซ้อนเหนือสระบนของพยัญชนะหางสูง ต้องเลื่อนซ้ายหลบหาง */
+const TONE_OVER_TALL_WITH_VOWEL: Record<string, string> = {
+  '่': '',
+  '้': '',
+  '๊': '',
+  '๋': '',
+  '์': '',
+};
+
 export function shapeThai(text: string | undefined): string {
   if (!text) return '';
   const chars = Array.from(text);
   const result: string[] = [];
-  const TALL_CONSONANTS = new Set(['ป', 'ผ', 'ฝ', 'ฟ', 'ฬ']);
-  const LOWER_CUT_CONSONANTS = new Set(['ฐ', 'ญ']);
-  const LOWER_CUT_TARGETS = new Set(['ฎ', 'ฏ']);
-  const UPPER_VOWELS = new Set(['\u0E31', '\u0E34', '\u0E35', '\u0E36', '\u0E37', '\u0E47', '\u0E4D']);
-  const LOWER_VOWELS = new Set(['\u0E38', '\u0E39', '\u0E3A']);
-  const TONE_MARKS = new Set(['\u0E48', '\u0E49', '\u0E4A', '\u0E4B', '\u0E4C']);
 
   for (let i = 0; i < chars.length; i++) {
     const curr = chars[i];
     const prev = chars[i - 1] || '';
     const prev2 = chars[i - 2] || '';
-    const next = chars[i + 1] || '';
 
-    // 1) ฐ / ญ เมื่อมีสระล่าง ให้ตัดเชิง (Base-less)
-    if (LOWER_CUT_CONSONANTS.has(curr) && LOWER_VOWELS.has(next)) {
-      if (curr === 'ฐ') result.push('\uF700');
-      else if (curr === 'ญ') result.push('\uF70F');
-      continue;
-    }
-
-    // 2) สระล่างใต้ ฎ / ฏ ให้ดึงระดับลงหลบหาง
+    // สระล่างใต้ ฎ ฏ
     if (LOWER_VOWELS.has(curr) && LOWER_CUT_TARGETS.has(prev)) {
-      if (curr === '\u0E38') result.push('\uF718');
-      else if (curr === '\u0E39') result.push('\uF719');
-      else if (curr === '\u0E3A') result.push('\uF71A');
+      result.push(LOWER_VOWEL_UNDER_TAIL[curr] ?? curr);
       continue;
     }
 
-    // 3) สระบนเหนือพยัญชนะหางยาว (ป, ผ, ฝ, ฟ, ฬ) ให้เลื่อนซ้ายหลบหาง
+    // สระบนเหนือพยัญชนะหางสูง
     if (UPPER_VOWELS.has(curr) && TALL_CONSONANTS.has(prev)) {
-      if (curr === '\u0E34') result.push('\uF701');
-      else if (curr === '\u0E35') result.push('\uF702');
-      else if (curr === '\u0E36') result.push('\uF703');
-      else if (curr === '\u0E37') result.push('\uF704');
-      else if (curr === '\u0E31') result.push('\uF711');
-      else if (curr === '\u0E47') result.push('\uF712');
-      else result.push(curr);
+      result.push(UPPER_VOWEL_OVER_TALL[curr] ?? curr);
       continue;
     }
 
-    // 4) วรรณยุกต์และเครื่องหมายการันต์
-    if (TONE_MARKS.has(curr)) {
-      const hasUpperVowelBefore = UPPER_VOWELS.has(prev);
-      const hasLowerVowelBefore = LOWER_VOWELS.has(prev);
-      const baseConsonant = hasUpperVowelBefore || hasLowerVowelBefore ? prev2 : prev;
-      const isTall = TALL_CONSONANTS.has(baseConsonant);
+    // วรรณยุกต์และการันต์
+    if (TONE_LOWERED[curr]) {
+      // สระอำ (U+0E33) มีนิคหิตอยู่ด้านบน และเขียนไว้หลังวรรณยุกต์
+      // เช่น น้ำ = น + ้ + ำ วรรณยุกต์จึงต้องอยู่สูงเหนือนิคหิต ไม่ใช่ลดระดับลงชิดพยัญชนะ
+      const next = chars[i + 1] || '';
+      const overUpperVowel = UPPER_VOWELS.has(prev) || next === 'ำ';
+      // สระล่างไม่กินที่ด้านบน วรรณยุกต์จึงยังอยู่ชิดพยัญชนะเหมือนไม่มีสระ
+      const base = overUpperVowel || LOWER_VOWELS.has(prev) ? prev2 : prev;
+      const tall = TALL_CONSONANTS.has(base);
 
-      if (hasUpperVowelBefore) {
-        // วรรณยุกต์ระดับบน (ซ้อนเหนือสระบน เช่น ชั่, ที่, ปี้, ซิ์)
-        if (isTall) {
-          if (curr === '\u0E48') result.push('\uF713');
-          else if (curr === '\u0E49') result.push('\uF714');
-          else if (curr === '\u0E4A') result.push('\uF715');
-          else if (curr === '\u0E4B') result.push('\uF716');
-          else if (curr === '\u0E4C') result.push('\uF717');
-        } else {
-          if (curr === '\u0E48') result.push('\uF70A');
-          else if (curr === '\u0E49') result.push('\uF70B');
-          else if (curr === '\u0E4A') result.push('\uF70C');
-          else if (curr === '\u0E4B') result.push('\uF70D');
-          else if (curr === '\u0E4C') result.push('\uF70E');
-        }
-      } else if (isTall) {
-        // วรรณยุกต์เหนือพยัญชนะหางยาวโดยไม่มีสระบน (เช่น ฟ้า, ป่า, ฟ้อง, ผู้) ให้เลื่อนซ้ายหลบหาง
-        if (curr === '\u0E48') result.push('\uF713');
-        else if (curr === '\u0E49') result.push('\uF714');
-        else if (curr === '\u0E4A') result.push('\uF715');
-        else if (curr === '\u0E4B') result.push('\uF716');
-        else if (curr === '\u0E4C') result.push('\uF717');
+      if (overUpperVowel) {
+        // เหนือสระบน: พยัญชนะหางสูงต้องเลื่อนซ้าย ส่วนพยัญชนะทั่วไปใช้ glyph ปกติ
+        // ซึ่งออกแบบมาให้อยู่สูงพอดีเหนือสระอยู่แล้ว
+        result.push(tall ? TONE_OVER_TALL_WITH_VOWEL[curr] : curr);
       } else {
-        // วรรณยุกต์ระดับปกติ (เช่น แม่, บ้าน, ได้)
-        result.push(curr);
+        // ไม่มีสระบน: พยัญชนะทั่วไปต้องลดระดับลงมา ไม่งั้นวรรณยุกต์จะลอย
+        // ส่วนพยัญชนะหางสูงใช้ glyph ปกติที่อยู่สูงพอดีเหนือหาง
+        result.push(tall ? curr : TONE_LOWERED[curr]);
       }
       continue;
     }
 
     result.push(curr);
   }
+
   return result.join('');
 }
 
+/** เล็กที่สุดที่ยังอ่านออกบนกระดาษ ต่ำกว่านี้ยอมตัดข้อความแทน */
+const MIN_SIZE = 6;
+
+/**
+ * ข้อความยาวเกินช่องจะถูกย่อขนาดให้พอดีก่อน แล้วค่อยตัดถ้ายังไม่พอ
+ *
+ * เดิมตัดทิ้งอย่างเดียวตาม maxChars ซึ่งทำให้ชื่อหน่วยงานจริงหายไปเกือบหมด
+ * เช่น "โรงเรียนตำรวจตระเวนชายแดนศรีสมวงศ์ กลุ่มเครือข่าย..." ยาว 88 ตัวอักษร
+ * แต่ช่องกำหนดไว้ 22 ตัว จึงเหลือแค่ราวหนึ่งในสี่บนแบบฟอร์มทางการ
+ */
 function drawText(
   page: PDFPage,
   font: PDFFont,
   text: string,
   pos: FieldPos,
 ) {
-  const value = truncate(text, pos.maxChars ?? 80);
+  const value = sanitizeField(text);
   if (!value) return;
 
-  const shapedText = shapeThai(value);
   const size = pos.size ?? DEFAULT_SIZE;
+  const maxChars = pos.maxChars ?? 80;
+
+  // ความกว้างที่ช่องรับได้ = ความกว้างของข้อความเท่าจำนวนตัวอักษรที่กำหนดไว้เดิม
+  const budget = font.widthOfTextAtSize(shapeThai(value.slice(0, maxChars)), size);
+  const shapedFull = shapeThai(value);
+  const fullWidth = font.widthOfTextAtSize(shapedFull, size);
+
+  let shapedText = shapedFull;
+  let finalSize = size;
+
+  if (fullWidth > budget && budget > 0) {
+    const scaled = (size * budget) / fullWidth;
+    if (scaled >= MIN_SIZE) {
+      finalSize = scaled;
+    } else {
+      // ย่อจนถึงขนาดต่ำสุดแล้วยังไม่พอ ค่อยตัดเท่าที่ขนาดนั้นรับไหว
+      finalSize = MIN_SIZE;
+      const perChar = fullWidth / Math.max(1, Array.from(value).length);
+      const fit = Math.max(1, Math.floor((budget * size) / (perChar * MIN_SIZE)));
+      shapedText = shapeThai(truncate(value, fit));
+    }
+  }
+
   page.drawText(shapedText, {
     x: pos.x + OFFSET_X,
     y: pos.y,
-    size,
+    size: finalSize,
     font,
     color: black(),
   });
@@ -665,7 +713,11 @@ function fillTemplate(pdfDoc: PDFDocument, font: PDFFont, data: MembershipRegist
   });
 }
 
-async function buildMembershipRegisterPdf(data: MembershipRegisterForm): Promise<Uint8Array> {
+/**
+ * สร้างไฟล์ PDF เป็นไบต์ล้วน ไม่แตะ DOM — แยกออกมาให้ทดสอบตำแหน่งข้อความได้
+ * โดยไม่ต้องมีเบราว์เซอร์ ส่วนที่ต้องใช้ DOM อยู่ใน exportMembershipRegisterPdf
+ */
+export async function buildMembershipRegisterPdf(data: MembershipRegisterForm): Promise<Uint8Array> {
   const config = MEMBERSHIP_TYPE_CONFIG[data.type];
   const [lib, fontkitModule, { templateBytes, fontBytes }] = await Promise.all([
     loadPdfLib(),
