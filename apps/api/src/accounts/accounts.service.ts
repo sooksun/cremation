@@ -208,9 +208,32 @@ export class AccountsService {
   async getLedger(accountId: string, startDate?: Date, endDate?: Date) {
     const account = await this.findById(accountId);
 
+    // เดิมเป็น startDate && endDate ทำให้ส่งมาขอบเดียวแล้วไม่กรองเลย
+    // หน้าจอที่ขอ "ตั้งแต่วันที่" จึงได้รายการทั้งหมดมาโดยไม่มีอะไรบอกว่าตัวกรองถูกทิ้ง
     const where: any = { accountId };
-    if (startDate && endDate) {
-      where.date = { gte: startDate, lte: endDate };
+    if (startDate || endDate) {
+      where.date = {
+        ...(startDate ? { gte: startDate } : {}),
+        ...(endDate ? { lte: endDate } : {}),
+      };
+    }
+
+    const movementOf = (entry: { debit: unknown; credit: unknown }) =>
+      account.type === 'ASSET' || account.type === 'EXPENSE'
+        ? Number(entry.debit) - Number(entry.credit)
+        : Number(entry.credit) - Number(entry.debit);
+
+    // ยอดยกมา = ผลรวมของรายการก่อนวันเริ่มช่วง
+    // ถ้าไม่ตั้งต้นจากยอดนี้ บัญชีที่มีเงินอยู่จริงจะแสดงยอดเริ่มที่ 0 หรือติดลบ
+    // ทันทีที่ผู้ใช้กรองช่วงวันที่ ซึ่งอ่านเป็นยอดคงเหลือที่ผิด
+    let openingBalance = 0;
+    if (startDate) {
+      const earlier = await this.prisma.ledgerEntry.findMany({
+        where: { accountId, date: { lt: startDate } },
+        select: { debit: true, credit: true },
+      });
+      openingBalance =
+        Math.round(earlier.reduce((sum, e) => sum + movementOf(e), 0) * 100) / 100;
     }
 
     const entries = await this.prisma.ledgerEntry.findMany({
@@ -222,13 +245,9 @@ export class AccountsService {
       orderBy: { date: 'asc' },
     });
 
-    let runningBalance = 0;
+    let runningBalance = openingBalance;
     return entries.map((entry) => {
-      const movement =
-        account.type === 'ASSET' || account.type === 'EXPENSE'
-          ? Number(entry.debit) - Number(entry.credit)
-          : Number(entry.credit) - Number(entry.debit);
-      runningBalance += movement;
+      runningBalance = Math.round((runningBalance + movementOf(entry)) * 100) / 100;
 
       return {
         ...entry,

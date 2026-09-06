@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { PrismaModule } from './prisma/prisma.module';
 import { CommonModule } from './common/common.module';
@@ -29,6 +29,7 @@ import { AssistantModule } from './assistant/assistant.module';
 import { SchoolScopeInterceptor } from './common/interceptors/school-scope.interceptor';
 import { ViewerReadOnlyInterceptor } from './common/interceptors/viewer-readonly.interceptor';
 import { HealthController } from './health.controller';
+import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 
 @Module({
   controllers: [HealthController],
@@ -70,6 +71,11 @@ import { HealthController } from './health.controller';
   ],
   providers: [
     SchoolScopeInterceptor,
+    // ตัวจับข้อผิดพลาดตัวสุดท้าย แปลงข้อผิดพลาดของ Prisma เป็นคำตอบที่ผู้ใช้เข้าใจ
+    {
+      provide: APP_FILTER,
+      useClass: AllExceptionsFilter,
+    },
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,

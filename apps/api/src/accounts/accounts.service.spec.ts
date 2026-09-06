@@ -52,6 +52,7 @@ function buildPrisma(accounts: FakeAccount[], entries: FakeEntry[], assets: Fake
     if (where.accountId !== undefined && row.accountId !== where.accountId) return false;
     if (where.date?.gte && row.date < where.date.gte) return false;
     if (where.date?.lte && row.date > where.date.lte) return false;
+    if (where.date?.lt && row.date >= where.date.lt) return false;
     // ยังไม่มี read path ไหนส่งเงื่อนไขโรงเรียนมา — ถ้าส่งมาเมื่อไร mock พร้อมกรองให้
     if (where.schoolId !== undefined && row.schoolId !== where.schoolId) return false;
     if (where.receipt?.schoolId !== undefined && row.schoolId !== where.receipt.schoolId) {
@@ -397,6 +398,58 @@ describe('AccountsService.getLedger', () => {
 
     expect(ledger[ledger.length - 1].runningBalance).toBe(
       tb.accounts.find((a) => a.code === '101')!.balance,
+    );
+  });
+
+  // ส่ง startDate มาอย่างเดียวเคยไม่กรองเลย เพราะเงื่อนไขเป็น startDate && endDate
+  // ผลคือหน้าจอที่ขอ "ตั้งแต่วันที่" ได้รายการทั้งหมดมาโดยไม่มีอะไรบอก
+  it('กรองได้แม้ส่งมาแค่วันเริ่มต้น', async () => {
+    const service = buildService(buildPrisma(ACCOUNTS, ENTRIES));
+
+    const ledger = await service.getLedger('a-cash', new Date('2026-02-01'));
+
+    expect(ledger).toHaveLength(1);
+    expect(ledger[0].date).toEqual(new Date('2026-02-05'));
+  });
+
+  it('กรองได้แม้ส่งมาแค่วันสิ้นสุด', async () => {
+    const service = buildService(buildPrisma(ACCOUNTS, ENTRIES));
+
+    const ledger = await service.getLedger('a-cash', undefined, new Date('2026-01-31'));
+
+    expect(ledger).toHaveLength(2);
+  });
+
+  // ยอดคงเหลือของงวดต้องตั้งต้นจากยอดยกมา ไม่ใช่ 0
+  // ไม่งั้นบัญชีเงินสดที่มีเงินอยู่ 305.75 จะแสดงยอดติดลบทันทีที่กรองช่วงวันที่
+  it('เดินยอดต่อจากยอดยกมาก่อนวันเริ่มช่วง', async () => {
+    const service = buildService(buildPrisma(ACCOUNTS, ENTRIES));
+
+    const ledger = await service.getLedger('a-cash', new Date('2026-02-01'));
+
+    expect(ledger.map((e) => e.runningBalance)).toEqual([255.5]);
+  });
+
+  it('ยอดยกมาใช้กับช่วงที่ระบุทั้งสองด้านด้วย', async () => {
+    const service = buildService(buildPrisma(ACCOUNTS, ENTRIES));
+
+    const ledger = await service.getLedger(
+      'a-cash',
+      new Date('2026-01-15'),
+      new Date('2026-02-28'),
+    );
+
+    expect(ledger.map((e) => e.runningBalance)).toEqual([305.75, 255.5]);
+  });
+
+  it('ยอดปิดของงวดต้องเท่ากับยอดปิดของทั้งบัญชี เมื่อช่วงครอบรายการสุดท้าย', async () => {
+    const service = buildService(buildPrisma(ACCOUNTS, ENTRIES));
+
+    const full = await service.getLedger('a-cash');
+    const ranged = await service.getLedger('a-cash', new Date('2026-02-01'));
+
+    expect(ranged[ranged.length - 1].runningBalance).toBe(
+      full[full.length - 1].runningBalance,
     );
   });
 });

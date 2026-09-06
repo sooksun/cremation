@@ -134,8 +134,10 @@ export class AssetsService {
   // Get current book value
   getBookValue(asset: any): number {
     const cost = Number(asset.originalCost);
+    const salvage = Number(asset.salvageValue || 0);
     const accum = Number(asset.accumulatedDep || 0);
-    return Math.max(0, Math.round((cost - accum) * 100) / 100);
+    // พื้นเป็นราคาซาก ไม่ใช่ 0 — ปัดที่ 0 เฉย ๆ จะกลบกรณีค่าเสื่อมสะสมผิดจนติดลบ
+    return Math.max(salvage, Math.round((cost - accum) * 100) / 100);
   }
 
   // Record depreciation for the year (updates accumulated + creates ledger if accounts exist)
@@ -156,12 +158,26 @@ export class AssetsService {
       throw new BadRequestException('บันทึกค่าเสื่อมราคาปีนี้แล้ว');
     }
 
-    const annualDep = dto.amount ?? this.calculateAnnualDepreciation(asset, year);
-    if (annualDep <= 0) {
+    // ค่าเสื่อมแบบเส้นตรงต้องหยุดเมื่อตัดครบฐาน (ต้นทุน - ราคาซาก)
+    // เดิมบวกสะสมไปเรื่อย ๆ ทุกครั้งที่เรียก ทำให้ค่าเสื่อมสะสมทะลุต้นทุน
+    // มูลค่าตามบัญชีติดลบ (ถูก getBookValue ปัดเป็น 0 จนมองไม่เห็น) และงบมี
+    // ค่าใช้จ่ายค่าเสื่อมของสินทรัพย์ที่ตัดครบไปแล้ว
+    const accumulated = Number(asset.accumulatedDep || 0);
+    const depreciableBase =
+      Number(asset.originalCost) - Number(asset.salvageValue || 0);
+    const remaining = Math.round(Math.max(0, depreciableBase - accumulated) * 100) / 100;
+
+    const requested = dto.amount ?? this.calculateAnnualDepreciation(asset, year);
+    if (requested <= 0) {
       return { message: 'ไม่มีการคำนวณค่าเสื่อมราคา', asset };
     }
+    if (remaining <= 0) {
+      return { message: 'สินทรัพย์นี้ตัดค่าเสื่อมราคาครบแล้ว', asset };
+    }
 
-    const newAccum = Number(asset.accumulatedDep || 0) + annualDep;
+    // ยอดที่ระบุเองก็ต้องไม่ทะลุเพดานเดียวกัน
+    const annualDep = Math.min(requested, remaining);
+    const newAccum = Math.round((accumulated + annualDep) * 100) / 100;
 
     // Try to create ledger entry for depreciation (debit expense, credit accum)
     // Find typical accounts (can be configured later)
