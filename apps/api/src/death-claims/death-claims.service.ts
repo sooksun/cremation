@@ -372,7 +372,7 @@ export class DeathClaimsService {
     if (actor) {
       await this.auditLog.log({
         userId: actor.id,
-        action: AuditAction.DEATH_CLAIM_CREATE,
+        action: AuditAction.DEATH_CLAIM_UPDATE,
         entityType: 'DeathClaim',
         entityId: id,
         schoolId: claim.schoolId,
@@ -438,7 +438,7 @@ export class DeathClaimsService {
     if (actor) {
       await this.auditLog.log({
         userId: actor.id,
-        action: AuditAction.DEATH_CLAIM_CREATE,
+        action: AuditAction.DEATH_CLAIM_UPDATE,
         entityType: 'DeathClaim',
         entityId: id,
         schoolId: claim.schoolId,

@@ -58,8 +58,24 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @SkipMustChangePassword()
   @Post('logout')
-  logout(@Res({ passthrough: true }) res: Response) {
+  async logout(@Res({ passthrough: true }) res: Response, @Request() req: any) {
     res.clearCookie(AUTH_COOKIE_NAME, getAuthCookieOptions());
+
+    // USER_LOGOUT ถูกประกาศไว้ใน AuditAction ตั้งแต่แรกคู่กับ USER_LOGIN
+    // แต่ handler นี้ไม่เคยเรียกจริง log การออกจากระบบจึงไม่มีอยู่ในระบบเลย
+    const user = req?.user as { id?: string; schoolId?: string; username?: string } | undefined;
+    if (user?.id) {
+      await this.auditLog.log({
+        userId: user.id,
+        action: AuditAction.USER_LOGOUT,
+        entityType: 'User',
+        entityId: user.id,
+        schoolId: user.schoolId,
+        metadata: { username: user.username },
+        ipAddress: req?.ip || req?.headers?.['x-forwarded-for'] || undefined,
+      });
+    }
+
     return { message: 'ออกจากระบบสำเร็จ' };
   }
 
